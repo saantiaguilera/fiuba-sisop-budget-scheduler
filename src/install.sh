@@ -6,8 +6,7 @@
 
 export GRUPO="Grupo5" #Maybe instead of having them as env, we should have them locally? I guess this will be required by most of scripts, so its better to have it in the console already exported
 RETURN_PTR="" #Used as return variable to avoid using stdout or shared variables
-BINDIR="$GRUPO/bin"
-
+BINDIR="$GRUPO/bin" #Maybe we should ask here the bindir? kinda $GRUPO/`input_directory "bin"`
 
 #Instalation
 
