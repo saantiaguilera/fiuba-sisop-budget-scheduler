@@ -9,5 +9,15 @@ BINDIR="$GRUPO/bin"
 
 #Instalation
 
+STEP_CURRENT=0
+STEP_LAST=1
 
-	
+STEP_VERIFY_NOT_INSTALLED=0
+
+while [ $STEP_CURRENT -lt $STEP_LAST ] ;do 
+	case $STEP_CURRENT in
+		$STEP_VERIFY_NOT_INSTALLED) echo "use use use use your imagineiiiiiiiiishon"
+		;;
+
+	esac
+done
