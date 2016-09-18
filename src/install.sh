@@ -7,6 +7,7 @@
 export GRUPO="Grupo5" #Maybe instead of having them as env, we should have them locally? I guess this will be required by most of scripts, so its better to have it in the console already exported
 RETURN_PTR="" #Used as return variable to avoid using stdout or shared variables
 BINDIR="$GRUPO/bin" #Maybe we should ask here the bindir? kinda $GRUPO/`input_directory "bin"`
+CONFDIR="$GRUPO/dirconf" #Its protected. Do not change it!
 
 #Instalation
 
@@ -37,6 +38,12 @@ while [ $STEP_CURRENT -lt $STEP_LAST ] ;do
 	case $STEP_CURRENT in
 		$STEP_VERIFY_NOT_INSTALLED) 
 			echo "use use use use your imagineiiiiiiiiishon"
+			if [ -r "$CONFDIR/Instalep.conf" ] 
+				then 
+					echo "fiesta"
+				else
+					echo "recursamo"
+			fi
 
 			let "STEP_CURRENT++"
 		;;
