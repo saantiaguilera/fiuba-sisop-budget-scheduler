@@ -19,14 +19,14 @@ CICLE_COUNT=1
 
 #Step3, Check if there are files at the dir.
 
-for current_file in $FILESDIR/*
+for CURRENT_FILE in $FILESDIR/*
 	do
-		echo "Archivo detectado: $current_file"
+		echo "Archivo detectado: $CURRENT_FILE"
 
 		#Step4, check its a text file
-		mime_type=($(file -i "$current_file" | cut -d' ' -f2)) #Get the info from the current file, pipe it to the stdin of cut and extract the second field delimited by a space
+		MIME_TYPE=($(file -i "$CURRENT_FILE" | cut -d' ' -f2)) #Get the info from the current file, pipe it to the stdin of cut and extract the second field delimited by a space
 
-		if ! [ $mime_type == text/* ] && ! [ $mime_type == regular ]
+		if ! [ $MIME_TYPE == text/* ] && ! [ $MIME_TYPE == regular ]
 			then
 				echo "Archivo rechazado, motivo: no es un archivo de texto"
 				exit 1 #Later see to where send him if it fails
@@ -34,7 +34,7 @@ for current_file in $FILESDIR/*
 
 		#Step5, check the file has size >0
 
-		if ! [ -s $current_file ]
+		if ! [ -s $CURRENT_FILE ]
 			then 
 				echo "Archivo rechazado, motivo: archivo vacio"
 				exit 1 #Same
@@ -42,6 +42,29 @@ for current_file in $FILESDIR/*
 
 		#Step6, check the format of the file is 'ejecutado_:year_:provcode_:yyyy:mm:dd.csv
 
-		#TODO
+		local DATE=`date +%y`
+		if ! [ $CURRENT_FILE =~ ^ejecutado_($DATE)_([3-9]|1[0-9]?|2[0-4]?)_$DATE/[\d]{2}/[\d]{1,2}\.csv$ ]
+			then
+				echo "Archivo rechazado, motivo: formato de nombre incorrecto"
+				
+				#Step7
+
+				if [ $CURRENT_FILE =~ ^ejecutado_(^$DATE).* ]
+					then
+						echo "Archivo rechazado, motivo: a;o ${BASH_REMATCH[1]} incorrecto."
+				fi
+
+				#Step8
+
+				if [ $CURRENT_FILE =~ ^ejecutado_($DATE)_^([3-9]|1[0-9]?\2[0-4]?).* ]
+					then
+						echo "Archivo rechazado, motivo: provincia ${BASH_REMATCH[2]} incorrecta."
+				fi
+
+				#Step9
+
+				#TODO, falta testear igual lo anterior
+
+		fi
 
 done
