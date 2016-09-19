@@ -43,7 +43,8 @@ for CURRENT_FILE in $FILESDIR/*
 		#Step6, check the format of the file is 'ejecutado_:year_:provcode_:yyyy:mm:dd.csv
 
 		local DATE=`date +%y`
-		if ! [ $CURRENT_FILE =~ ^ejecutado_($DATE)_([3-9]|1[0-9]?|2[0-4]?)_$DATE/[\d]{2}/[\d]{1,2}\.csv$ ]
+		#The regex currently checks the mm/dd as 2 digits, which can be day 62. Fix this TODO
+		if ! [ $CURRENT_FILE =~ ^ejecutado_($DATE)_([3-9]|1[0-9]?|2[0-4]?)_$DATE\/[\d]{1,2}\/[\d]{1,2}\.csv$ ]
 			then
 				echo "Archivo rechazado, motivo: formato de nombre incorrecto"
 				
@@ -63,7 +64,7 @@ for CURRENT_FILE in $FILESDIR/*
 
 				#Step9
 
-				#TODO, falta testear igual lo anterior
+				#TODO
 
 		fi
 
