@@ -38,6 +38,27 @@ function select_dirs {
     done
 }
 
+function set_news_size {
+    local SIZE=""
+    local SYSTEM_SIZE=""
+    df -BM . | tail -1 | awk '{print $4}' > SYSTEM_SIZE
+    read -p "Defina espacio minimo libre para la recepcion de archivos Mbytes\\ 
+    ($1): " SIZE
+    if [ -z "$SIZE"]
+    then
+        SIZE=$1
+    fi
+
+    local END_MSG=""
+    # Delete trailing M of the string (1024M)
+    if [ $SIZE -gt $SYSTEM_SIZE ]
+    then
+        echo "Comprate un disco prro" | stdout instalep.conf
+    else
+        echo "Todo piola"
+    fi
+
+}
 #Steps
 
 STEP_CURRENT=0
