@@ -24,11 +24,9 @@ for CURRENT_FILE in $FILESDIR/*
 		echo "Archivo detectado: $CURRENT_FILE"
 
 		#Step4, check its a text file
-		MIME_TYPE=($(file -i "$CURRENT_FILE" | cut -d' ' -f2)) #Get the info from the current file, pipe it to the stdin of cut and extract the second field delimited by a space
+		MIME_TYPE=($(file "$CURRENT_FILE" | cut -d' ' -f2)) #Get the info from the current file, pipe it to the stdin of cut and extract the second field delimited by a space
 
-		echo $MIME_TYPE
-
-		if ! [[ $MIME_TYPE =~ text/* ]]
+		if ! [[ $MIME_TYPE =~ ASCII ]]
 			then
 				echo "Archivo rechazado, motivo: no es un archivo de texto"
 				exit 1 #Later see to where send him if it fails
