@@ -51,9 +51,7 @@ function init_environment() {
 	LOG="$LOG_DIR/Initep.log"
 	
 	#TODO Check for success, log if necessary
-}
 
-function export_environment() {
 	export GRUPO
 	export BIN_DIR
 	export MAE_DIR
@@ -118,12 +116,17 @@ function check_file_permissions() {
 }
 
 function system_init() {
-	#TODO log init with Logep
+	#TODO log msg with Logep
 	echo "Estado del Sistema: INICIALIZADO"
 }
 
 # 4. Ask to release the DEMONIO
 
+function start_demonep() {
+	echo "¿Desea efectuar la activación de Demonep? Si – No"
+	read ANSWER
+	
+}
 
 
 function main() {
@@ -132,8 +135,6 @@ function main() {
 		return 1;
 	
 	init_environment
-	
-	export_environment
 	
 	check_script_permissions
 	if [ ! -z $? ]; then
