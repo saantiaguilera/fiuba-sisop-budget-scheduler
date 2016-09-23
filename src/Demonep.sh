@@ -33,7 +33,7 @@ for CURRENT_FILE in $FILESDIR/*
 		fi
 
 		#Step5, check the file has size >0
-exit 0
+
 		if ! [ -s $CURRENT_FILE ]
 			then 
 				echo "Archivo rechazado, motivo: archivo vacio"
