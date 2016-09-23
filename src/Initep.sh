@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# 1. Verify if env has been initialized
+# 1. Verify if environment has been initialized
 
 function check_previous_init() {
 	EXIT_CODE=0
 	
 	if pgrep -x "budget_scheduler" > /dev/null
 	then
-		#TODO Log msg with Logep
+		#TODO Log msg with Logep ¿? cómo si no se cual es el log_dir aca :s
 		echo "Ambiente ya inicializado, para reiniciar termine la sesión e ingrese nuevamente."
 		EXIT_CODE=1
 	fi
@@ -15,13 +15,15 @@ function check_previous_init() {
 	return $EXIT_CODE
 }
 
-# 2. Initialize env variables
+# 2. Initialize environment variables
 
 function extract_dir() {
 	eval $1=$(echo $2 | cut -d '=' -f 2)
 }
 
 function init_environment() {
+	EXIT_CODE=0
+	
 	GRUPO="Grupo5"
 	CONF_FILE="$GRUPO/dirconf/EPLAM.conf"
 
@@ -36,7 +38,7 @@ function init_environment() {
 
 	while read -r LINE
 		do
-			case $line in
+			case $LINE in
 				BIN=*) extract_dir BIN_DIR $LINE;;
 				MAE=*) extract_dir MAE_DIR $LINE;;
 				REC=*) extract_dir REC_DIR $LINE;;
@@ -45,10 +47,10 @@ function init_environment() {
 				INFO=*) extract_dir INFO_DIR $LINE;;
 				LOG=*) extract_dir LOG_DIR $LINE;;
 				NOK=*) extract_dir NOK_DIR $LINE;;
-		esac
+			esac
 	done < $CONF_FILE
 	
-	LOG="$LOG_DIR/Initep.log"
+	eval $1="$LOG_DIR/Initep.log"
 	
 	#TODO Check for success¿?, log if necessary
 
@@ -61,6 +63,8 @@ function init_environment() {
 	export INFO_DIR
 	export LOG_DIR
 	export NOK_DIR
+	
+	return $EXIT_CODE
 }
 
 # 3. Check permissions
@@ -123,33 +127,78 @@ function system_init() {
 # 4. Ask to release the DEMONIO
 
 function start_demonep() {
-	echo "¿Desea efectuar la activación de Demonep? Si – No"
-	read ANSWER
-	
-	
+	ANSWER=""
+	while [ "$ANSWER" != "s" -a "$ANSWER" != "n" ]
+		do
+			echo "¿Desea efectuar la activación de Demonep? (S/N)"
+			read ANSWER
+			ANSWER="$(echo $ANSWER | tr '[:upper:]' '[:lower:]')"
+			case $ANSWER in
+				# 5. Start Demonep
+				"s")
+					# log
+					#TODO activate demonio
+				;;
+				# 6. Don't start Demonep
+				"n")
+					# log
+					echo "Para activar al demonio manualmente puede ingresar \"bash Demonep.sh\""
+				;; 
+				*) echo "Responda por Sí (S) o por No (N)";;
+			esac
+	done
 }
 
+# 7. Close Log
+
+function close_log() {
+	#TODO
+}
+
+# 8. Destroy environment
+
+function destroy_environment() {
+	unset GRUPO
+	unset BIN_DIR
+	unset MAE_DIR
+	unset REC_DIR
+	unset OK_DIR
+	unset PROC_DIR
+	unset INFO_DIR
+	unset LOG_DIR
+	unset NOK_DIR
+}
 
 function main() {
+	LOG=""
+	
 	check_previous_init
-	if [ ! -z $? ]; then
+	if [ -z $? ]; then
 		return 1;
 	fi
 	
-	init_environment
-	
-	check_script_permissions
-	if [ ! -z $? ]; then
+	init_environment LOG
+		if [ -z $? ]; then
 		return 2;
 	fi
-		
-	check_file_permissions
-	if [ ! -z $? ]; then
+	
+	check_script_permissions LOG
+	if [ -z $? ]; then
 		return 3;
 	fi
 		
-	system_init
+	check_file_permissions LOG
+	if [ -z $? ]; then
+		return 4;
+	fi
+		
+	system_init LOG
 	
+	start_demonep LOG
+	
+	close_log LOG
+	
+	destroy_environment
 }
 
 main
