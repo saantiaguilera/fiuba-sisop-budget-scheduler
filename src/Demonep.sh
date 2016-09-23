@@ -7,11 +7,11 @@ FILESDIR="$GRUPO/DIRREC"
 
 #Step1, check the env is running
 
-if ! [ pgrep "my_program" >/dev/null ]
-	then
-		echo "El entorno no se encuentra en ejecucion. Para correr el daemon es necesario tener un entorno activo"
-		exit 1;
-fi
+#if ! [ pgrep "my_program" >/dev/null ]
+#	then
+#		echo "El entorno no se encuentra en ejecucion. Para correr el daemon es necesario tener un entorno activo"
+#		exit 1;
+#fi
 
 #Step2, save a cycle counter
 
@@ -26,14 +26,16 @@ for CURRENT_FILE in $FILESDIR/*
 		#Step4, check its a text file
 		MIME_TYPE=($(file -i "$CURRENT_FILE" | cut -d' ' -f2)) #Get the info from the current file, pipe it to the stdin of cut and extract the second field delimited by a space
 
-		if ! [ $MIME_TYPE == text/* ] && ! [ $MIME_TYPE == regular ]
+		echo $MIME_TYPE
+
+		if ! [[ $MIME_TYPE =~ text/* ]]
 			then
 				echo "Archivo rechazado, motivo: no es un archivo de texto"
 				exit 1 #Later see to where send him if it fails
 		fi
 
 		#Step5, check the file has size >0
-
+exit 0
 		if ! [ -s $CURRENT_FILE ]
 			then 
 				echo "Archivo rechazado, motivo: archivo vacio"
@@ -44,21 +46,21 @@ for CURRENT_FILE in $FILESDIR/*
 
 		local DATE=`date +%y`
 		#The regex currently checks the mm/dd as 2 digits, which can be day 62. Fix this TODO
-		if ! [ $CURRENT_FILE =~ ^ejecutado_($DATE)_([3-9]|1[0-9]?|2[0-4]?)_$DATE\/[\d]{1,2}\/[\d]{1,2}\.csv$ ]
+		if ! [[ $CURRENT_FILE =~ ^ejecutado_($DATE)_([3-9]|1[0-9]?|2[0-4]?)_$DATE\/[\d]{1,2}\/[\d]{1,2}\.csv$ ]]
 			then
 				echo "Archivo rechazado, motivo: formato de nombre incorrecto"
 				
 				#Step7
 
-				if [ $CURRENT_FILE =~ ^ejecutado_(^$DATE).* ]
-					then
+				if [[ $CURRENT_FILE =~ ^ejecutado_(^$DATE).* ]]
+					then #TODO En vez de usar el bash rematch sacar la parte de adelante y atras onda sed "s/principio//g" | sed "s/final//g"
 						echo "Archivo rechazado, motivo: a;o ${BASH_REMATCH[1]} incorrecto."
 				fi
 
 				#Step8
 
-				if [ $CURRENT_FILE =~ ^ejecutado_($DATE)_^([3-9]|1[0-9]?\2[0-4]?).* ]
-					then
+				if [[ $CURRENT_FILE =~ ^ejecutado_($DATE)_^([3-9]|1[0-9]?\2[0-4]?).* ]]
+					then #Analogo
 						echo "Archivo rechazado, motivo: provincia ${BASH_REMATCH[2]} incorrecta."
 				fi
 
