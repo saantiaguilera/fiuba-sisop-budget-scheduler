@@ -42,25 +42,25 @@ for CURRENT_FILE in $FILESDIR/*
 
 		#Step6, check the format of the file is 'ejecutado_:year_:provcode_:yyyy:mm:dd.csv
 
-		DATE=`date +%y`
-
-		echo $DATE
+		DATE=`date +%Y`
 
 		#The regex currently checks the mm/dd as 2 digits, which can be day 62. Fix this TODO
-		if ! [[ $CURRENT_FILE =~ ^ejecutado_($DATE)_([3-9]|1[0-9]?|2[0-4]?)_$DATE\/[\d]{1,2}\/[\d]{1,2}\.csv$ ]]
+		CURRENT_FILE_NAME=`echo "$CURRENT_FILE" | sed "s/.*\///"`
+
+		if ! [[ $CURRENT_FILE_NAME =~ ^ejecutado_($DATE)_([3-9]|1[0-9]?|2[0-4]?)_$DATE[\d]{1,2}[\d]{1,2}\.csv$ ]]
 			then
 				echo "Archivo rechazado, motivo: formato de nombre incorrecto"
 				
 				#Step7
 
-				if [[ $CURRENT_FILE =~ ^ejecutado_(^$DATE).* ]]
+				if [[ $CURRENT_FILE_NAME =~ ^ejecutado_(^$DATE).* ]]
 					then #TODO En vez de usar el bash rematch sacar la parte de adelante y atras onda sed "s/principio//g" | sed "s/final//g"
 						echo "Archivo rechazado, motivo: a;o ${BASH_REMATCH[1]} incorrecto."
 				fi
 
 				#Step8
 
-				if [[ $CURRENT_FILE =~ ^ejecutado_($DATE)_^([3-9]|1[0-9]?\2[0-4]?).* ]]
+				if [[ $CURRENT_FILE_NAME =~ ^ejecutado_($DATE)_^([3-9]|1[0-9]?\2[0-4]?).* ]]
 					then #Analogo
 						echo "Archivo rechazado, motivo: provincia ${BASH_REMATCH[2]} incorrecta."
 				fi
