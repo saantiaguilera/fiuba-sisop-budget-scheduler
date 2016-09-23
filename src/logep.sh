@@ -6,6 +6,15 @@ COMMAND=""
 MESSAGE=""
 TYPE="INF"
 
+#######################################
+# Check if log file reached the maximum size allowed.
+# Globals:
+#   MAX_LOG_SIZE
+# Arguments:
+#   file
+# Returns:
+#   1 if max size reached, 0 if don't.
+#######################################
 function max_log_size_reached() {
   if [ ! -f $1 ]; then
     return 0
@@ -19,12 +28,30 @@ function max_log_size_reached() {
   fi
 }
 
+#######################################
+# Keep last n lines to reduce size of log file
+# Globals:
+#   NO_LINES_TO_KEEP
+# Arguments:
+#   file
+# Returns:
+#   None
+#######################################
 function reduce_log_file() {
   local temp_file="$1_1.log"
   tail -n $NO_LINES_TO_KEEP $1 > $temp_file
   mv $temp_file $1 
 }
 
+#######################################
+# Write log file
+# Globals:
+#   None
+# Arguments:
+#   command type_of_message message
+# Returns:
+#   None
+#######################################
 function write_log_file() {
   # local file="$DIR_LOG/$1.log"
   local file="log/$1.log"
