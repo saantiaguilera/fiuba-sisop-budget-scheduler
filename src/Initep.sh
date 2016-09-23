@@ -50,7 +50,7 @@ function init_environment() {
 	
 	LOG="$LOG_DIR/Initep.log"
 	
-	#TODO Check for success, log if necessary
+	#TODO Check for success¿?, log if necessary
 
 	export GRUPO
 	export BIN_DIR
@@ -126,6 +126,7 @@ function start_demonep() {
 	echo "¿Desea efectuar la activación de Demonep? Si – No"
 	read ANSWER
 	
+	
 }
 
 
@@ -133,16 +134,19 @@ function main() {
 	check_previous_init
 	if [ ! -z $? ]; then
 		return 1;
+	fi
 	
 	init_environment
 	
 	check_script_permissions
 	if [ ! -z $? ]; then
 		return 2;
+	fi
 		
 	check_file_permissions
 	if [ ! -z $? ]; then
 		return 3;
+	fi
 		
 	system_init
 	
