@@ -215,9 +215,9 @@ while true; do
 
 		if [ $EXIT_CODE -lt "1" ]; then
 	        validate_country_code "$FILE"
-	    fi
+	   fi
 
-	    if [ $EXIT_CODE -lt "1" ]; then
+	   if [ $EXIT_CODE -lt "1" ]; then
 		    validate_date "$FILE"
 		fi
 
