@@ -67,6 +67,32 @@ function parse_country_codes() {
 	CODES_COUNTRIES=($(cat "$DIR_ASSETS/codes.csv" | cut -d \; -f 1))
 }
 
+# If no error yet, print the generic error. Else skip.
+# Returns EXIT_CODE with 1 if was printed. Else retains previous value
+function print_generic_error_if_needed() {
+	if [ $EXIT_CODE -eq "0" ]
+		then
+			$sh_log "$FILE_LOG" "$MSG_ERR_INVALID_FILE_NAME"
+			let "EXIT_CODE = 1"
+	fi
+}
+
+# Validates the default format matches (the ejecutado_ and .csv)
+# Wont remove file from directory if malformed.
+# @Return EXIT_CODE with state output
+function validate_file_name() {
+	FILE_NAME=`echo "$1" | sed "s/.*\///"`
+	DATE=`date +%Y`
+	if ! [[ `echo $FILE_NAME | sed "s/^ejecutado_*\.csv$//"` == "" ]]
+		then
+			print_generic_error_if_needed
+	fi
+}
+
+function validate_budget_year() {
+	
+}
+
 # Validates the country code passed as param is inside the country array
 # Might remove file from directory if code malformed. 
 # @Return EXIT_CODE with state output
@@ -76,6 +102,7 @@ function validate_country_code() {
 			#Code was found. Move on.	
 	    ;;
 	    *)
+			print_generic_error_if_needed
 			#TODO check first param of the log
 	        $sh_log "$FILE_LOG" "$MSG_ERR_INVALID_COUNTRY_CODE" #TODO CHECK FORMAT
 	        $sh_mov "$DIR_NEWS/$2" "$DIR_REJECTED"
@@ -95,6 +122,7 @@ function validar_fecha() {
 
 	# TODO verify this
 	if [ $M_YEAR -lt `date +'%Y'` ]; then
+		print_generic_error_if_needed
 		$sh_log "$FILE_LOG" "$MSG_ERR_INVALID_DATE" # TODO CHECK FORMAT
 		$sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
 		let "EXIT_CODE = 2"
@@ -104,6 +132,7 @@ function validar_fecha() {
 	fi
 
 	if [ $(date -d "$M_DATE" +"%Y%b%d" 2>/dev/null 1>/dev/null; echo $?) == 1 ];then
+		print_generic_error_if_needed
 		$sh_log "$FILE_LOG" "$MSG_ERR_INVALID_DATE" #TODO CHECK FORMAT
 		$sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
 		let "EXIT_CODE = 2"
