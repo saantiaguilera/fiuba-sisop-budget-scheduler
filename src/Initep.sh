@@ -234,7 +234,7 @@ function close_log() {
 }
 
 #######################################
-# Unset environtment variables
+# Unset environment variables
 # Globals:
 #   None
 # Arguments:
