@@ -49,7 +49,7 @@ function get_files_count() {
 
 # Log and move according to the params
 function log_n_move() {
-	$sh_log -c Demonep -m $1 -t $2
+	$sh_log -c "Demonep" -m $1 -t $2
 	$sh_mov -d $3 -t $4
 }
 
@@ -84,7 +84,7 @@ function parse_state_codes() {
 function print_generic_error_if_needed() {
 	if [ $EXIT_CODE -eq "0" ]
 		then
-			$sh_log -c Demonep -m "$MSG_ERR_INVALID_FILE_NAME" -t "$TYPE_ERROR"
+			$sh_log -c "Demonep" -m "$MSG_ERR_INVALID_FILE_NAME" -t "$TYPE_ERROR"
 			let "EXIT_CODE = 1"
 	fi
 }
@@ -187,7 +187,7 @@ function validate_date() {
 
 if ! [ pgrep "Initep.sh" >/dev/null ]
 	then
-		$sh_log -c Demonep -m "$MSG_ERR_INSTANCE_RUNNING" -t "$TYPE_ERROR"
+		$sh_log -c "Demonep" -m "$MSG_ERR_INSTANCE_RUNNING" -t "$TYPE_ERROR"
 		exit 1;
 fi
 
@@ -196,7 +196,7 @@ let "CYCLE_COUNT = 0"
 while true; do
 	CYCLE_NUMBER_MESSAGE="Demonep ciclo nro. $CYCLE_COUNT"
  
-	$sh_log -c Demonep -m "$CYCLE_NUMBER_MESSAGE" -t "$TYPE_INFO"
+	$sh_log -c "Demonep" -m "$CYCLE_NUMBER_MESSAGE" -t "$TYPE_INFO"
 
 	let "CYCLE_COUNT = CYCLE_COUNT + 1"
 
@@ -208,7 +208,7 @@ while true; do
 		# Exit code can be: 0-OK / 1-Error_but_not_yet_resolved / 2-Error_resolved
 		let "EXIT_CODE = 0"
 
-		$sh_log -c Demonep -m `echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"` -t "$TYPE_INFO"
+		$sh_log -c "Demonep" -m `echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"` -t "$TYPE_INFO"
 
 		if [ $EXIT_CODE -eq "0" ]; then
 			validate_file_name "$FILE"
@@ -238,13 +238,13 @@ while true; do
 	get_files_count $DIR_ACCEPTED
 	if [ $FILES_SIZE -gt 0 ]
 		then
-			if [[ $(ps -aux | grep -e "[0-9] [a-z]* Procep.sh" ) == "" ]]
+			if [[ $(ps -aux | grep -e "[0-9] [a-z]* $sh_process" ) == "" ]]
 				then
 					$sh_process
-					PID_PROCESS=$(pgrep Procep*)
-					$sh_log -c Demonep -m `echo $MSG_INFO_PROCESS_RUNNING | sed "s/%PID%/$PID_PROCESS/"` -t "$TYPE_INFO"
+					PID_PROCESS=$(pgrep "$sh_process")
+					$sh_log -c "Demonep" -m `echo $MSG_INFO_PROCESS_RUNNING | sed "s/%PID%/$PID_PROCESS/"` -t "$TYPE_INFO"
 				else
-					$sh_log -c Demonep -m "$MSG_INFO_PROCESS_POSTPONED" -t "$TYPE_INFO"
+					$sh_log -c "Demonep" -m "$MSG_INFO_PROCESS_POSTPONED" -t "$TYPE_INFO"
 			fi
 	fi
 
