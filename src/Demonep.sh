@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#TODO s/COUNTRY/STATE/gc !
+
 # Dirs
 DIR_REJECTED=$DIRNOK
 DIR_ACCEPTED=$DIROK
@@ -16,16 +18,17 @@ sh_process="$BINDIR/Procep.sh"
 TIME_SLEEP=15
 
 # Messages
-MSG_ACCEPTED="Archivo $NOMBRE_ARCHIVO aceptado, movido a $PATH_ACEPTADO"
+MSG_ACCEPTED="Archivo aceptado"
 MSG_FILE_DETECTED="Archivo detectado: "
 MSG_ERR_INVALID_FILE_TYPE="Archivo rechazado, motivo: no es un archivo de texto"
 MSG_ERR_INVALID_FILE_SIZE="Archivo rechazado, motivo: archivo vacio"
-MSG_ERR_INVALID_DATE="Fecha invalida"
-MSG_ERR_OUTOFBOUNDS_DATE="Fecha fuera de rango"
-MSG_ERR_INVALID_COUNTRY_CODE="Codigo de provincia inexistente"
-MSG_ERR_UNKNOWN="Error desconocido"
-MSG_ERR_NOT_INITIALIZED="Proceso corriendo bajo el no.: $PID"
-MSG_ERR_PID_RUNNING="Invocacion de #### pospuesta para el siguiente ciclo"
+MSG_ERR_INVALID_FILE_NAME="Archivo rechazado, motivo: formato de nombre incorrecto"
+MSG_ERR_INVALID_DATE="Archivo rechazado, motivo: a;o xxxx incorrecto"
+MSG_ERR_OUTOFBOUNDS_DATE="Archivo rechazado, motivo: fecha yyyymmdd incorrecta."
+MSG_ERR_INVALID_COUNTRY_CODE="Archivo rechazado, motivo: provincia xx incorrecta"
+MSG_ERR_UNKNOWN="Archivo rechazado, motivo: Desconocido"
+MSG_ERR_NOT_INITIALIZED="Procep corriendo bajo el no.: $PID"
+MSG_ERR_PID_RUNNING="Invocacion de Procep pospuesta para el siguiente ciclo"
 
 # Evicts non text files or empty from the news dir handling the rejected ones.
 function evict_malformed_files() {
@@ -109,11 +112,12 @@ while true; do
 	parse_country_codes
 	FILES=$(ls $DIR_NEWS)
 	for FILE in $FILES ;do
+		# Exit code can be: 0-OK / 1-Error_but_not_yet_resolved / 2-Error_resolved
 		let "EXIT_CODE = 0"
 
 		$sh_log "$FILE_LOG" "$MSG_FILE_DETECTED $FILE"
 
-		#TODO forgot to validate "a;o presupuestario!"
+		#TODO forgot to validate "a;o presupuestario!" and whole file!
 
 		if [ $EXIT_CODE -eq "0" ]; then
 	        COUNTRY_CODE=$(echo $file | sed 's/#Regex for getting the code#//' )
