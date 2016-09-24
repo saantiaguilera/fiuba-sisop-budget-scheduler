@@ -25,8 +25,10 @@ sh_process="$BINDIR/Procep.sh"
 TIME_SLEEP=15
 
 # Messages
-MSG_ACCEPTED="Archivo aceptado"
-MSG_FILE_DETECTED="Archivo detectado: %FILE_NAME%"
+TYPE_ERROR="ERR"
+TYPE_INFO="INF"
+MSG_INFO_ACCEPTED="Archivo aceptado"
+MSG_INFO_FILE_DETECTED="Archivo detectado: %FILE_NAME%"
 MSG_ERR_INVALID_FILE_TYPE="Archivo rechazado, motivo: no es un archivo de texto"
 MSG_ERR_INVALID_FILE_SIZE="Archivo rechazado, motivo: archivo vacio"
 MSG_ERR_INVALID_FILE_NAME="Archivo rechazado, motivo: formato de nombre incorrecto"
@@ -34,8 +36,8 @@ MSG_ERR_INVALID_BUDGET_YEAR="Archivo rechazado, motivo: a;o %YEAR% incorrecto"
 MSG_ERR_OUTOFBOUNDS_DATE="Archivo rechazado, motivo: fecha %DATE% incorrecta."
 MSG_ERR_INVALID_STATE_CODE="Archivo rechazado, motivo: provincia %STATE% incorrecta"
 MSG_ERR_UNKNOWN="Archivo rechazado, motivo: Desconocido"
-MSG_ERR_PROCESS_RUNNING="Procep corriendo bajo el no.: %PID%"
-MSG_ERR_PROCESS_POSTPONED="Invocacion de Procep pospuesta para el siguiente ciclo"
+MSG_INFO_PROCESS_RUNNING="Procep corriendo bajo el no.: %PID%"
+MSG_INFO_PROCESS_POSTPONED="Invocacion de Procep pospuesta para el siguiente ciclo"
 MSG_ERR_INSTANCE_RUNNING="El entorno no se encuentra en ejecucion. Para correr el daemon es necesario tener un entorno de Initep activo"
 
 # Functions
@@ -46,6 +48,12 @@ function get_files_count() {
 	FILES_SIZE=$(ls -1 $1 | wc -l)
 }
 
+# Log and move according to the params
+function log_n_move() {
+	$sh_log -c Demonep -m $1 -t $2
+	$sh_mov -d $3 -t $4
+}
+
 # Evicts non text files or empty from the news dir handling the rejected ones.
 # Will remove file from directory if malformed
 function evict_malformed_files() {
@@ -54,15 +62,13 @@ function evict_malformed_files() {
 		MIME_TYPE=($(file "$DIR_NEWS/$FILE" | cut -d' ' -f2))
 		if [ `echo "$MIME_TYPE" | grep '(^ASCII)' >/dev/null` ]
 			then
-		    	$sh_log "$FILE_LOG" "$MSG_ERR_INVALID_FILE_TYPE"
-		    	$sh_mov "$DIR_NEWS/$FILE" "$DIR_REJECTED"
+				log_n_move "$MSG_ERR_INVALID_FILE_TYPE" "$TYPE_ERROR" "$DIR_NEWS/$FILE" "$DIR_REJECTED"
 		    	$IS_REJECTED=1
 		fi
 
 		if [ $IS_REJECTED -eq 0 ] && [ `wc -l $FILE` -eq 0 ]
 			then
-				$sh_log "$FILE_LOG" "$MSG_ERR_INVALID_FILE_SIZE"
-				$sh_mov "$DIR_NEWS/$FILE" "$DIR_REJECTED"
+				log_n_move "$MSG_ERR_INVALID_FILE_SIZE" "$TYPE_ERROR" "$DIR_NEWS/$FILE" "$DIR_REJECTED"
 		fi
 	done
 }
@@ -79,7 +85,7 @@ function parse_state_codes() {
 function print_generic_error_if_needed() {
 	if [ $EXIT_CODE -eq "0" ]
 		then
-			$sh_log "$FILE_LOG" "$MSG_ERR_INVALID_FILE_NAME"
+			$sh_log -c Demonep -m "$MSG_ERR_INVALID_FILE_NAME" -t "$TYPE_ERROR"
 			let "EXIT_CODE = 1"
 	fi
 }
@@ -106,9 +112,8 @@ function validate_budget_year() {
 	if ! [ $FILE_BUDGET_YEAR -eq $CURRENT_YEAR ]
 		then
 			print_generic_error_if_needed
-	      $sh_log "$FILE_LOG" `echo $MSG_ERR_INVALID_BUDGET_YEAR | sed "s/%YEAR%/$FILE_BUDGET_YEAR/"`
-	      $sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
-	      let "EXIT_CODE = 2"
+			log_n_move `echo $MSG_ERR_INVALID_BUDGET_YEAR | sed "s/%YEAR%/$FILE_BUDGET_YEAR/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+	    	let "EXIT_CODE = 2"
 	fi
 }
 
@@ -125,8 +130,7 @@ function validate_state_code() {
 	    ;;
 	    *)
 			print_generic_error_if_needed
-	        $sh_log "$FILE_LOG" `echo $MSG_ERR_INVALID_STATE_CODE | sed "s/%STATE%/$STATE_CODE"`
-	        $sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
+	        log_n_move `echo $MSG_ERR_INVALID_STATE_CODE | sed "s/%STATE%/$STATE_CODE"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 	        let "EXIT_CODE = 2"
 	    ;;
   	esac
@@ -145,8 +149,7 @@ function validate_date() {
 	# Check it wasnt in past years
 	if [ $M_YEAR -lt $CURRENT_YEAR ]; then
 		print_generic_error_if_needed
-		$sh_log "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"`
-		$sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
+		log_n_move "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 		let "EXIT_CODE = 2"
 		return
 	fi
@@ -159,8 +162,7 @@ function validate_date() {
 				then
 					#its in this month but some days in the future
 					print_generic_error_if_needed
-					$sh_log "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"`
-					$sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
+					log_n_move "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 					let "EXIT_CODE = 2"
 					return
 			fi
@@ -169,8 +171,7 @@ function validate_date() {
 			if [ M_MONTH -gt `date +%m` ]
 				then
 					print_generic_error_if_needed
-					$sh_log "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"`
-					$sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
+					log_n_move "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 					let "EXIT_CODE = 2"
 					return
 			fi
@@ -180,15 +181,14 @@ function validate_date() {
 	if [ $(date -d "$M_DATE" +"%Y%m%d" 2>/dev/null 1>/dev/null; echo $?) == 1 ]
 		then
 			print_generic_error_if_needed
-			$sh_log "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"`
-			$sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
+			log_n_move "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 			let "EXIT_CODE = 2"
 	fi
 }
 
 if ! [ pgrep "Initep.sh" >/dev/null ]
 	then
-		echo "$MSG_ERR_INSTANCE_RUNNING"
+		$sh_log -c Demonep -m "$MSG_ERR_INSTANCE_RUNNING" -t "$TYPE_ERROR"
 		exit 1;
 fi
 
@@ -197,7 +197,7 @@ let "CYCLE_COUNT = 0"
 while true; do
 	CYCLE_NUMBER_MESSAGE="Demonep ciclo nro. $CYCLE_COUNT"
  
-	$sh_log "$FILE_LOG" "$CYCLE_NUMBER_MESSAGE"
+	$sh_log -c Demonep -m "$CYCLE_NUMBER_MESSAGE" -t "$TYPE_INFO"
 
 	let "CYCLE_COUNT = CYCLE_COUNT + 1"
 
@@ -209,7 +209,7 @@ while true; do
 		# Exit code can be: 0-OK / 1-Error_but_not_yet_resolved / 2-Error_resolved
 		let "EXIT_CODE = 0"
 
-		$sh_log "$FILE_LOG" `echo "$MSG_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`
+		$sh_log -c Demonep -m `echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"` -t "$TYPE_INFO"
 
 		if [ $EXIT_CODE -eq "0" ]; then
 			validate_file_name "$FILE"
@@ -228,13 +228,11 @@ while true; do
 		fi
 
 		if [ $EXIT_CODE -eq "1" ]; then
-			$sh_log "$FILE_LOG" "$MSG_ERR_UNKNOWN"
-			$sh_mov "$DIR_NEWS/$FILE" "$DIR_REJECTED"
+			log_n_move "$MSG_ERR_UNKNOWN" "$TYPE_ERROR" "$DIR_NEWS/$FILE" "$DIR_REJECTED"
 		fi
 
 		if [ $EXIT_CODE -eq "0" ]; then
-			$sh_log "$FILE_LOG" "$MSG_ACCEPTED"
-			$sh_mov "$DIR_NEWS/$FILE" "$DIR_ACCEPTED"
+			log_n_move "$MSG_INFO_ACCEPTED" "$TYPE_INFO" "$DIR_NEWS/$FILE" "$DIR_ACCEPTED"
 		fi
 	done
 
@@ -245,9 +243,9 @@ while true; do
 				then
 					$sh_process
 					PID_PROCESS=$(pgrep Procep*)
-					$sh_log "$FILE_LOG" `echo $MSG_ERR_PROCESS_RUNNING | sed "s/%PID%/$PID_PROCESS/"`
+					$sh_log -c Demonep -m `echo $MSG_INFO_PROCESS_RUNNING | sed "s/%PID%/$PID_PROCESS/"` -t "$TYPE_INFO"
 				else
-					$sh_log "$FILE_LOG" "$MSG_ERR_PROCESS_POSTPONED"
+					$sh_log -c Demonep -m "$MSG_INFO_PROCESS_POSTPONED" -t "$TYPE_INFO"
 			fi
 	fi
 
