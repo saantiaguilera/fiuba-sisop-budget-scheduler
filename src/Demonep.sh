@@ -59,12 +59,12 @@ function get_files_count() {
 # Arguments:
 #   1. Log message
 #   2. Log type
-#   3. Move destiny
-#   4. Move target
+#   3. Move target
+#   4. Move dest
 #######################################
 function log_n_move() {
 	$sh_log -c "Demonep" -m $1 -t $2
-	$sh_mov -d $3 -t $4
+	$sh_mov -c "Demonep" -o $3 -d $4
 }
 
 #######################################
