@@ -45,9 +45,9 @@ function get_files_count() {
 function evict_malformed_files() {
 	for FILE in $(ls -1 "$DIR_NEWS");do
 		IS_REJECTED=0
-		if [ $(file "$DIR_NEWS/$FILE" | grep -c "text") = 0 ]
+		MIME_TYPE=($(file "$DIR_NEWS/$FILE" | cut -d' ' -f2))
+		if [ `echo "$MIME_TYPE" | grep '(^ASCII)' >/dev/null` ]
 			then
-				#TODO ver mensajes y el primer parametro del log
 		    	$sh_log "$FILE_LOG" "$MSG_ERR_INVALID_FILE_TYPE"
 		    	$sh_mov "$DIR_NEWS/$FILE" "$DIR_REJECTED"
 		    	$IS_REJECTED=1
