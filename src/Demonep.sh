@@ -77,7 +77,7 @@ function validate_country_code() {
 	    ;;
 	    *)
 			#TODO check first param of the log
-	        $sh_log "$FILE_LOG" "$MSG_ERR_INVALID_COUNTRY_CODE"
+	        $sh_log "$FILE_LOG" "$MSG_ERR_INVALID_COUNTRY_CODE" #TODO CHECK FORMAT
 	        $sh_mov "$DIR_NEWS/$2" "$DIR_REJECTED"
 	        let "EXIT_CODE = 2"
 	    ;;
@@ -95,7 +95,7 @@ function validar_fecha() {
 
 	# TODO verify this
 	if [ $M_YEAR -lt `date +'%Y'` ]; then
-		$sh_log "$FILE_LOG" "$MSG_ERR_INVALID_DATE"
+		$sh_log "$FILE_LOG" "$MSG_ERR_INVALID_DATE" # TODO CHECK FORMAT
 		$sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
 		let "EXIT_CODE = 2"
 		return
@@ -104,7 +104,7 @@ function validar_fecha() {
 	fi
 
 	if [ $(date -d "$M_DATE" +"%Y%b%d" 2>/dev/null 1>/dev/null; echo $?) == 1 ];then
-		$sh_log "$FILE_LOG" "$MENSAJE_FECHA_INVALIDA"
+		$sh_log "$FILE_LOG" "$MSG_ERR_INVALID_DATE" #TODO CHECK FORMAT
 		$sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
 		let "EXIT_CODE = 2"
 	fi
@@ -132,18 +132,27 @@ while true; do
 
 		$sh_log "$FILE_LOG" `echo "$MSG_FILE_DETECTED" | sed "s/\%FILE_NAME\%/$FILE/`
 
-		#TODO forgot to validate some stuff. add it (like "a;o presupuestario!" and whole file!
-
 		if [ $EXIT_CODE -eq "0" ]; then
+			validate_file_name $FILE
+		fi
+
+		if [ $EXIT_CODE -le "1" ]; then
+			validate_budget_year $FILE
+		fi
+
+		if [ $EXIT_CODE -lt "1" ]; then
 	        COUNTRY_CODE=$(echo $FILE | sed 's/#Regex for getting the code#//' )
 	        validate_country_code "$COUNTRY_CODE" "$FILE"
 	    fi
 
-	    if [ $EXIT_CODE -eq "0" ]; then
+	    if [ $EXIT_CODE -lt "1" ]; then
 		    validate_date "$FILE"
 		fi
 
-		#TODO check the exitcode 1! -> msg unknown
+		if [ $EXIT_CODE -eq "1" ]; then
+			$sh_log "$FILE_LOG" "$MSG_ERR_UNKNOWN"
+			$sh_mov "$DIR_NEWS/$FILE" "$DIR_REJECTED"
+		fi
 
 		if [ $EXIT_CODE -eq "0" ]; then
 			$sh_log "$FILE_LOG" "$MSG_ACCEPTED"
