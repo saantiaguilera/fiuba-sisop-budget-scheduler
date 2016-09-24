@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #TODO s/COUNTRY/STATE/gc !
+#TODO CHECK THE sh_mov dirs 
 
 # Dirs
 DIR_REJECTED=$DIRNOK
@@ -24,7 +25,7 @@ MSG_FILE_DETECTED="Archivo detectado: %FILE_NAME%"
 MSG_ERR_INVALID_FILE_TYPE="Archivo rechazado, motivo: no es un archivo de texto"
 MSG_ERR_INVALID_FILE_SIZE="Archivo rechazado, motivo: archivo vacio"
 MSG_ERR_INVALID_FILE_NAME="Archivo rechazado, motivo: formato de nombre incorrecto"
-MSG_ERR_INVALID_DATE="Archivo rechazado, motivo: a;o %YEAR% incorrecto"
+MSG_ERR_INVALID_BUDGET_YEAR="Archivo rechazado, motivo: a;o %YEAR% incorrecto"
 MSG_ERR_OUTOFBOUNDS_DATE="Archivo rechazado, motivo: fecha %DATE% incorrecta."
 MSG_ERR_INVALID_COUNTRY_CODE="Archivo rechazado, motivo: provincia %STATE% incorrecta"
 MSG_ERR_UNKNOWN="Archivo rechazado, motivo: Desconocido"
@@ -82,7 +83,8 @@ function print_generic_error_if_needed() {
 # @Return EXIT_CODE with state output
 function validate_file_name() {
 	FILE_NAME=`echo "$1" | sed "s/.*\///"`
-	DATE=`date +%Y`
+
+	# Check if filename at least matches the start and end the name should have
 	if ! [[ `echo $FILE_NAME | sed "s/^ejecutado_*\.csv$//"` == "" ]]
 		then
 			print_generic_error_if_needed
@@ -90,22 +92,35 @@ function validate_file_name() {
 }
 
 function validate_budget_year() {
-	
+	FILE_NAME=`echo "$1" | sed "s/.*\///"`
+	CURRENT_YEAR=`date +%Y`
+	FILE_BUDGET_YEAR=`echo "$FILE_NAME" | sed "s/^ejecutado_//" | sed "s/_*//"`
+
+	# Check if the budget year is this one
+	if ! [ $FILE_BUDGET_YEAR -eq $CURRENT_YEAR ]
+		then
+			print_generic_error_if_needed
+	        $sh_log "$FILE_LOG" `echo $MSG_ERR_INVALID_BUDGET_YEAR | sed "s/%YEAR%/$FILE_BUDGET_YEAR/"`
+	        $sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
+	        let "EXIT_CODE = 2"
+	fi
 }
 
 # Validates the country code passed as param is inside the country array
 # Might remove file from directory if code malformed. 
 # @Return EXIT_CODE with state output
 function validate_country_code() {
+	COUNTRY_CODE=$(echo $1 | sed "s/^ejecutado_...._//" | sed "s/_*//" )
+
+	# Check if code exists in the countries code
 	case "${CODES_COUNTRIES[@]}" in
-	    *"$1"*)
+	    "$COUNTRY_CODE")
 			#Code was found. Move on.	
 	    ;;
 	    *)
 			print_generic_error_if_needed
-			#TODO check first param of the log
-	        $sh_log "$FILE_LOG" "$MSG_ERR_INVALID_COUNTRY_CODE" #TODO CHECK FORMAT
-	        $sh_mov "$DIR_NEWS/$2" "$DIR_REJECTED"
+	        $sh_log "$FILE_LOG" `echo $MSG_ERR_INVALID_COUNTRY_CODE | sed "s/%STATE%/$COUNTRY_CODE"`
+	        $sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
 	        let "EXIT_CODE = 2"
 	    ;;
   	esac
@@ -114,28 +129,54 @@ function validate_country_code() {
 # Validates date
 # Might remove file from dir if date malformed. 
 # @Return EXIT_CODE with state output
-function validar_fecha() {
-	M_DATE=$(echo $1 | sed 's/#REGEX FOR DATE#//' | sed 's/#REGEX FOR DATE#//')
+function validate_date() {
+	M_DATE=$(echo $1 | sed 's/^ejecutado_.._//' | sed 's/_*//')
 	M_YEAR=$(echo ${M_DATE} | cut -c1-4)
 	M_MONTH=$(echo ${M_DATE} | cut -c5-6)
 	M_DAY=$(echo ${M_DATE} | cut -c7-8)
+	CURRENT_YEAR=`date +%Y`
 
-	# TODO verify this
-	if [ $M_YEAR -lt `date +'%Y'` ]; then
+	# Check it wasnt in past years
+	if [ $M_YEAR -lt $CURRENT_YEAR ]; then
 		print_generic_error_if_needed
-		$sh_log "$FILE_LOG" "$MSG_ERR_INVALID_DATE" # TODO CHECK FORMAT
+		$sh_log "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"`
 		$sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
 		let "EXIT_CODE = 2"
 		return
-	else
-		: # Good to go
 	fi
 
-	if [ $(date -d "$M_DATE" +"%Y%b%d" 2>/dev/null 1>/dev/null; echo $?) == 1 ];then
-		print_generic_error_if_needed
-		$sh_log "$FILE_LOG" "$MSG_ERR_INVALID_DATE" #TODO CHECK FORMAT
-		$sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
-		let "EXIT_CODE = 2"
+	# Check if it was this year
+	if [ $M_YEAR -e $CURRENT_YEAR ]
+		then
+			# Check it wasnt in this month but in a future day
+			if [ M_MONTH -e `date +%m` ] && [ M_DAY -gt `date +%d` ]
+				then
+					#its in this month but some days in the future
+					print_generic_error_if_needed
+					$sh_log "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"`
+					$sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
+					let "EXIT_CODE = 2"
+					return
+			fi
+
+			# Check it wasnt in a future month
+			if [ M_MONTH -gt `date +%m` ]
+				then
+					print_generic_error_if_needed
+					$sh_log "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"`
+					$sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
+					let "EXIT_CODE = 2"
+					return
+			fi
+	fi
+
+	# Check date is not malformed
+	if [ $(date -d "$M_DATE" +"%Y%m%d" 2>/dev/null 1>/dev/null; echo $?) == 1 ]
+		then
+			print_generic_error_if_needed
+			$sh_log "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"`
+			$sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
+			let "EXIT_CODE = 2"
 	fi
 }
 
@@ -146,7 +187,6 @@ let "CYCLE_COUNT = 0"
 while true; do
 	CYCLE_NUMBER_MESSAGE="Demonep ciclo nro. $CYCLE_COUNT"
  
-	# TODO ver mensaje de log
 	$sh_log "$FILE_LOG" "$CYCLE_NUMBER_MESSAGE"
 
 	let "CYCLE_COUNT = CYCLE_COUNT + 1"
@@ -159,19 +199,18 @@ while true; do
 		# Exit code can be: 0-OK / 1-Error_but_not_yet_resolved / 2-Error_resolved
 		let "EXIT_CODE = 0"
 
-		$sh_log "$FILE_LOG" `echo "$MSG_FILE_DETECTED" | sed "s/\%FILE_NAME\%/$FILE/`
+		$sh_log "$FILE_LOG" `echo "$MSG_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`
 
 		if [ $EXIT_CODE -eq "0" ]; then
-			validate_file_name $FILE
+			validate_file_name "$FILE"
 		fi
 
 		if [ $EXIT_CODE -le "1" ]; then
-			validate_budget_year $FILE
+			validate_budget_year "$FILE"
 		fi
 
 		if [ $EXIT_CODE -lt "1" ]; then
-	        COUNTRY_CODE=$(echo $FILE | sed 's/#Regex for getting the code#//' )
-	        validate_country_code "$COUNTRY_CODE" "$FILE"
+	        validate_country_code "$FILE"
 	    fi
 
 	    if [ $EXIT_CODE -lt "1" ]; then
@@ -196,7 +235,7 @@ while true; do
 				then
 					$sh_process
 					PID_PROCESS=$(pgrep Procep*)
-					$sh_log "$FILE_LOG" `echo "$MSG_ERR_PROCESS_RUNNING | sed "s/\%PID\%/$PID_PROCESS/"`
+					$sh_log "$FILE_LOG" `echo $MSG_ERR_PROCESS_RUNNING | sed "s/%PID%/$PID_PROCESS/"`
 				else
 					$sh_log "$FILE_LOG" "$MSG_ERR_PROCESS_POSTPONED"
 			fi
