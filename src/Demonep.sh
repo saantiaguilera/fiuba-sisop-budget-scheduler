@@ -14,11 +14,10 @@ DIR_ACCEPTED=$DIROK
 DIR_NEWS=$DIRREC
 DIR_LOG=$DIRLOG
 DIR_ASSETS=$DIRMAE
-FILE_LOG="Demonep.log"
 
 # Shell scripts
 sh_mov="$BINDIR/Movep.sh"
-sh_log="$BINDIR/Logep.sh"
+sh_log="$BINDIR/logep.sh"
 sh_process="$BINDIR/Procep.sh"
 
 # Sleep time
@@ -149,7 +148,7 @@ function validate_date() {
 	# Check it wasnt in past years
 	if [ $M_YEAR -lt $CURRENT_YEAR ]; then
 		print_generic_error_if_needed
-		log_n_move "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+		log_n_move `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 		let "EXIT_CODE = 2"
 		return
 	fi
@@ -162,7 +161,7 @@ function validate_date() {
 				then
 					#its in this month but some days in the future
 					print_generic_error_if_needed
-					log_n_move "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+					log_n_move `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 					let "EXIT_CODE = 2"
 					return
 			fi
@@ -171,7 +170,7 @@ function validate_date() {
 			if [ M_MONTH -gt `date +%m` ]
 				then
 					print_generic_error_if_needed
-					log_n_move "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+					log_n_move `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 					let "EXIT_CODE = 2"
 					return
 			fi
@@ -181,7 +180,7 @@ function validate_date() {
 	if [ $(date -d "$M_DATE" +"%Y%m%d" 2>/dev/null 1>/dev/null; echo $?) == 1 ]
 		then
 			print_generic_error_if_needed
-			log_n_move "$FILE_LOG" `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+			log_n_move `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 			let "EXIT_CODE = 2"
 	fi
 }
