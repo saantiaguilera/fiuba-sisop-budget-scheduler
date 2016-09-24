@@ -82,13 +82,22 @@ while true; do
 			for FILE in $FILES ;do
 		    	let "EXIT_CODE = 0"
 
+		    	#TODO forgot to validate "a;o presupuestario!"
+
 		    	if [ $EXIT_CODE -eq "0" ]; then
 	        		COUNTRY_CODE=$(echo $file | sed 's/#Regex for getting the code#//' )
 	        		validate_country_code "$COUNTRY_CODE" "$FILE"
 	      		fi
 
+	      		if [ $EXIT_CODE -eq "0" ]; then
+		    		validate_date
+				fi
+
 	      	done
   	fi
+
+
+
 
 	sleep "$TIME_SLEEP"
 done
