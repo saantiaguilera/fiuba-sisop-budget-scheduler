@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#TODO s/COUNTRY/STATE/gc !
-
 # Dirs
 DIR_REJECTED=$DIRNOK
 DIR_ACCEPTED=$DIROK
@@ -26,7 +24,7 @@ MSG_ERR_INVALID_FILE_SIZE="Archivo rechazado, motivo: archivo vacio"
 MSG_ERR_INVALID_FILE_NAME="Archivo rechazado, motivo: formato de nombre incorrecto"
 MSG_ERR_INVALID_BUDGET_YEAR="Archivo rechazado, motivo: a;o %YEAR% incorrecto"
 MSG_ERR_OUTOFBOUNDS_DATE="Archivo rechazado, motivo: fecha %DATE% incorrecta."
-MSG_ERR_INVALID_COUNTRY_CODE="Archivo rechazado, motivo: provincia %STATE% incorrecta"
+MSG_ERR_INVALID_STATE_CODE="Archivo rechazado, motivo: provincia %STATE% incorrecta"
 MSG_ERR_UNKNOWN="Archivo rechazado, motivo: Desconocido"
 MSG_ERR_PROCESS_RUNNING="Procep corriendo bajo el no.: %PID%"
 MSG_ERR_PROCESS_POSTPONED="Invocacion de Procep pospuesta para el siguiente ciclo"
@@ -61,11 +59,11 @@ function evict_malformed_files() {
 	done
 }
 
-# Saves the country codes in array CODES_COUNTRIES
-# @Return $CODE_COUNTRIES with non zero array
-function parse_country_codes() {
-	# TODO ver el countrydir y codes.csv
-	CODES_COUNTRIES=($(cat "$DIR_ASSETS/codes.csv" | cut -d \; -f 1))
+# Saves the state codes in array CODES_STATES
+# @Return $CODE_STATES with non zero array
+function parse_state_codes() {
+	# TODO ver el statedir y codes.csv
+	CODES_STATES=($(cat "$DIR_ASSETS/codes.csv" | cut -d \; -f 1))
 }
 
 # If no error yet, print the generic error. Else skip.
@@ -106,20 +104,20 @@ function validate_budget_year() {
 	fi
 }
 
-# Validates the country code passed as param is inside the country array
+# Validates the state code passed as param is inside the state array
 # Might remove file from directory if code malformed. 
 # @Return EXIT_CODE with state output
-function validate_country_code() {
-	COUNTRY_CODE=$(echo $1 | sed "s/^ejecutado_...._//" | sed "s/_*//" )
+function validate_state_code() {
+	STATE_CODE=$(echo $1 | sed "s/^ejecutado_...._//" | sed "s/_*//" )
 
-	# Check if code exists in the countries code
-	case "${CODES_COUNTRIES[@]}" in
-	    "$COUNTRY_CODE")
+	# Check if code exists in the states code
+	case "${CODES_STATES[@]}" in
+	    "$STATE_CODE")
 			#Code was found. Move on.	
 	    ;;
 	    *)
 			print_generic_error_if_needed
-	        $sh_log "$FILE_LOG" `echo $MSG_ERR_INVALID_COUNTRY_CODE | sed "s/%STATE%/$COUNTRY_CODE"`
+	        $sh_log "$FILE_LOG" `echo $MSG_ERR_INVALID_STATE_CODE | sed "s/%STATE%/$STATE_CODE"`
 	        $sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
 	        let "EXIT_CODE = 2"
 	    ;;
@@ -197,7 +195,7 @@ while true; do
 
 	evict_malformed_files
 
-	parse_country_codes
+	parse_state_codes
 	FILES=$(ls $DIR_NEWS)
 	for FILE in $FILES ;do
 		# Exit code can be: 0-OK / 1-Error_but_not_yet_resolved / 2-Error_resolved
@@ -214,7 +212,7 @@ while true; do
 		fi
 
 		if [ $EXIT_CODE -lt "1" ]; then
-	        validate_country_code "$FILE"
+	        validate_state_code "$FILE"
 	   fi
 
 	   if [ $EXIT_CODE -lt "1" ]; then
