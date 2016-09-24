@@ -28,14 +28,35 @@ function get_files_size() {
   FILES_SIZE=$(ls -1 $1 | wc -l)
 }
 
+# Evicts non text files from the news dir handling the rejected ones.
+function evict_malformed_files() {
+  # echo "Estoy en validar tipo archivos"
+	for FILE in $(ls -1 "$DIR_NEWS");do
+    # echo "Valido archivo"
+    # echo "$NOVEDADES/$archivo"
+		if [ $(file "$DIR_NEWS/$FILE" | grep -c "text") = 0 ]
+			then
+		      $sh_log "#####" "$MSG_ERR_INVALID_FILE" "INFO"
+		      $sh_mov "$DIR_NEWS/$FILE" "$DIR_REJECTED"
+		fi
+	done
+}
+
 # Initialize cycle
 let "CYCLE_COUNT = 0"
 while true; do
   CYCLE_NUMBER_MESSAGE="#### ciclo nro. $CYCLE_COUNT"
  
-  $sh_log "AFREC" "$CYCLE_NUMBER_MESSAGE" "INFO"
+  $sh_log "####" "$CYCLE_NUMBER_MESSAGE" "INFO"
 
   let "CYCLE_COUNT = CYCLE_COUNT + 1"
+
+  get_files_size $DIR_NEWS
+  if [ $FILES_SIZE -gt 0 ]
+  	then
+	    evict_malformed_files
+
+  fi
 
 
 sleep "$TIME_SLEEP"
