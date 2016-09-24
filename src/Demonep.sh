@@ -6,8 +6,8 @@ DIR_ACCEPTED=$ACEPDIR
 DIR_NEWS=$NOVEDIR
 
 # Shell scripts
-sh_mov="$BINDIR/MoverA.sh"
-sh_log="$BINDIR/GraLog.sh"
+sh_mov="$BINDIR/Mov.sh"
+sh_log="$BINDIR/Log.sh"
 
 # Sleep time
 TIME_SLEEP=15
@@ -46,6 +46,21 @@ function parse_country_codes() {
 	CODES_COUNTRIES=($(cat "$COUNTRY_DIR/codes.csv" | cut -d \; -f 1))
 }
 
+# Validates the country code passed as param is inside the country array
+function validate_country_code() {
+	case "${CODES_COUNTRIES[@]}" in
+	    *"$1"*)
+			#Code was found. Move on.	
+	    ;;
+	    *)
+			#TODO check first param of the log
+	        $sh_log "####" "$MSG_ERR_INVALID_COUNTRY_CODE" "INFO"
+	        $sh_mov "$DIR_NEWS/$2" "$DIR_REJECTED"
+	        let "EXIT_CODE = 1"
+	    ;;
+  	esac
+}
+
 # Initialize cycle
 let "CYCLE_COUNT = 0"
 while true; do
@@ -63,6 +78,16 @@ while true; do
 
 	    	parse_country_codes
 			FILES=$(ls $DIR_NEWS)
+
+			for FILE in $FILES ;do
+		    	let "EXIT_CODE = 0"
+
+		    	if [ $EXIT_CODE -eq "0" ]; then
+	        		COUNTRY_CODE=$(echo $file | sed 's/#Regex for getting the code#//' )
+	        		validate_country_code "$COUNTRY_CODE" "$FILE"
+	      		fi
+
+	      	done
   	fi
 
 	sleep "$TIME_SLEEP"
