@@ -19,15 +19,15 @@ TIME_SLEEP=15
 
 # Messages
 MSG_ACCEPTED="Archivo aceptado"
-MSG_FILE_DETECTED="Archivo detectado: "
+MSG_FILE_DETECTED="Archivo detectado: %FILE_NAME%"
 MSG_ERR_INVALID_FILE_TYPE="Archivo rechazado, motivo: no es un archivo de texto"
 MSG_ERR_INVALID_FILE_SIZE="Archivo rechazado, motivo: archivo vacio"
 MSG_ERR_INVALID_FILE_NAME="Archivo rechazado, motivo: formato de nombre incorrecto"
-MSG_ERR_INVALID_DATE="Archivo rechazado, motivo: a;o xxxx incorrecto"
-MSG_ERR_OUTOFBOUNDS_DATE="Archivo rechazado, motivo: fecha yyyymmdd incorrecta."
-MSG_ERR_INVALID_COUNTRY_CODE="Archivo rechazado, motivo: provincia xx incorrecta"
+MSG_ERR_INVALID_DATE="Archivo rechazado, motivo: a;o %YEAR% incorrecto"
+MSG_ERR_OUTOFBOUNDS_DATE="Archivo rechazado, motivo: fecha %DATE% incorrecta."
+MSG_ERR_INVALID_COUNTRY_CODE="Archivo rechazado, motivo: provincia %STATE% incorrecta"
 MSG_ERR_UNKNOWN="Archivo rechazado, motivo: Desconocido"
-MSG_ERR_NOT_INITIALIZED="Procep corriendo bajo el no.: $PID"
+MSG_ERR_NOT_INITIALIZED="Procep corriendo bajo el no.: %PID%"
 MSG_ERR_PID_RUNNING="Invocacion de Procep pospuesta para el siguiente ciclo"
 
 # Evicts non text files or empty from the news dir handling the rejected ones.
@@ -115,7 +115,7 @@ while true; do
 		# Exit code can be: 0-OK / 1-Error_but_not_yet_resolved / 2-Error_resolved
 		let "EXIT_CODE = 0"
 
-		$sh_log "$FILE_LOG" "$MSG_FILE_DETECTED $FILE"
+		$sh_log "$FILE_LOG" `echo "$MSG_FILE_DETECTED" | sed "s/\%FILE_NAME\%/$FILE/`
 
 		#TODO forgot to validate "a;o presupuestario!" and whole file!
 
@@ -129,23 +129,6 @@ while true; do
 		fi
 	done
 
-	hay_archivos $NOVEDADES
-	if [ $cantidad_archivos -eq 0 ];then
-	    # echo $(ls -1 "$ACEPTADOS")
-	    hay_archivos $ACEPTADOS
-	    if [ $cantidad_archivos -gt 0 ];then
-	      # echo "Voy a arrancar AFUMB"
-	      if [[ $(ps -aux | grep -e "[0-9] [a-z]* AFREC" ) == "" ]];then
-	        	# echo "No se esta ejecutando asi que lo arranco"
-	        	bash $BINDIR/Arrancar.sh ./AFUMB
-	        	PID_AFUMB=$(pgrep AFUMB)
-	    	    $GRALOG "AFREC" "AFUMB corriendo bajo el no.: $PID_AFUMB" "INFO"
-		    else
-	        	# echo "Se esta ejecutando asi que lo pospongo"
-	        	$GRALOG "AFREC" "$MENSAJE_AFUMB_OCUPADO" "WAR"
-	        fi
-	    fi
-	fi
 
 
 	sleep "$TIME_SLEEP"
