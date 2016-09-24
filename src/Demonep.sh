@@ -7,6 +7,7 @@ DIR_REJECTED=$DIRNOK
 DIR_ACCEPTED=$DIROK
 DIR_NEWS=$DIRREC
 DIR_LOG=$DIRLOG
+DIR_ASSETS=$DIRMAE
 FILE_LOG="Demonep.log"
 
 # Shell scripts
@@ -27,10 +28,19 @@ MSG_ERR_INVALID_DATE="Archivo rechazado, motivo: a;o %YEAR% incorrecto"
 MSG_ERR_OUTOFBOUNDS_DATE="Archivo rechazado, motivo: fecha %DATE% incorrecta."
 MSG_ERR_INVALID_COUNTRY_CODE="Archivo rechazado, motivo: provincia %STATE% incorrecta"
 MSG_ERR_UNKNOWN="Archivo rechazado, motivo: Desconocido"
-MSG_ERR_NOT_INITIALIZED="Procep corriendo bajo el no.: %PID%"
-MSG_ERR_PID_RUNNING="Invocacion de Procep pospuesta para el siguiente ciclo"
+MSG_ERR_PROCESS_RUNNING="Procep corriendo bajo el no.: %PID%"
+MSG_ERR_PROCESS_POSTPONED="Invocacion de Procep pospuesta para el siguiente ciclo"
+
+# Function
+
+# Get files count in a dir passed as param. 
+# @Returns in $FILES_SIZE
+function get_files_count() {
+	FILES_SIZE=$(ls -1 $1 | wc -l)
+}
 
 # Evicts non text files or empty from the news dir handling the rejected ones.
+# Will remove file from directory if malformed
 function evict_malformed_files() {
 	for FILE in $(ls -1 "$DIR_NEWS");do
 		IS_REJECTED=0
@@ -51,12 +61,15 @@ function evict_malformed_files() {
 }
 
 # Saves the country codes in array CODES_COUNTRIES
+# @Return $CODE_COUNTRIES with non zero array
 function parse_country_codes() {
 	# TODO ver el countrydir y codes.csv
-	CODES_COUNTRIES=($(cat "$DIRMAE/codes.csv" | cut -d \; -f 1))
+	CODES_COUNTRIES=($(cat "$DIR_ASSETS/codes.csv" | cut -d \; -f 1))
 }
 
 # Validates the country code passed as param is inside the country array
+# Might remove file from directory if code malformed. 
+# @Return EXIT_CODE with state output
 function validate_country_code() {
 	case "${CODES_COUNTRIES[@]}" in
 	    *"$1"*)
@@ -66,12 +79,14 @@ function validate_country_code() {
 			#TODO check first param of the log
 	        $sh_log "$FILE_LOG" "$MSG_ERR_INVALID_COUNTRY_CODE"
 	        $sh_mov "$DIR_NEWS/$2" "$DIR_REJECTED"
-	        let "EXIT_CODE = 1"
+	        let "EXIT_CODE = 2"
 	    ;;
   	esac
 }
 
 # Validates date
+# Might remove file from dir if date malformed. 
+# @Return EXIT_CODE with state output
 function validar_fecha() {
 	M_DATE=$(echo $1 | sed 's/#REGEX FOR DATE#//' | sed 's/#REGEX FOR DATE#//')
 	M_YEAR=$(echo ${M_DATE} | cut -c1-4)
@@ -82,7 +97,7 @@ function validar_fecha() {
 	if [ $M_YEAR -lt `date +'%Y'` ]; then
 		$sh_log "$FILE_LOG" "$MSG_ERR_INVALID_DATE"
 		$sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
-		let "EXIT_CODE = 1"
+		let "EXIT_CODE = 2"
 		return
 	else
 		: # Good to go
@@ -91,7 +106,7 @@ function validar_fecha() {
 	if [ $(date -d "$M_DATE" +"%Y%b%d" 2>/dev/null 1>/dev/null; echo $?) == 1 ];then
 		$sh_log "$FILE_LOG" "$MENSAJE_FECHA_INVALIDA"
 		$sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
-		let "EXIT_CODE = 1"
+		let "EXIT_CODE = 2"
 	fi
 }
 
@@ -128,13 +143,26 @@ while true; do
 		    validate_date "$FILE"
 		fi
 
+		#TODO check the exitcode 1! -> msg unknown
+
 		if [ $EXIT_CODE -eq "0" ]; then
 			$sh_log "$FILE_LOG" "$MSG_ACCEPTED"
 			$sh_mov "$DIR_NEWS/$FILE" "$DIR_ACCEPTED"
 		fi
 	done
 
-
+	get_files_count $DIR_ACCEPTED
+	if [ $FILES_SIZE -gt 0 ]
+		then
+			if [[ $(ps -aux | grep -e "[0-9] [a-z]* Procep.sh" ) == "" ]]
+				then
+					$sh_process
+					PID_PROCESS=$(pgrep Procep*)
+					$sh_log "$FILE_LOG" `echo "$MSG_ERR_PROCESS_RUNNING | sed "s/\%PID\%/$PID_PROCESS/"`
+				else
+					$sh_log "$FILE_LOG" "$MSG_ERR_PROCESS_POSTPONED"
+			fi
+	fi
 
 	sleep "$TIME_SLEEP"
 done
