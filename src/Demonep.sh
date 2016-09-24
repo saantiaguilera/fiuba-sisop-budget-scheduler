@@ -26,7 +26,7 @@ for CURRENT_FILE in $FILESDIR/*
 		#Step4, check its a text file
 		MIME_TYPE=($(file "$CURRENT_FILE" | cut -d' ' -f2)) #Get the info from the current file, pipe it to the stdin of cut and extract the second field delimited by a space
 
-		if ! [[ $MIME_TYPE =~ ASCII ]]
+		if [ `echo "$MIME_TYPE" | grep '(^ASCII)' >/dev/null` ]
 			then
 				echo "Archivo rechazado, motivo: no es un archivo de texto"
 				exit 1 #Later see to where send him if it fails
@@ -46,8 +46,11 @@ for CURRENT_FILE in $FILESDIR/*
 
 		#The regex currently checks the mm/dd as 2 digits, which can be day 62. Fix this TODO
 		CURRENT_FILE_NAME=`echo "$CURRENT_FILE" | sed "s/.*\///"`
+		REGEX_COMPLETE="^ejecutado_($DATE)_([3-9]|1[0-9]?|2[0-4]?)_$DATE[\d]{1,2}[\d]{1,2}\.csv$"
 
-		if ! [[ $CURRENT_FILE_NAME =~ ^ejecutado_($DATE)_([3-9]|1[0-9]?|2[0-4]?)_$DATE[\d]{1,2}[\d]{1,2}\.csv$ ]]
+		echo $REGEX_COMPLETE
+
+		if [ -z `echo "$CURRENT_FILE_NAME" | grep $REGEX_COMPLETE` ]
 			then
 				echo "Archivo rechazado, motivo: formato de nombre incorrecto"
 				
