@@ -1,13 +1,34 @@
 #!/bin/bash
 
-# 1. Verify if environment has been initialized
+#######################################
+# Write log message
+# Globals:
+#   None
+# Arguments:
+#   message type_of_message
+# Returns:
+#   None
+#######################################
+function log_message() {
+	bash logep.sh -c Initep -m $1 -t $2
+}
 
+
+#######################################
+# Check previous environment initialization
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   1 if initialized, 0 if don't.
+#######################################
 function check_previous_init() {
 	EXIT_CODE=0
 	
 	if pgrep -x "budget_scheduler" > /dev/null
 	then
-		#TODO Log msg with Logep ¿? cómo si no se cual es el log_dir aca :s
+		log_message "Ambiente ya inicializado, para reiniciar termine la sesión e ingrese nuevamente." "ERR"
 		echo "Ambiente ya inicializado, para reiniciar termine la sesión e ingrese nuevamente."
 		EXIT_CODE=1
 	fi
@@ -15,12 +36,28 @@ function check_previous_init() {
 	return $EXIT_CODE
 }
 
-# 2. Initialize environment variables
-
+#######################################
+# Extract directory out of configuration file line
+# Globals:
+#   None
+# Arguments:
+#   dir_variable line
+# Returns:
+#   None
+#######################################
 function extract_dir() {
 	eval $1=$(echo $2 | cut -d '=' -f 2)
 }
 
+#######################################
+# Initialize environment variables
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
 function init_environment() {
 	EXIT_CODE=0
 	
@@ -50,7 +87,7 @@ function init_environment() {
 			esac
 	done < $CONF_FILE
 	
-	eval $1="$LOG_DIR/Initep.log"
+	eval $1="$LOG_DIR/Initep.log" # Pa' q necesito esto jaja slds
 	
 	#TODO Check for success¿?, log if necessary
 
@@ -67,8 +104,15 @@ function init_environment() {
 	return $EXIT_CODE
 }
 
-# 3. Check permissions
-
+#######################################
+# Check scripts execute permissions
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   1 if denied, 0 if don't.
+#######################################
 function check_script_permissions() {
 	EXIT_CODE=0
 	cd $BIN_DIR
@@ -77,14 +121,14 @@ function check_script_permissions() {
 		do
 			if [ ! -x $SCRIPT ]
 				then
-					#TODO log warning with Logep
+					log_message "El script $SCRIPT no tiene permisos para ser ejecutado. Se intenta configurarlos." "WAR"
 					echo "El script $SCRIPT no tiene permisos para ser ejecutado. Se intenta configurarlos."
 					chmod +x $SCRIPT
 			fi
 			
 			if [ ! -x $SCRIPT ]
-				then 
-					#TODO log error with Logep
+				then
+					log_message "El script $SCRIPT no tiene permisos para ser ejecutado. No se pudo efectuar la corrección." "ERR"
 					echo "El script $SCRIPT no tiene permisos para ser ejecutado. No se pudo efectuar la corrección."
 					EXIT_CODE=1
 			fi
@@ -94,6 +138,15 @@ function check_script_permissions() {
 	return $EXIT_CODE
 }
 
+#######################################
+# Check files read permissions
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   1 if denied, 0 if don't.
+#######################################
 function check_file_permissions() {
 	EXIT_CODE=0
 	cd $MAE_DIR
@@ -102,14 +155,14 @@ function check_file_permissions() {
 		do
 			if [ ! -r $FILE ]
 				then
-					#TODO log warning with Logep
+					log_message "El archivo $FILE no tiene permisos de lectura. Se intenta configurarlos." "WAR"
 					echo "El archivo $FILE no tiene permisos de lectura. Se intenta configurarlos."
 					chmod +r $FILE
 			fi
 			
 			if [ ! -r $FILE ]
-				then 
-					#TODO log error with Logep
+				then
+					log_message "El archivo $FILE no tiene permisos de lectura. No se pudo efectuar la corrección." "ERR"
 					echo "El archivo $FILE no tiene permisos de lectura. No se pudo efectuar la corrección."
 					EXIT_CODE=1
 			fi
@@ -119,29 +172,45 @@ function check_file_permissions() {
 	return $EXIT_CODE
 }
 
+#######################################
+# 
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
 function system_init() {
-	#TODO log msg with Logep
+	log_message "Estado del Sistema: INICIALIZADO" "INF"
 	echo "Estado del Sistema: INICIALIZADO"
 }
 
-# 4. Ask to release the DEMONIO
-
+#######################################
+# 
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
 function start_demonep() {
 	ANSWER=""
 	while [ "$ANSWER" != "s" -a "$ANSWER" != "n" ]
 		do
+			log_message "¿Desea efectuar la activación de Demonep? (S/N)" "INF"
 			echo "¿Desea efectuar la activación de Demonep? (S/N)"
 			read ANSWER
+			log_message ANSWER "INF"
 			ANSWER="$(echo $ANSWER | tr '[:upper:]' '[:lower:]')"
 			case $ANSWER in
-				# 5. Start Demonep
 				"s")
-					# log
-					#TODO activate demonio
+					log_message "El proceso Demonep ha sido activado" "INF"
+					#TODO activate demonio & print/log process id
 				;;
-				# 6. Don't start Demonep
 				"n")
-					# log
+					log_message "Para activar al demonio manualmente puede ingresar \"bash Demonep.sh\"" "INF"
 					echo "Para activar al demonio manualmente puede ingresar \"bash Demonep.sh\""
 				;; 
 				*) echo "Responda por Sí (S) o por No (N)";;
@@ -149,14 +218,30 @@ function start_demonep() {
 	done
 }
 
-# 7. Close Log
-
+#######################################
+# Close log file
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
 function close_log() {
+	log_message "Proceso Initep finalizado" "INF"
 	#TODO
+	return
 }
 
-# 8. Destroy environment
-
+#######################################
+# Unset environtment variables
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
 function destroy_environment() {
 	unset GRUPO
 	unset BIN_DIR
@@ -172,16 +257,19 @@ function destroy_environment() {
 function main() {
 	LOG=""
 	
+	# 1. Verify if environment has been initialized
 	check_previous_init
 	if [ -z $? ]; then
 		return 1;
 	fi
 	
+	# 2. Initialize environment variables
 	init_environment LOG
 		if [ -z $? ]; then
 		return 2;
 	fi
 	
+	# 3. Check permissions
 	check_script_permissions LOG
 	if [ -z $? ]; then
 		return 3;
@@ -194,10 +282,13 @@ function main() {
 		
 	system_init LOG
 	
+	# 4-6. Ask to release the DEMONIO
 	start_demonep LOG
 	
+	# 7. Close Log
 	close_log LOG
 	
+	# 8. Destroy environment
 	destroy_environment
 }
 
