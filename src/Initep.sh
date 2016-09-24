@@ -173,7 +173,7 @@ function check_file_permissions() {
 }
 
 #######################################
-# 
+# TODO
 # Globals:
 #   None
 # Arguments:
@@ -187,7 +187,7 @@ function system_init() {
 }
 
 #######################################
-# 
+# TODO
 # Globals:
 #   None
 # Arguments:
