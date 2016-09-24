@@ -1,7 +1,6 @@
 #!/bin/bash
 
 #TODO s/COUNTRY/STATE/gc !
-#TODO CHECK THE sh_mov dirs 
 
 # Dirs
 DIR_REJECTED=$DIRNOK
