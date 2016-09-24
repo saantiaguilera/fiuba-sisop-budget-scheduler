@@ -30,7 +30,7 @@ MSG_ERR_PROCESS_RUNNING="Procep corriendo bajo el no.: %PID%"
 MSG_ERR_PROCESS_POSTPONED="Invocacion de Procep pospuesta para el siguiente ciclo"
 MSG_ERR_INSTANCE_RUNNING="El entorno no se encuentra en ejecucion. Para correr el daemon es necesario tener un entorno de Initep activo"
 
-# Function
+# Functions
 
 # Get files count in a dir passed as param. 
 # @Returns in $FILES_SIZE
@@ -98,9 +98,9 @@ function validate_budget_year() {
 	if ! [ $FILE_BUDGET_YEAR -eq $CURRENT_YEAR ]
 		then
 			print_generic_error_if_needed
-	        $sh_log "$FILE_LOG" `echo $MSG_ERR_INVALID_BUDGET_YEAR | sed "s/%YEAR%/$FILE_BUDGET_YEAR/"`
-	        $sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
-	        let "EXIT_CODE = 2"
+	      $sh_log "$FILE_LOG" `echo $MSG_ERR_INVALID_BUDGET_YEAR | sed "s/%YEAR%/$FILE_BUDGET_YEAR/"`
+	      $sh_mov "$DIR_NEWS/$1" "$DIR_REJECTED"
+	      let "EXIT_CODE = 2"
 	fi
 }
 
