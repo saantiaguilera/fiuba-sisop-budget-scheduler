@@ -30,6 +30,7 @@ MSG_ERR_INVALID_COUNTRY_CODE="Archivo rechazado, motivo: provincia %STATE% incor
 MSG_ERR_UNKNOWN="Archivo rechazado, motivo: Desconocido"
 MSG_ERR_PROCESS_RUNNING="Procep corriendo bajo el no.: %PID%"
 MSG_ERR_PROCESS_POSTPONED="Invocacion de Procep pospuesta para el siguiente ciclo"
+MSG_ERR_INSTANCE_RUNNING="El entorno no se encuentra en ejecucion. Para correr el daemon es necesario tener un entorno de Initep activo"
 
 # Function
 
@@ -179,7 +180,11 @@ function validate_date() {
 	fi
 }
 
-#TODO Check program hasnt been initialized!!
+if ! [ pgrep "Initep.sh" >/dev/null ]
+	then
+		echo "$MSG_ERR_INSTANCE_RUNNING"
+		exit 1;
+fi
 
 # Initialize cycle
 let "CYCLE_COUNT = 0"
