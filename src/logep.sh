@@ -6,6 +6,18 @@ COMMAND=""
 MESSAGE=""
 TYPE="INF"
 
+function show_help() {
+  cat << EOF
+Uso: logep.sh -c comando -m 'Mensaje' -t tipo de mensaje
+Ejemplo: logep.sh -c movep -m 'Se movio archivo foo' -t INF 
+  -h                  Muestra este mensaje de ayuda.
+  -c comando          Escribir el mensaje en comando.log.
+  -m 'Mensaje'        Mensaje a escribir.
+  -t tipo de mensaje  Especifica el tipo de mensaje. Puede ser
+                      INF (tipo default), WARN, ERR. (Parametro opcional)
+EOF
+}
+
 #######################################
 # Check if log file reached the maximum size allowed.
 # Globals:
@@ -65,8 +77,7 @@ function write_log_file() {
 while getopts "h?c:m:t:" opt; do
   case "$opt" in
     h|\?)
-      echo "Usage: logep.sh -c command -m 'Message' -t type of message"
-      echo "Example: logep.sh -c movep -m 'File foo moved' -t INF"
+      show_help
       exit 0
       ;;
     c)
@@ -84,5 +95,9 @@ while getopts "h?c:m:t:" opt; do
   esac
 done
 
+if [[ -z $COMMAND || -z $MESSAGE ]]; then
+  show_help
+  exit 0
+fi
 
 write_log_file $COMMAND $TYPE $MESSAGE
