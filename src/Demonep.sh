@@ -203,11 +203,13 @@ function validate_state_code() {
 #   Exit code with state
 #######################################
 function validate_date() {
-	local M_DATE=$(echo $1 | sed 's/^ejecutado_.._//' | sed 's/_.*$//')
+	local M_DATE="`echo "$1" | sed "s/^ejecutado_.*_.*_//" | sed "s/\..*$//"`"
 	local M_YEAR=$(echo ${M_DATE} | cut -c1-4)
 	local M_MONTH=$(echo ${M_DATE} | cut -c5-6)
 	local M_DAY=$(echo ${M_DATE} | cut -c7-8)
 	local CURRENT_YEAR=`date +%Y`
+
+	echo "$M_DATE $M_YEAR $M_MONTH $M_DAY"
 
 	# Check it wasnt in past years
 	if [ $M_YEAR -lt $CURRENT_YEAR ]; then
@@ -219,10 +221,10 @@ function validate_date() {
 	fi
 
 	# Check if it was this year
-	if [ $M_YEAR -e $CURRENT_YEAR ]
+	if [ $M_YEAR -eq $CURRENT_YEAR ]
 		then
 			# Check it wasnt in this month but in a future day
-			if [ $M_MONTH -e `date +%m` ] && [ $M_DAY -gt `date +%d` ]
+			if [ $M_MONTH -eq `date +%m` ] && [ $M_DAY -gt `date +%d` ]
 				then
 					#its in this month but some days in the future
 					print_generic_error_if_needed
