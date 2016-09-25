@@ -41,7 +41,7 @@ function max_log_size_reached() {
     return 0
   fi
   #In mac osx replace "du -b" for "stat -f%z"
-  local size=$(echo "`du -b $1 | cut -f1`")
+  local size=$(echo "`stat -f%z $1 | cut -f1`")
   if [[ size -ge MAX_LOG_SIZE ]]; then
     return 1
   else
@@ -111,4 +111,5 @@ if [[ -z $COMMAND || -z $MESSAGE ]]; then
   exit 0
 fi
 
-write_log_file $COMMAND $TYPE $MESSAGE
+echo "$MESSAGE"
+write_log_file "$COMMAND" "$TYPE" "$MESSAGE"
