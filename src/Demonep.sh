@@ -235,6 +235,7 @@ function validate_date() {
 	fi
 
 	# Check date is not malformed
+	# In macosx check instead of `date -d "$M_DATE" +"%Y%m%d" with `date -j -f "%Y%m%d" "$M_DATE"`
 	if [ $(date -d "$M_DATE" +"%Y%m%d" 2>/dev/null 1>/dev/null; echo $?) == 1 ]
 		then
 			print_generic_error_if_needed
