@@ -1,7 +1,7 @@
 #!/bin/bash
 
 GRUPO="Grupo5"
-readonly CONF_FILE="$GRUPO/dirconf/EPLAM.conf"
+CONF_FILE="$GRUPO/dirconf/EPLAM.conf"
 
 #### Messages ####
 TYPE_INF="INF"
@@ -30,7 +30,7 @@ MSG_INITEP_FINISHED="Proceso Initep finalizado exitosamente."
 #   None
 #######################################
 function log_message() {
-	"$BIN_DIR/logep.sh" -c "Initep" -m $1 -t $2
+	. ./"$BIN_DIR/logep.sh" -c "Initep" -m $1 -t $2
 }
 
 
@@ -200,7 +200,7 @@ function check_file_permissions() {
 # Returns:
 #   None
 #######################################
-function start_demonep() {	
+function start_demonep() {
 	ANSWER=""
 	while [ "$ANSWER" != "s" -a "$ANSWER" != "n" ]
 		do
@@ -224,7 +224,7 @@ function start_demonep() {
 				"n")
 					log_message "$MSG_DEMONEP_MANUAL_ACTIVATION" "$TYPE_INF"
 					echo "$MSG_DEMONEP_MANUAL_ACTIVATION"
-				;; 
+				;;
 				*) echo "$MSG_ANSWER_FAILURE";;
 			esac
 	done
