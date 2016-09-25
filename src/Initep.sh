@@ -10,7 +10,7 @@
 #   None
 #######################################
 function log_message() {
-	bash "$BIN_DIR/logep.sh" -c "Initep" -m $1 -t $2
+	"$BIN_DIR/logep.sh" -c "Initep" -m $1 -t $2
 }
 
 
@@ -206,8 +206,15 @@ function start_demonep() {
 			ANSWER="$(echo $ANSWER | tr '[:upper:]' '[:lower:]')"
 			case $ANSWER in
 				"s")
+					echo "El proceso Demonep ha sido activado"
 					log_message "El proceso Demonep ha sido activado" "INF"
-					#TODO activate demonio & print/log process id
+					
+					#TODO activate demonio & manual stop instructions
+					"$BIN_DIR/Demonep.sh"
+					
+					PID=$(pgrep "Demonep")
+					echo "Demonep corriendo bajo el no.: $PID"
+					log_message "Demonep corriendo bajo el no.: $PID" "INF"
 				;;
 				"n")
 					log_message "Para activar al demonio manualmente puede ingresar \"bash Demonep.sh\"" "INF"
