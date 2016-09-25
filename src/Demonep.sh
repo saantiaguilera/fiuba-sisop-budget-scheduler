@@ -152,7 +152,7 @@ function validate_budget_year() {
 	if ! [ $FILE_BUDGET_YEAR -eq $CURRENT_YEAR ]
 		then
 			print_generic_error_if_needed
-			log_n_move `echo $MSG_ERR_INVALID_BUDGET_YEAR | sed "s/%YEAR%/$FILE_BUDGET_YEAR/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+			log_n_move "`echo $MSG_ERR_INVALID_BUDGET_YEAR | sed "s/%YEAR%/$FILE_BUDGET_YEAR/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 	    	let "EXIT_CODE = 2"
 	fi
 }
@@ -177,7 +177,7 @@ function validate_state_code() {
 		;;
 		*)
 			print_generic_error_if_needed
-			log_n_move `echo $MSG_ERR_INVALID_STATE_CODE | sed "s/%STATE%/$STATE_CODE"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+			log_n_move "`echo $MSG_ERR_INVALID_STATE_CODE | sed "s/%STATE%/$STATE_CODE"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 			let "EXIT_CODE = 2"
 		;;
 	esac
@@ -203,7 +203,7 @@ function validate_date() {
 	# Check it wasnt in past years
 	if [ $M_YEAR -lt $CURRENT_YEAR ]; then
 		print_generic_error_if_needed
-		log_n_move `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+		log_n_move "`echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 		let "EXIT_CODE = 2"
 		return
 	fi
@@ -216,7 +216,7 @@ function validate_date() {
 				then
 					#its in this month but some days in the future
 					print_generic_error_if_needed
-					log_n_move `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+					log_n_move "`echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 					let "EXIT_CODE = 2"
 					return
 			fi
@@ -225,7 +225,7 @@ function validate_date() {
 			if [ $M_MONTH -gt `date +%m` ]
 				then
 					print_generic_error_if_needed
-					log_n_move `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+					log_n_move "`echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 					let "EXIT_CODE = 2"
 					return
 			fi
@@ -235,7 +235,7 @@ function validate_date() {
 	if [ $(date -d "$M_DATE" +"%Y%m%d" 2>/dev/null 1>/dev/null; echo $?) == 1 ]
 		then
 			print_generic_error_if_needed
-			log_n_move `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+			log_n_move "`echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 			let "EXIT_CODE = 2"
 	fi
 }
@@ -303,7 +303,7 @@ while true; do
 				then
 					$sh_process
 					PID_PROCESS=$(pgrep "$sh_process")
-					$sh_log -c "Demonep" -m `echo $MSG_INFO_PROCESS_RUNNING | sed "s/%PID%/$PID_PROCESS/"` -t "$TYPE_INFO"
+					$sh_log -c "Demonep" -m "`echo $MSG_INFO_PROCESS_RUNNING | sed "s/%PID%/$PID_PROCESS/"`" -t "$TYPE_INFO"
 				else
 					$sh_log -c "Demonep" -m "$MSG_INFO_PROCESS_POSTPONED" -t "$TYPE_INFO"
 			fi
