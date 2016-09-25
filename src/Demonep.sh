@@ -80,7 +80,7 @@ function evict_malformed_files() {
 		    	$IS_REJECTED=1
 		fi
 
-		if [ $IS_REJECTED -eq 0 ] && [ `wc -l $FILE` -eq 0 ]
+		if [ $IS_REJECTED -eq 0 ] && [ `wc -l "$DIR_NEWS/$FILE"` -eq 0 ]
 			then
 				log_n_move "$MSG_ERR_INVALID_FILE_SIZE" "$TYPE_ERROR" "$DIR_NEWS/$FILE" "$DIR_REJECTED"
 		fi
