@@ -77,7 +77,8 @@ function write_log_file() {
   #local file="log/$1.log"
   #local file="$1.log"
   if [ ! -f $file ]; then
-    touch $file
+    echo "" > $file
+    #touch $file
   fi
   max_log_size_reached $file
   if [ $? -gt 0 ]; then
