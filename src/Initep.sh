@@ -8,6 +8,8 @@ TYPE_INF="INF"
 TYPE_ERR="ERR"
 TYPE_WAR="WAR"
 MSG_ENV_INITIALIZED="Ambiente ya inicializado, para reiniciar termine la sesión e ingrese nuevamente."
+MSG_UNKNOWN_ENV_VAR="Se encontró una variable de entorno desconocida en \"EPLAM.config\". Vuelva a ejecutar Installep.sh e intente nuevamente."
+MSG_MISSING_ENV_VAR="No se encontraron todas las variables requeridas en \"EPLAM.config\". Vuelva a ejecutar Installep.sh e intente nuevamente."
 MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR="El script %SCRIPT% no tiene permisos para ser ejecutado. Se intenta configurarlos."
 MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR="El script %SCRIPT% no tiene permisos para ser ejecutado. No se pudo efectuar la corrección."
 MSG_FILE_WITHOUT_PERMISSIONS_WAR="El archivo %FILE% no tiene permisos de lectura. Se intenta configurarlos."
@@ -30,7 +32,8 @@ MSG_INITEP_FINISHED="Proceso Initep finalizado exitosamente."
 #   None
 #######################################
 function log_message() {
-	. "./$DIRBIN/logep.sh" -c "Initep" -m "$1" -t "$2"
+	#. "./$DIRBIN/logep.sh" -c "Initep" -m "$1" -t "$2"
+	return
 }
 
 
@@ -102,10 +105,21 @@ function init_environment() {
 				DIRINFO=*) extract_dir DIRINFO $LINE;;
 				DIRLOG=*) extract_dir DIRLOG $LINE;;
 				DIRNOK=*) extract_dir DIRNOK $LINE;;
+				*)
+					log_message "$MSG_UNKNOWN_ENV_VAR" "$TYPE_ERR"
+					echo "$MSG_UNKNOWN_ENV_VAR"
+					EXIT_CODE=1
+				;;
 			esac
 	done < $CONF_FILE
-	
-	#TODO Check for success¿?, log if necessary
+
+	if ["$GRUPO" == "" -o "$DIRBIN" == "" -o "$DIRMAE" == "" -o "$DIRREC" == "" -o "$DIROK" == ""\
+	"$DIRPROC" == "" -o "$DIRINFO" == "" -o "$DIRLOG" == "" -o "$DIRNOK" == ""]
+		then
+			log_message "$MSG_MISSING_ENV_VAR" "$TYPE_ERR"
+			echo "$MSG_MISSING_ENV_VAR"
+			EXIT_CODE=1
+	fi
 
 	export GRUPO
 	export DIRBIN
@@ -116,10 +130,10 @@ function init_environment() {
 	export DIRINFO
 	export DIRLOG
 	export DIRNOK
-	
+
 	ENV=1
 	export ENV
-	
+
 	return $EXIT_CODE
 }
 
