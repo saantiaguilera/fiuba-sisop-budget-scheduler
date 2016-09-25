@@ -80,7 +80,7 @@ function evict_malformed_files() {
 		    	$IS_REJECTED=1
 		fi
 
-		if [ $IS_REJECTED -eq 0 ] && [ `wc -l "$DIR_NEWS/$FILE"` -eq 0 ]
+		if [ $IS_REJECTED -eq 0 ] && [ "`wc -l "$DIR_NEWS/$FILE"`" == 0 ]
 			then
 				log_n_move "$MSG_ERR_INVALID_FILE_SIZE" "$TYPE_ERROR" "$DIR_NEWS/$FILE" "$DIR_REJECTED"
 		fi
@@ -146,7 +146,7 @@ function validate_file_name() {
 function validate_budget_year() {
 	local FILE_NAME=`echo "$1" | sed "s/.*\///"`
 	local CURRENT_YEAR=`date +%Y`
-	local FILE_BUDGET_YEAR=`echo "$FILE_NAME" | sed "s/^ejecutado_//" | sed "s/_*//"`
+	local FILE_BUDGET_YEAR=`echo "$FILE_NAME" | sed "s/^ejecutado_//" | sed "s/_.+//"`
 
 	# Check if the budget year is this one
 	if ! [ $FILE_BUDGET_YEAR -eq $CURRENT_YEAR ]
