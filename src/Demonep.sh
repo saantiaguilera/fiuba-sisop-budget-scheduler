@@ -64,7 +64,6 @@ function get_files_count() {
 function log_n_move() {
 	$sh_log -c "Demonep" -m "$1" -t "$2"
 	$sh_mov -c "Demonep" -o "$3" -d "$4"
-	mv "$3" "$4" #TODO REMOVE THIS
 }
 
 #######################################
@@ -75,10 +74,9 @@ function evict_malformed_files() {
 	for FILE in $(ls -1 "$DIR_NEWS");do
 		local IS_REJECTED=0
 		local MIME_TYPE=($(file "$DIR_NEWS/$FILE" | cut -d' ' -f2))
-		if [ `echo "$MIME_TYPE" | grep '(^ASCII)' >/dev/null` ]
+		if [ `echo "$MIME_TYPE" | grep '(^ASCII)'` ]
 			then
 				$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO"
-				echo "File not text"
 				log_n_move "$MSG_ERR_INVALID_FILE_TYPE" "$TYPE_ERROR" "$DIR_NEWS/$FILE" "$DIR_REJECTED"
 		    	$IS_REJECTED=1
 		fi
@@ -86,7 +84,6 @@ function evict_malformed_files() {
 		if [ $IS_REJECTED -eq 0 ] && [ "`cat "$DIR_NEWS/$FILE" | wc -l`" -eq 0 ]
 			then
 				$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO"
-				echo "File empty"
 				log_n_move "$MSG_ERR_INVALID_FILE_SIZE" "$TYPE_ERROR" "$DIR_NEWS/$FILE" "$DIR_REJECTED"
 		fi
 	done
@@ -100,7 +97,7 @@ function evict_malformed_files() {
 #   CODES_STATES with non-zero array
 #######################################
 function parse_state_codes() {
-	CODES_STATES=($(cat "$DIR_ASSETS/provincias.csv" | cut -d \; -f 1))
+	CODES_STATES=($(cat "$DIR_ASSETS/provincias.csv" | cut -d\; -f1))
 }
 
 #######################################
@@ -149,14 +146,12 @@ function validate_file_name() {
 #######################################
 function validate_budget_year() {
 	local CURRENT_YEAR=`date +%Y`
-	echo $1
 	local FILE_BUDGET_YEAR="`echo "$1" | sed "s/^ejecutado_//" | sed "s/_.*$//"`"
 
 	# Check if the budget year is this one
 	if ! [ "$FILE_BUDGET_YEAR" == "$CURRENT_YEAR" ]
 		then
 			print_generic_error_if_needed
-			echo "Invalid budget year"
 			log_n_move "`echo "$MSG_ERR_INVALID_BUDGET_YEAR" | sed "s/%YEAR%/$FILE_BUDGET_YEAR/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 	    	let "EXIT_CODE = 2"
 	fi
@@ -175,18 +170,20 @@ function validate_budget_year() {
 function validate_state_code() {
 	local STATE_CODE=$(echo $1 | sed "s/^ejecutado_...._//" | sed "s/_.*$//" )
 
-	# Check if code exists in the states code
-	case "${CODES_STATES[@]}" in
-		"$STATE_CODE")
-			#Code was found. Move on.	
-		;;
-		*)
+	local FOUND=0
+	for ARR_CODE in "${CODES_STATES[@]}"; do
+		if [[ "$STATE_CODE" == "$ARR_CODE" ]] 
+			then
+				FOUND=1
+		fi
+	done
+
+	if [ $FOUND -eq 0 ] 
+		then 
 			print_generic_error_if_needed
-			echo "Invalid state"
 			log_n_move "`echo "$MSG_ERR_INVALID_STATE_CODE" | sed "s/%STATE%/$STATE_CODE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 			let "EXIT_CODE = 2"
-		;;
-	esac
+	fi
 }
 
 #######################################
@@ -200,7 +197,7 @@ function validate_state_code() {
 #   Exit code with state
 #######################################
 function validate_date() {
-	local M_DATE=$(echo $1 | sed 's/^ejecutado_.._//' | sed 's/_.*$//')
+	local M_DATE="`echo "$1" | sed "s/^ejecutado_.*_.*_//" | sed "s/\..*$//"`"
 	local M_YEAR=$(echo ${M_DATE} | cut -c1-4)
 	local M_MONTH=$(echo ${M_DATE} | cut -c5-6)
 	local M_DAY=$(echo ${M_DATE} | cut -c7-8)
@@ -209,21 +206,19 @@ function validate_date() {
 	# Check it wasnt in past years
 	if [ $M_YEAR -lt $CURRENT_YEAR ]; then
 		print_generic_error_if_needed
-		echo "Invalid date1"
 		log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 		let "EXIT_CODE = 2"
 		return
 	fi
 
 	# Check if it was this year
-	if [ $M_YEAR -e $CURRENT_YEAR ]
+	if [ $M_YEAR -eq $CURRENT_YEAR ]
 		then
 			# Check it wasnt in this month but in a future day
-			if [ $M_MONTH -e `date +%m` ] && [ $M_DAY -gt `date +%d` ]
+			if [ $M_MONTH -eq `date +%m` ] && [ $M_DAY -gt `date +%d` ]
 				then
 					#its in this month but some days in the future
 					print_generic_error_if_needed
-					echo "Invalid date2"
 					log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 					let "EXIT_CODE = 2"
 					return
@@ -233,7 +228,6 @@ function validate_date() {
 			if [ $M_MONTH -gt `date +%m` ]
 				then
 					print_generic_error_if_needed
-					echo "Invalid date3"
 					log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 					let "EXIT_CODE = 2"
 					return
@@ -241,10 +235,10 @@ function validate_date() {
 	fi
 
 	# Check date is not malformed
+	# In macosx check instead of `date -d "$M_DATE" +"%Y%m%d" with `date -j -f "%Y%m%d" "$M_DATE"`
 	if [ $(date -d "$M_DATE" +"%Y%m%d" 2>/dev/null 1>/dev/null; echo $?) == 1 ]
 		then
 			print_generic_error_if_needed
-			echo "Invalid date4"
 			log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 			let "EXIT_CODE = 2"
 	fi
@@ -278,7 +272,6 @@ while true; do
 		# Exit code can be: 0-OK / 1-Error_found_but_dunno_which / 2-Error_sought_n_destroyed
 		let "EXIT_CODE = 0"
 
-		echo "File found"
 		$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO"
 
 		#Derp this conditional
@@ -314,7 +307,6 @@ while true; do
 				then
 					$sh_process
 					PID_PROCESS=$(pgrep "$sh_process")
-					echo "Pid running"
 					$sh_log -c "Demonep" -m "`echo "$MSG_INFO_PROCESS_RUNNING" | sed "s/%PID%/$PID_PROCESS/"`" -t "$TYPE_INFO"
 				else
 					$sh_log -c "Demonep" -m "$MSG_INFO_PROCESS_POSTPONED" -t "$TYPE_INFO"
