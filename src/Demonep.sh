@@ -268,7 +268,7 @@ while true; do
 		# Exit code can be: 0-OK / 1-Error_found_but_dunno_which / 2-Error_sought_n_destroyed
 		let "EXIT_CODE = 0"
 
-		$sh_log -c "Demonep" -m `echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"` -t "$TYPE_INFO"
+		$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO"
 
 		#Derp this conditional
 		if [ $EXIT_CODE -eq "0" ]; then
