@@ -1,5 +1,25 @@
 #!/bin/bash
 
+GRUPO="Grupo5"
+readonly CONF_FILE="$GRUPO/dirconf/EPLAM.conf"
+
+#### Messages ####
+TYPE_INF="INF"
+TYPE_ERR="ERR"
+TYPE_WAR="WAR"
+MSG_ENV_INITIALIZED="Ambiente ya inicializado, para reiniciar termine la sesión e ingrese nuevamente."
+MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR="El script $SCRIPT no tiene permisos para ser ejecutado. Se intenta configurarlos."
+MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR="El script $SCRIPT no tiene permisos para ser ejecutado. No se pudo efectuar la corrección."
+MSG_FILE_WITHOUT_PERMISSIONS_WAR="El archivo $FILE no tiene permisos de lectura. Se intenta configurarlos."
+MSG_FILE_WITHOUT_PERMISSIONS_ERR="El archivo $FILE no tiene permisos de lectura. No se pudo efectuar la corrección."
+MSG_SYSTEM_INITIALIZED="Estado del Sistema: INICIALIZADO"
+MSG_ASK_DEMONEP_ACTIVATION="¿Desea efectuar la activación de Demonep? (S/N)"
+MSG_DEMONEP_ACTIVATED="El proceso Demonep ha sido activado"
+MSG_DEMONEP_PID="Demonep corriendo bajo el no.: %PID%"
+MSG_DEMONEP_MANUAL_ACTIVATION="Para activar al demonio manualmente puede ingresar \"bash Demonep.sh\""
+MSG_ANSWER_FAILURE="Responda por Sí (S) o por No (N)"
+MSG_INITEP_FINISHED="Proceso Initep finalizado"
+
 #######################################
 # Write log message
 # Globals:
@@ -28,8 +48,8 @@ function check_previous_init() {
 	
 	if pgrep -x "budget_scheduler" > /dev/null
 	then
-		log_message "Ambiente ya inicializado, para reiniciar termine la sesión e ingrese nuevamente." "ERR"
-		echo "Ambiente ya inicializado, para reiniciar termine la sesión e ingrese nuevamente."
+		log_message "$MSG_ENV_INITIALIZED" "$TYPE_ERR"
+		echo "$MSG_ENV_INITIALIZED"
 		EXIT_CODE=1
 	fi
 	
@@ -60,9 +80,6 @@ function extract_dir() {
 #######################################
 function init_environment() {
 	EXIT_CODE=0
-	
-	GRUPO="Grupo5"
-	CONF_FILE="$GRUPO/dirconf/EPLAM.conf"
 
 	BIN_DIR=""
 	MAE_DIR=""
@@ -121,15 +138,15 @@ function check_script_permissions() {
 		do
 			if [ ! -x $SCRIPT ]
 				then
-					log_message "El script $SCRIPT no tiene permisos para ser ejecutado. Se intenta configurarlos." "WAR"
-					echo "El script $SCRIPT no tiene permisos para ser ejecutado. Se intenta configurarlos."
+					log_message "$MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR" "$TYPE_WAR"
+					echo "$MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR"
 					chmod +x $SCRIPT
 			fi
 			
 			if [ ! -x $SCRIPT ]
 				then
-					log_message "El script $SCRIPT no tiene permisos para ser ejecutado. No se pudo efectuar la corrección." "ERR"
-					echo "El script $SCRIPT no tiene permisos para ser ejecutado. No se pudo efectuar la corrección."
+					log_message "$MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR" "$TYPE_ERR"
+					echo "$MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR"
 					EXIT_CODE=1
 			fi
 	done
@@ -155,15 +172,15 @@ function check_file_permissions() {
 		do
 			if [ ! -r $FILE ]
 				then
-					log_message "El archivo $FILE no tiene permisos de lectura. Se intenta configurarlos." "WAR"
-					echo "El archivo $FILE no tiene permisos de lectura. Se intenta configurarlos."
+					log_message "$MSG_FILE_WITHOUT_PERMISSIONS_WAR" "$TYPE_WAR"
+					echo "$MSG_FILE_WITHOUT_PERMISSIONS_WAR"
 					chmod +r $FILE
 			fi
 			
 			if [ ! -r $FILE ]
 				then
-					log_message "El archivo $FILE no tiene permisos de lectura. No se pudo efectuar la corrección." "ERR"
-					echo "El archivo $FILE no tiene permisos de lectura. No se pudo efectuar la corrección."
+					log_message "$MSG_FILE_WITHOUT_PERMISSIONS_ERR" "$TYPE_ERR"
+					echo "$MSG_FILE_WITHOUT_PERMISSIONS_ERR"
 					EXIT_CODE=1
 			fi
 	done
@@ -182,8 +199,8 @@ function check_file_permissions() {
 #   None
 #######################################
 function system_init() {
-	log_message "Estado del Sistema: INICIALIZADO" "INF"
-	echo "Estado del Sistema: INICIALIZADO"
+	log_message "$MSG_SYSTEM_INITIALIZED" "$TYPE_INF"
+	echo "$MSG_SYSTEM_INITIALIZED"
 }
 
 #######################################
@@ -199,28 +216,28 @@ function start_demonep() {
 	ANSWER=""
 	while [ "$ANSWER" != "s" -a "$ANSWER" != "n" ]
 		do
-			log_message "¿Desea efectuar la activación de Demonep? (S/N)" "INF"
-			echo "¿Desea efectuar la activación de Demonep? (S/N)"
+			log_message "$MSG_ASK_DEMONEP_ACTIVATION" "$TYPE_INF"
+			echo "$MSG_ASK_DEMONEP_ACTIVATION"
 			read ANSWER
-			log_message ANSWER "INF"
+			log_message ANSWER "$TYPE_INF"
 			ANSWER="$(echo $ANSWER | tr '[:upper:]' '[:lower:]')"
 			case $ANSWER in
 				"s")
-					echo "El proceso Demonep ha sido activado"
-					log_message "El proceso Demonep ha sido activado" "INF"
+					echo "$MSG_DEMONEP_ACTIVATED"
+					log_message "$MSG_DEMONEP_ACTIVATED" "$TYPE_INF"
 					
 					#TODO activate demonio & manual stop instructions
-					"$BIN_DIR/Demonep.sh"
+					#"$BIN_DIR/Demonep.sh"
 					
-					PID=$(pgrep "Demonep")
-					echo "Demonep corriendo bajo el no.: $PID"
-					log_message "Demonep corriendo bajo el no.: $PID" "INF"
+					PROCESS_ID=$(pgrep "Demonep")
+					echo `echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"`
+					log_message `echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"` "$TYPE_INF"
 				;;
 				"n")
-					log_message "Para activar al demonio manualmente puede ingresar \"bash Demonep.sh\"" "INF"
-					echo "Para activar al demonio manualmente puede ingresar \"bash Demonep.sh\""
+					log_message "$MSG_DEMONEP_MANUAL_ACTIVATION" "$TYPE_INF"
+					echo "$MSG_DEMONEP_MANUAL_ACTIVATION"
 				;; 
-				*) echo "Responda por Sí (S) o por No (N)";;
+				*) echo "$MSG_ANSWER_FAILURE";;
 			esac
 	done
 }
@@ -235,7 +252,7 @@ function start_demonep() {
 #   None
 #######################################
 function close_log() {
-	log_message "Proceso Initep finalizado" "INF"
+	log_message "$MSG_INITEP_FINISHED" "$TYPE_INF"
 	#TODO
 	return
 }
@@ -260,6 +277,7 @@ function destroy_environment() {
 	unset LOG_DIR
 	unset NOK_DIR
 }
+
 
 function main() {
 	LOG=""
