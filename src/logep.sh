@@ -73,11 +73,12 @@ function reduce_log_file() {
 #   None
 #######################################
 function write_log_file() {
-  local file="$DIR_LOG/$1.log"
+  local file="$DIRLOG/$1.log"
   #local file="log/$1.log"
   #local file="$1.log"
   if [ ! -f $file ]; then
-    touch $file
+    echo "" > $file
+    #touch $file
   fi
   max_log_size_reached $file
   if [ $? -gt 0 ]; then
