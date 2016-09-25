@@ -41,7 +41,6 @@ function max_log_size_reached() {
     return 0
   fi
   local size=$(echo "`du -b $1 | cut -f1`")
-  echo $size
   if [[ size -ge MAX_LOG_SIZE ]]; then
     return 1
   else
@@ -75,7 +74,11 @@ function reduce_log_file() {
 #######################################
 function write_log_file() {
   # local file="$DIR_LOG/$1.log"
-  local file="log/$1.log"
+  #local file="log/$1.log"
+  local file="$1.log"
+  if [ ! -f $file ]; then
+    touch $file
+  fi
   max_log_size_reached $file
   if [ $? -gt 0 ]; then
     reduce_log_file $file
@@ -90,15 +93,12 @@ while getopts "h?c:m:t:" opt; do
       exit 0
       ;;
     c)
-      echo "Command: $OPTARG"
       COMMAND=$OPTARG
       ;;
     m)
-      echo "Message: $OPTARG"
       MESSAGE=$OPTARG
       ;;
     t)
-      echo "Message type: $OPTARG"
       TYPE=$OPTARG
       ;;
   esac
