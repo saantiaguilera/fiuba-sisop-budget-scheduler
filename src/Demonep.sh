@@ -62,9 +62,8 @@ function get_files_count() {
 #   4. Move dest
 #######################################
 function log_n_move() {
-	$sh_log -c "Demonep" -m "$1" -t "$2" 2>/dev/null
+	$sh_log -c "Demonep" -m "$1" -t "$2"
 	$sh_mov -c "Demonep" -o "$3" -d "$4"
-	mv "$3" "$4" #TODO REMOVE THIS
 }
 
 #######################################
@@ -75,18 +74,16 @@ function evict_malformed_files() {
 	for FILE in $(ls -1 "$DIR_NEWS");do
 		local IS_REJECTED=0
 		local MIME_TYPE=($(file "$DIR_NEWS/$FILE" | cut -d' ' -f2))
-		if [ `echo "$MIME_TYPE" | grep '(^ASCII)' >/dev/null` ]
+		if [ `echo "$MIME_TYPE" | grep '(^ASCII)'` ]
 			then
-				$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO" 2>/dev/null
-				echo "File not text"
+				$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO"
 				log_n_move "$MSG_ERR_INVALID_FILE_TYPE" "$TYPE_ERROR" "$DIR_NEWS/$FILE" "$DIR_REJECTED"
 		    	$IS_REJECTED=1
 		fi
 		
 		if [ $IS_REJECTED -eq 0 ] && [ "`cat "$DIR_NEWS/$FILE" | wc -l`" -eq 0 ]
 			then
-				$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO" 2>dev/null
-				echo "File empty"
+				$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO"
 				log_n_move "$MSG_ERR_INVALID_FILE_SIZE" "$TYPE_ERROR" "$DIR_NEWS/$FILE" "$DIR_REJECTED"
 		fi
 	done
@@ -113,7 +110,7 @@ function parse_state_codes() {
 function print_generic_error_if_needed() {
 	if [ $EXIT_CODE -eq "0" ]
 		then
-			$sh_log -c "Demonep" -m "$MSG_ERR_INVALID_FILE_NAME" -t "$TYPE_ERROR" 2>/dev/null
+			$sh_log -c "Demonep" -m "$MSG_ERR_INVALID_FILE_NAME" -t "$TYPE_ERROR"
 			let "EXIT_CODE = 1"
 	fi
 }
@@ -149,14 +146,12 @@ function validate_file_name() {
 #######################################
 function validate_budget_year() {
 	local CURRENT_YEAR=`date +%Y`
-	echo $1
 	local FILE_BUDGET_YEAR="`echo "$1" | sed "s/^ejecutado_//" | sed "s/_.*$//"`"
 
 	# Check if the budget year is this one
 	if ! [ "$FILE_BUDGET_YEAR" == "$CURRENT_YEAR" ]
 		then
 			print_generic_error_if_needed
-			echo "Invalid budget year"
 			log_n_move "`echo "$MSG_ERR_INVALID_BUDGET_YEAR" | sed "s/%YEAR%/$FILE_BUDGET_YEAR/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 	    	let "EXIT_CODE = 2"
 	fi
@@ -186,7 +181,6 @@ function validate_state_code() {
 	if [ $FOUND -eq 0 ] 
 		then 
 			print_generic_error_if_needed
-			echo "Invalid state"
 			log_n_move "`echo "$MSG_ERR_INVALID_STATE_CODE" | sed "s/%STATE%/$STATE_CODE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 			let "EXIT_CODE = 2"
 	fi
@@ -209,12 +203,9 @@ function validate_date() {
 	local M_DAY=$(echo ${M_DATE} | cut -c7-8)
 	local CURRENT_YEAR=`date +%Y`
 
-	echo "$M_DATE $M_YEAR $M_MONTH $M_DAY"
-
 	# Check it wasnt in past years
 	if [ $M_YEAR -lt $CURRENT_YEAR ]; then
 		print_generic_error_if_needed
-		echo "Invalid date1"
 		log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 		let "EXIT_CODE = 2"
 		return
@@ -228,7 +219,6 @@ function validate_date() {
 				then
 					#its in this month but some days in the future
 					print_generic_error_if_needed
-					echo "Invalid date2"
 					log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 					let "EXIT_CODE = 2"
 					return
@@ -238,7 +228,6 @@ function validate_date() {
 			if [ $M_MONTH -gt `date +%m` ]
 				then
 					print_generic_error_if_needed
-					echo "Invalid date3"
 					log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 					let "EXIT_CODE = 2"
 					return
@@ -249,7 +238,6 @@ function validate_date() {
 	if [ $(date -d "$M_DATE" +"%Y%m%d" 2>/dev/null 1>/dev/null; echo $?) == 1 ]
 		then
 			print_generic_error_if_needed
-			echo "Invalid date4"
 			log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 			let "EXIT_CODE = 2"
 	fi
@@ -271,7 +259,7 @@ let "CYCLE_COUNT = 0"
 while true; do
 	CYCLE_NUMBER_MESSAGE="Demonep ciclo nro. $CYCLE_COUNT"
  
-	$sh_log -c "Demonep" -m "$CYCLE_NUMBER_MESSAGE" -t "$TYPE_INFO" 2>/dev/null
+	$sh_log -c "Demonep" -m "$CYCLE_NUMBER_MESSAGE" -t "$TYPE_INFO"
 
 	let "CYCLE_COUNT = CYCLE_COUNT + 1"
 
@@ -283,8 +271,7 @@ while true; do
 		# Exit code can be: 0-OK / 1-Error_found_but_dunno_which / 2-Error_sought_n_destroyed
 		let "EXIT_CODE = 0"
 
-		echo "File found"
-		$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO" 2>/dev/null
+		$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO"
 
 		#Derp this conditional
 		if [ $EXIT_CODE -eq "0" ]; then
@@ -319,7 +306,6 @@ while true; do
 				then
 					$sh_process
 					PID_PROCESS=$(pgrep "$sh_process")
-					echo "Pid running"
 					$sh_log -c "Demonep" -m "`echo "$MSG_INFO_PROCESS_RUNNING" | sed "s/%PID%/$PID_PROCESS/"`" -t "$TYPE_INFO"
 				else
 					$sh_log -c "Demonep" -m "$MSG_INFO_PROCESS_POSTPONED" -t "$TYPE_INFO"
