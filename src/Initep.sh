@@ -2,6 +2,7 @@
 
 GRUPO="Grupo5"
 readonly CONF_FILE="$GRUPO/dirconf/EPLAM.conf"
+readonly LOG="$LOG_DIR/Initep.log" # Pa' q necesito esto jaja slds
 
 #### Messages ####
 TYPE_INF="INF"
@@ -13,7 +14,7 @@ MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR="El script $SCRIPT no tiene permisos para ser
 MSG_FILE_WITHOUT_PERMISSIONS_WAR="El archivo $FILE no tiene permisos de lectura. Se intenta configurarlos."
 MSG_FILE_WITHOUT_PERMISSIONS_ERR="El archivo $FILE no tiene permisos de lectura. No se pudo efectuar la corrección."
 MSG_SYSTEM_INITIALIZED="Estado del Sistema: INICIALIZADO"
-MSG_ASK_DEMONEP_ACTIVATION="¿Desea efectuar la activación de Demonep? (S/N)"
+MSG_ASK_DEMONEP_ACTIVATION="¿Desea efectuar la activación de Demonep? (s/n)"
 MSG_DEMONEP_ACTIVATED="El proceso Demonep ha sido activado"
 MSG_DEMONEP_PID="Demonep corriendo bajo el no.: %PID%"
 MSG_DEMONEP_MANUAL_ACTIVATION="Para activar al demonio manualmente puede ingresar \"bash Demonep.sh\""
@@ -103,8 +104,6 @@ function init_environment() {
 				NOK=*) extract_dir NOK_DIR $LINE;;
 			esac
 	done < $CONF_FILE
-	
-	eval $1="$LOG_DIR/Initep.log" # Pa' q necesito esto jaja slds
 	
 	#TODO Check for success¿?, log if necessary
 
@@ -280,8 +279,6 @@ function destroy_environment() {
 
 
 function main() {
-	LOG=""
-	
 	# 1. Verify if environment has been initialized
 	check_previous_init
 	if [ -z $? ]; then
@@ -289,29 +286,29 @@ function main() {
 	fi
 	
 	# 2. Initialize environment variables
-	init_environment LOG
+	init_environment
 		if [ -z $? ]; then
 		return 2;
 	fi
 	
 	# 3. Check permissions
-	check_script_permissions LOG
+	check_script_permissions
 	if [ -z $? ]; then
 		return 3;
 	fi
 		
-	check_file_permissions LOG
+	check_file_permissions
 	if [ -z $? ]; then
 		return 4;
 	fi
 		
-	system_init LOG
+	system_init
 	
 	# 4-6. Ask to release the DEMONIO
-	start_demonep LOG
+	start_demonep
 	
 	# 7. Close Log
-	close_log LOG
+	close_log
 	
 	# 8. Destroy environment
 	destroy_environment
