@@ -15,9 +15,9 @@ DIR_NEWS=$DIRREC
 DIR_ASSETS=$DIRMAE
 
 #### Shell scripts ####
-sh_mov="$BINDIR/Movep.sh"
-sh_log="$BINDIR/logep.sh"
-sh_process="$BINDIR/Procep.sh"
+sh_mov="$DIRBIN/Movep.sh"
+sh_log="$DIRBIN/logep.sh"
+sh_process="$DIRBIN/Procep.sh"
 
 #### Sleep time ####
 TIME_SLEEP=15
@@ -95,8 +95,7 @@ function evict_malformed_files() {
 #   CODES_STATES with non-zero array
 #######################################
 function parse_state_codes() {
-	# TODO ver el codes.csv
-	CODES_STATES=($(cat "$DIR_ASSETS/codes.csv" | cut -d \; -f 1))
+	CODES_STATES=($(cat "$DIR_ASSETS/provincias.csv" | cut -d \; -f 1))
 }
 
 #######################################
