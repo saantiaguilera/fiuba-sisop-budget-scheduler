@@ -7,6 +7,27 @@ MESSAGE=""
 TYPE="INF"
 
 #######################################
+# Shows help function.
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+function show_help() {
+  cat << EOF
+Uso: logep.sh -c comando -m 'Mensaje' -t tipo de mensaje
+Ejemplo: logep.sh -c movep -m 'Se movio archivo foo' -t INF 
+  -h                  Muestra este mensaje de ayuda.
+  -c comando          Escribir el mensaje en comando.log.
+  -m 'Mensaje'        Mensaje a escribir.
+  -t tipo de mensaje  Especifica el tipo de mensaje. Puede ser
+                      INF (tipo default), WAR, ERR. (Parametro opcional)
+EOF
+}
+
+#######################################
 # Check if log file reached the maximum size allowed.
 # Globals:
 #   MAX_LOG_SIZE
@@ -20,7 +41,6 @@ function max_log_size_reached() {
     return 0
   fi
   local size=$(echo "`du -b $1 | cut -f1`")
-  echo $size
   if [[ size -ge MAX_LOG_SIZE ]]; then
     return 1
   else
@@ -53,8 +73,12 @@ function reduce_log_file() {
 #   None
 #######################################
 function write_log_file() {
-  # local file="$DIR_LOG/$1.log"
-  local file="log/$1.log"
+  local file="$DIR_LOG/$1.log"
+  #local file="log/$1.log"
+  #local file="$1.log"
+  if [ ! -f $file ]; then
+    touch $file
+  fi
   max_log_size_reached $file
   if [ $? -gt 0 ]; then
     reduce_log_file $file
@@ -65,24 +89,24 @@ function write_log_file() {
 while getopts "h?c:m:t:" opt; do
   case "$opt" in
     h|\?)
-      echo "Usage: logep.sh -c command -m 'Message' -t type of message"
-      echo "Example: logep.sh -c movep -m 'File foo moved' -t INF"
+      show_help
       exit 0
       ;;
     c)
-      echo "Command: $OPTARG"
       COMMAND=$OPTARG
       ;;
     m)
-      echo "Message: $OPTARG"
       MESSAGE=$OPTARG
       ;;
     t)
-      echo "Message type: $OPTARG"
       TYPE=$OPTARG
       ;;
   esac
 done
 
+if [[ -z $COMMAND || -z $MESSAGE ]]; then
+  show_help
+  exit 0
+fi
 
 write_log_file $COMMAND $TYPE $MESSAGE

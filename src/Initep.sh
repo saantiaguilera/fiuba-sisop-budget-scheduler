@@ -30,7 +30,8 @@ MSG_INITEP_FINISHED="Proceso Initep finalizado exitosamente."
 #   None
 #######################################
 function log_message() {
-	. ./"$BIN_DIR/logep.sh" -c "Initep" -m $1 -t $2
+	#. "./$BIN_DIR/logep.sh" -c "Initep" -m $1 -t $2
+	return
 }
 
 
@@ -305,6 +306,10 @@ function main() {
 	log_message "$MSG_INITEP_FINISHED" "$TYPE_INF"
 	echo "$MSG_INITEP_FINISHED"
 	close_log
+
+
+	##### Destroy env for debugging purposes #####
+	#destroy_environment
 }
 
 main
