@@ -197,20 +197,6 @@ function check_file_permissions() {
 # Returns:
 #   None
 #######################################
-function system_init() {
-	log_message "$MSG_SYSTEM_INITIALIZED" "$TYPE_INF"
-	echo "$MSG_SYSTEM_INITIALIZED"
-}
-
-#######################################
-# TODO
-# Globals:
-#   None
-# Arguments:
-#   None
-# Returns:
-#   None
-#######################################
 function start_demonep() {
 	ANSWER=""
 	while [ "$ANSWER" != "s" -a "$ANSWER" != "n" ]
@@ -222,15 +208,15 @@ function start_demonep() {
 			ANSWER="$(echo $ANSWER | tr '[:upper:]' '[:lower:]')"
 			case $ANSWER in
 				"s")
-					echo "$MSG_DEMONEP_ACTIVATED"
 					log_message "$MSG_DEMONEP_ACTIVATED" "$TYPE_INF"
+					echo "$MSG_DEMONEP_ACTIVATED"
 					
 					#TODO activate demonio & manual stop instructions
 					#"$BIN_DIR/Demonep.sh"
 					
 					PROCESS_ID=$(pgrep "Demonep")
-					echo `echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"`
 					log_message `echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"` "$TYPE_INF"
+					echo `echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"`
 				;;
 				"n")
 					log_message "$MSG_DEMONEP_MANUAL_ACTIVATION" "$TYPE_INF"
@@ -251,7 +237,6 @@ function start_demonep() {
 #   None
 #######################################
 function close_log() {
-	log_message "$MSG_INITEP_FINISHED" "$TYPE_INF"
 	#TODO
 	return
 }
@@ -302,12 +287,15 @@ function main() {
 		return 4;
 	fi
 		
-	system_init
+	log_message "$MSG_SYSTEM_INITIALIZED" "$TYPE_INF"
+	echo "$MSG_SYSTEM_INITIALIZED"
 	
 	# 4-6. Ask to release the DEMONIO
 	start_demonep
 	
 	# 7. Close Log
+	log_message "$MSG_INITEP_FINISHED" "$TYPE_INF"
+	echo "$MSG_INITEP_FINISHED"
 	close_log
 	
 	# 8. Destroy environment
