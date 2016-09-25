@@ -111,5 +111,4 @@ if [[ -z $COMMAND || -z $MESSAGE ]]; then
   exit 0
 fi
 
-echo "$MESSAGE"
 write_log_file "$COMMAND" "$TYPE" "$MESSAGE"
