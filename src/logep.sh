@@ -91,6 +91,7 @@ function write_log_file() {
 while getopts "h?c:m:t:" opt; do
   case "$opt" in
     h|\?)
+      echo "Wrong call"
       show_help
       exit 0
       ;;
@@ -107,6 +108,7 @@ while getopts "h?c:m:t:" opt; do
 done
 
 if [[ -z $COMMAND || -z $MESSAGE ]]; then
+  echo "Empty command or msg"
   show_help
   exit 0
 fi
