@@ -124,10 +124,8 @@ function print_generic_error_if_needed() {
 #   Exit code with state
 #######################################
 function validate_file_name() {
-	local FILE_NAME=`echo "$1" | sed "s/.*\///"`
-
 	# Check if filename at least matches the start and end the name should have
-	if ! [[ `echo $FILE_NAME | sed "s/^ejecutado_*\.csv$//"` == "" ]]
+	if ! [[ `echo $1 | sed "s/^ejecutado_*\.csv$//"` == "" ]]
 		then
 			print_generic_error_if_needed
 	fi
@@ -144,9 +142,10 @@ function validate_file_name() {
 #   Exit code with state
 #######################################
 function validate_budget_year() {
-	local FILE_NAME=`echo "$1" | sed "s/.*\///"`
 	local CURRENT_YEAR=`date +%Y`
-	local FILE_BUDGET_YEAR=`echo "$FILE_NAME" | sed "s/^ejecutado_//" | sed "s/_.+//"`
+	echo $1
+	local FILE_BUDGET_YEAR=`echo "$1" | sed "s/^ejecutado_//" | sed "s/_.*$//"`
+	echo $FILE_BUDGET_YEAR
 
 	# Check if the budget year is this one
 	if ! [ $FILE_BUDGET_YEAR -eq $CURRENT_YEAR ]
@@ -168,7 +167,7 @@ function validate_budget_year() {
 #   Exit code with state
 #######################################
 function validate_state_code() {
-	local STATE_CODE=$(echo $1 | sed "s/^ejecutado_...._//" | sed "s/_*//" )
+	local STATE_CODE=$(echo $1 | sed "s/^ejecutado_...._//" | sed "s/_.+//" )
 
 	# Check if code exists in the states code
 	case "${CODES_STATES[@]}" in
@@ -194,7 +193,7 @@ function validate_state_code() {
 #   Exit code with state
 #######################################
 function validate_date() {
-	local M_DATE=$(echo $1 | sed 's/^ejecutado_.._//' | sed 's/_*//')
+	local M_DATE=$(echo $1 | sed 's/^ejecutado_.._//' | sed 's/_.+//')
 	local M_YEAR=$(echo ${M_DATE} | cut -c1-4)
 	local M_MONTH=$(echo ${M_DATE} | cut -c5-6)
 	local M_DAY=$(echo ${M_DATE} | cut -c7-8)
