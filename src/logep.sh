@@ -6,6 +6,15 @@ COMMAND=""
 MESSAGE=""
 TYPE="INF"
 
+#######################################
+# Shows help function.
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
 function show_help() {
   cat << EOF
 Uso: logep.sh -c comando -m 'Mensaje' -t tipo de mensaje
@@ -14,7 +23,7 @@ Ejemplo: logep.sh -c movep -m 'Se movio archivo foo' -t INF
   -c comando          Escribir el mensaje en comando.log.
   -m 'Mensaje'        Mensaje a escribir.
   -t tipo de mensaje  Especifica el tipo de mensaje. Puede ser
-                      INF (tipo default), WARN, ERR. (Parametro opcional)
+                      INF (tipo default), WAR, ERR. (Parametro opcional)
 EOF
 }
 
