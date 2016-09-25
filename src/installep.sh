@@ -11,9 +11,10 @@ DIRINFO="$GRUPO/rep"
 DIRLOG="$GRUPO/log"
 DIRNOK="$GRUPO/nok"
 
+DATASIZE=100
 
 #Lets the user choose a name for the input_directory, if he enters an invalid
-#name or none address at all, a default one (bin) is used instead.
+#name or none address at all, a default one is used instead.
 function input_directory {
   read directory
 
@@ -31,6 +32,9 @@ function input_directory {
 	return 0
 }
 
+#Lets the user choose a name for all the directories the EPLAM program uses,
+#if he enters an invalid name or none address at all, a default one is used
+# instead.
 function input_directories {
 	echo "Defina el directorio de ejecutables ($GRUPO/bin): "
 	input_directory DIRBIN
@@ -59,6 +63,8 @@ function input_directories {
 	return 0
 }
 
+#Checks if the system has been already installed, returning an 0 in that case
+#and a 1 if not.
 function system_already_installed {
   if [ ! -f */$GRUPO/Instalep.config ] #Not sure if it works like this...
   then
@@ -67,3 +73,31 @@ function system_already_installed {
     return 1 #False
   fi
 }
+
+function set_news_size {
+	local SYSTEM_SIZE=""
+	SYSTEM_SIZE_M=$(df -BM . | tail -1 | awk '{print $4}')
+	SYSTEM_SIZE="`echo $SYSTEM_SIZE_M | sed "s/M$//"`"
+
+	echo "Defina espacio minimo libre para la recepcion de archivos en Mbytes (100): "
+	read size
+
+	if [[ $size -gt $SYSTEM_SIZE ]]
+	then
+		echo "Insuficiente espacio en disco."
+		echo "Espacio disponible: $SYSTEM_SIZE Mb."
+		echo "Espacio requerido $size Mb."
+		echo "Intentelo nuevamente."
+		set_news_size
+	else
+		echo "Suficiente espacio en disco."
+		echo "Espacio disponible: $SYSTEM_SIZE Mb."
+		echo "Espacio requerido $size Mb."
+		echo "De enter para continuar."
+		read enter
+	fi
+
+	return 0
+}
+
+set_news_size
