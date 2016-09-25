@@ -10,7 +10,7 @@
 #   None
 #######################################
 function log_message() {
-	bash logep.sh -c Initep -m $1 -t $2
+	bash "$BIN_DIR/logep.sh" -c "Initep" -m $1 -t $2
 }
 
 
