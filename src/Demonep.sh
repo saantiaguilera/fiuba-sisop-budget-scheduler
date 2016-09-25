@@ -12,13 +12,12 @@
 DIR_REJECTED=$DIRNOK
 DIR_ACCEPTED=$DIROK
 DIR_NEWS=$DIRREC
-DIR_LOG=$DIRLOG
 DIR_ASSETS=$DIRMAE
 
 #### Shell scripts ####
-sh_mov="$BINDIR/Movep.sh"
-sh_log="$BINDIR/logep.sh"
-sh_process="$BINDIR/Procep.sh"
+sh_mov="$DIRBIN/Movep.sh"
+sh_log="$DIRBIN/logep.sh"
+sh_process="$DIRBIN/Procep.sh"
 
 #### Sleep time ####
 TIME_SLEEP=15
@@ -63,8 +62,9 @@ function get_files_count() {
 #   4. Move dest
 #######################################
 function log_n_move() {
-	$sh_log -c "Demonep" -m $1 -t $2
-	$sh_mov -c "Demonep" -o $3 -d $4
+	$sh_log -c "Demonep" -m "$1" -t "$2"
+	$sh_mov -c "Demonep" -o "$3" -d "$4"
+	mv "$3" "$4" #TODO REMOVE THIS
 }
 
 #######################################
@@ -77,12 +77,16 @@ function evict_malformed_files() {
 		local MIME_TYPE=($(file "$DIR_NEWS/$FILE" | cut -d' ' -f2))
 		if [ `echo "$MIME_TYPE" | grep '(^ASCII)' >/dev/null` ]
 			then
+				$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO"
+				echo "File not text"
 				log_n_move "$MSG_ERR_INVALID_FILE_TYPE" "$TYPE_ERROR" "$DIR_NEWS/$FILE" "$DIR_REJECTED"
 		    	$IS_REJECTED=1
 		fi
-
-		if [ $IS_REJECTED -eq 0 ] && [ `wc -l $FILE` -eq 0 ]
+		
+		if [ $IS_REJECTED -eq 0 ] && [ "`cat "$DIR_NEWS/$FILE" | wc -l`" -eq 0 ]
 			then
+				$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO"
+				echo "File empty"
 				log_n_move "$MSG_ERR_INVALID_FILE_SIZE" "$TYPE_ERROR" "$DIR_NEWS/$FILE" "$DIR_REJECTED"
 		fi
 	done
@@ -96,8 +100,7 @@ function evict_malformed_files() {
 #   CODES_STATES with non-zero array
 #######################################
 function parse_state_codes() {
-	# TODO ver el statedir y codes.csv
-	CODES_STATES=($(cat "$DIR_ASSETS/codes.csv" | cut -d \; -f 1))
+	CODES_STATES=($(cat "$DIR_ASSETS/provincias.csv" | cut -d \; -f 1))
 }
 
 #######################################
@@ -126,12 +129,11 @@ function print_generic_error_if_needed() {
 #   Exit code with state
 #######################################
 function validate_file_name() {
-	local FILE_NAME=`echo "$1" | sed "s/.*\///"`
-
 	# Check if filename at least matches the start and end the name should have
-	if ! [[ `echo $FILE_NAME | sed "s/^ejecutado_*\.csv$//"` == "" ]]
+	if ! [[ `echo $1 | sed "s/^ejecutado_.*\.csv$//"` == "" ]]
 		then
-			print_generic_error_if_needed
+			log_n_move "$MSG_ERR_INVALID_FILE_NAME" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED" 
+			let "EXIT_CODE = 2"
 	fi
 }
 
@@ -146,15 +148,16 @@ function validate_file_name() {
 #   Exit code with state
 #######################################
 function validate_budget_year() {
-	local FILE_NAME=`echo "$1" | sed "s/.*\///"`
 	local CURRENT_YEAR=`date +%Y`
-	local FILE_BUDGET_YEAR=`echo "$FILE_NAME" | sed "s/^ejecutado_//" | sed "s/_*//"`
+	echo $1
+	local FILE_BUDGET_YEAR="`echo "$1" | sed "s/^ejecutado_//" | sed "s/_.*$//"`"
 
 	# Check if the budget year is this one
-	if ! [ $FILE_BUDGET_YEAR -eq $CURRENT_YEAR ]
+	if ! [ "$FILE_BUDGET_YEAR" == "$CURRENT_YEAR" ]
 		then
 			print_generic_error_if_needed
-			log_n_move `echo $MSG_ERR_INVALID_BUDGET_YEAR | sed "s/%YEAR%/$FILE_BUDGET_YEAR/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+			echo "Invalid budget year"
+			log_n_move "`echo "$MSG_ERR_INVALID_BUDGET_YEAR" | sed "s/%YEAR%/$FILE_BUDGET_YEAR/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 	    	let "EXIT_CODE = 2"
 	fi
 }
@@ -170,19 +173,20 @@ function validate_budget_year() {
 #   Exit code with state
 #######################################
 function validate_state_code() {
-	local STATE_CODE=$(echo $1 | sed "s/^ejecutado_...._//" | sed "s/_*//" )
+	local STATE_CODE=$(echo $1 | sed "s/^ejecutado_...._//" | sed "s/_.*$//" )
 
 	# Check if code exists in the states code
 	case "${CODES_STATES[@]}" in
-	    "$STATE_CODE")
+		"$STATE_CODE")
 			#Code was found. Move on.	
-	    ;;
-	    *)
+		;;
+		*)
 			print_generic_error_if_needed
-	        log_n_move `echo $MSG_ERR_INVALID_STATE_CODE | sed "s/%STATE%/$STATE_CODE"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
-	        let "EXIT_CODE = 2"
-	    ;;
-  	esac
+			echo "Invalid state"
+			log_n_move "`echo "$MSG_ERR_INVALID_STATE_CODE" | sed "s/%STATE%/$STATE_CODE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+			let "EXIT_CODE = 2"
+		;;
+	esac
 }
 
 #######################################
@@ -196,7 +200,7 @@ function validate_state_code() {
 #   Exit code with state
 #######################################
 function validate_date() {
-	local M_DATE=$(echo $1 | sed 's/^ejecutado_.._//' | sed 's/_*//')
+	local M_DATE=$(echo $1 | sed 's/^ejecutado_.._//' | sed 's/_.*$//')
 	local M_YEAR=$(echo ${M_DATE} | cut -c1-4)
 	local M_MONTH=$(echo ${M_DATE} | cut -c5-6)
 	local M_DAY=$(echo ${M_DATE} | cut -c7-8)
@@ -205,7 +209,8 @@ function validate_date() {
 	# Check it wasnt in past years
 	if [ $M_YEAR -lt $CURRENT_YEAR ]; then
 		print_generic_error_if_needed
-		log_n_move `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+		echo "Invalid date1"
+		log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 		let "EXIT_CODE = 2"
 		return
 	fi
@@ -218,7 +223,8 @@ function validate_date() {
 				then
 					#its in this month but some days in the future
 					print_generic_error_if_needed
-					log_n_move `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+					echo "Invalid date2"
+					log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 					let "EXIT_CODE = 2"
 					return
 			fi
@@ -227,7 +233,8 @@ function validate_date() {
 			if [ $M_MONTH -gt `date +%m` ]
 				then
 					print_generic_error_if_needed
-					log_n_move `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+					echo "Invalid date3"
+					log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 					let "EXIT_CODE = 2"
 					return
 			fi
@@ -237,7 +244,8 @@ function validate_date() {
 	if [ $(date -d "$M_DATE" +"%Y%m%d" 2>/dev/null 1>/dev/null; echo $?) == 1 ]
 		then
 			print_generic_error_if_needed
-			log_n_move `echo $MSG_ERR_OUTOFBOUNDS_DATE | sed "s/%DATE%/$M_DATE/"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+			echo "Invalid date4"
+			log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 			let "EXIT_CODE = 2"
 	fi
 }
@@ -270,7 +278,8 @@ while true; do
 		# Exit code can be: 0-OK / 1-Error_found_but_dunno_which / 2-Error_sought_n_destroyed
 		let "EXIT_CODE = 0"
 
-		$sh_log -c "Demonep" -m `echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"` -t "$TYPE_INFO"
+		echo "File found"
+		$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO"
 
 		#Derp this conditional
 		if [ $EXIT_CODE -eq "0" ]; then
@@ -300,12 +309,13 @@ while true; do
 
 	get_files_count $DIR_ACCEPTED
 	if [ $FILES_SIZE -gt 0 ]
-		then
-			if [[ $(ps -aux | grep -e "[0-9] [a-z]* $sh_process" ) == "" ]]
+		then # Check if with ax works. Else use -aux?
+			if [[ $(ps -ax | grep -e "[0-9] [a-z]* $sh_process" ) == "" ]]
 				then
 					$sh_process
 					PID_PROCESS=$(pgrep "$sh_process")
-					$sh_log -c "Demonep" -m `echo $MSG_INFO_PROCESS_RUNNING | sed "s/%PID%/$PID_PROCESS/"` -t "$TYPE_INFO"
+					echo "Pid running"
+					$sh_log -c "Demonep" -m "`echo "$MSG_INFO_PROCESS_RUNNING" | sed "s/%PID%/$PID_PROCESS/"`" -t "$TYPE_INFO"
 				else
 					$sh_log -c "Demonep" -m "$MSG_INFO_PROCESS_POSTPONED" -t "$TYPE_INFO"
 			fi
