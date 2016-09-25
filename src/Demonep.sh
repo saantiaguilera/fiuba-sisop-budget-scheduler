@@ -62,7 +62,7 @@ function get_files_count() {
 #   4. Move dest
 #######################################
 function log_n_move() {
-	$sh_log -c "Demonep" -m "$1" -t "$2"
+	$sh_log -c "Demonep" -m "$1" -t "$2" 2>/dev/null
 	$sh_mov -c "Demonep" -o "$3" -d "$4"
 	mv "$3" "$4" #TODO REMOVE THIS
 }
@@ -77,7 +77,7 @@ function evict_malformed_files() {
 		local MIME_TYPE=($(file "$DIR_NEWS/$FILE" | cut -d' ' -f2))
 		if [ `echo "$MIME_TYPE" | grep '(^ASCII)' >/dev/null` ]
 			then
-				$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO"
+				$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO" 2>/dev/null
 				echo "File not text"
 				log_n_move "$MSG_ERR_INVALID_FILE_TYPE" "$TYPE_ERROR" "$DIR_NEWS/$FILE" "$DIR_REJECTED"
 		    	$IS_REJECTED=1
@@ -85,7 +85,7 @@ function evict_malformed_files() {
 		
 		if [ $IS_REJECTED -eq 0 ] && [ "`cat "$DIR_NEWS/$FILE" | wc -l`" -eq 0 ]
 			then
-				$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO"
+				$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO" 2>dev/null
 				echo "File empty"
 				log_n_move "$MSG_ERR_INVALID_FILE_SIZE" "$TYPE_ERROR" "$DIR_NEWS/$FILE" "$DIR_REJECTED"
 		fi
@@ -100,7 +100,7 @@ function evict_malformed_files() {
 #   CODES_STATES with non-zero array
 #######################################
 function parse_state_codes() {
-	CODES_STATES=($(cat "$DIR_ASSETS/provincias.csv" | cut -d \; -f 1))
+	CODES_STATES=($(cat "$DIR_ASSETS/provincias.csv" | cut -d\; -f1))
 }
 
 #######################################
@@ -113,7 +113,7 @@ function parse_state_codes() {
 function print_generic_error_if_needed() {
 	if [ $EXIT_CODE -eq "0" ]
 		then
-			$sh_log -c "Demonep" -m "$MSG_ERR_INVALID_FILE_NAME" -t "$TYPE_ERROR"
+			$sh_log -c "Demonep" -m "$MSG_ERR_INVALID_FILE_NAME" -t "$TYPE_ERROR" 2>/dev/null
 			let "EXIT_CODE = 1"
 	fi
 }
@@ -175,18 +175,21 @@ function validate_budget_year() {
 function validate_state_code() {
 	local STATE_CODE=$(echo $1 | sed "s/^ejecutado_...._//" | sed "s/_.*$//" )
 
-	# Check if code exists in the states code
-	case "${CODES_STATES[@]}" in
-		"$STATE_CODE")
-			#Code was found. Move on.	
-		;;
-		*)
+	local FOUND=0
+	for ARR_CODE in "${CODES_STATES[@]}"; do
+		if [[ "$STATE_CODE" == "$ARR_CODE" ]] 
+			then
+				FOUND=1
+		fi
+	done
+
+	if [ $FOUND -eq 0 ] 
+		then 
 			print_generic_error_if_needed
 			echo "Invalid state"
 			log_n_move "`echo "$MSG_ERR_INVALID_STATE_CODE" | sed "s/%STATE%/$STATE_CODE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 			let "EXIT_CODE = 2"
-		;;
-	esac
+	fi
 }
 
 #######################################
@@ -266,7 +269,7 @@ let "CYCLE_COUNT = 0"
 while true; do
 	CYCLE_NUMBER_MESSAGE="Demonep ciclo nro. $CYCLE_COUNT"
  
-	$sh_log -c "Demonep" -m "$CYCLE_NUMBER_MESSAGE" -t "$TYPE_INFO"
+	$sh_log -c "Demonep" -m "$CYCLE_NUMBER_MESSAGE" -t "$TYPE_INFO" 2>/dev/null
 
 	let "CYCLE_COUNT = CYCLE_COUNT + 1"
 
@@ -279,7 +282,7 @@ while true; do
 		let "EXIT_CODE = 0"
 
 		echo "File found"
-		$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO"
+		$sh_log -c "Demonep" -m "`echo "$MSG_INFO_FILE_DETECTED" | sed "s/%FILE_NAME%/$FILE/"`" -t "$TYPE_INFO" 2>/dev/null
 
 		#Derp this conditional
 		if [ $EXIT_CODE -eq "0" ]; then
