@@ -74,6 +74,7 @@ function system_already_installed {
   fi
 }
 
+#Sets the size for new archives, the size is stored as megabytes.
 function set_news_size {
 	local SYSTEM_SIZE=""
 	SYSTEM_SIZE_M=$(df -BM . | tail -1 | awk '{print $4}')
@@ -100,4 +101,28 @@ function set_news_size {
 	return 0
 }
 
-set_news_size
+function show_values {
+	echo "Directorio de Configuracion: $GRUPO/dirconf"
+	#listar Archivos
+	echo "Directorio de Ejecutables: $DIRBIN"
+	echo "Directorio de Maestros y Tablas: $DIRMAE"
+	#listar archivos
+	echo "Directorio de Recepción de Novedades: $DIRREC"
+	echo "Directorio de Archivos Aceptados: $DIROK"
+	echo "Directorio de Archivos Procesados: $DIRPROC"
+	echo "Directorio de Archivos de Reportes: $DIRINFO"
+	echo "Directorio de Archivos de Log: $DIRLOG"
+	echo "Directorio de Archivos Rechazados: $DIRNOK"
+	echo "Estado de la instalación: LISTA."
+	echo "Desea continuar con la instalación? (Si – No/Otra cosa)"
+
+	read answer
+	answer="${answer,,[SI]}"
+	if [ "$answer" == "si" ]
+	then
+		return 0
+	else
+		#go back to Log (6)
+		return 1
+	fi
+}

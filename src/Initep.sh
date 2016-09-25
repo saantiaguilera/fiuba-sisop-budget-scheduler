@@ -30,8 +30,7 @@ MSG_INITEP_FINISHED="Proceso Initep finalizado exitosamente."
 #   None
 #######################################
 function log_message() {
-	#. "./$BIN_DIR/logep.sh" -c "Initep" -m $1 -t $2
-	return
+	. "./$DIRBIN/logep.sh" -c "Initep" -m "$1" -t "$2"
 }
 
 
@@ -47,7 +46,7 @@ function log_message() {
 function check_previous_init() {
 	EXIT_CODE=0
 	
-	if [ ${ENVIRONMENT-0} -eq 1 ]
+	if [ ${ENV-0} -eq 1 ]
 		then
 			log_message "$MSG_ENV_INITIALIZED" "$TYPE_ERR"
 			echo "$MSG_ENV_INITIALIZED"
@@ -83,43 +82,43 @@ function extract_dir() {
 function init_environment() {
 	EXIT_CODE=0
 
-	BIN_DIR=""
-	MAE_DIR=""
-	REC_DIR=""
-	OK_DIR=""
-	PROC_DIR=""
-	INFO_DIR=""
-	LOG_DIR=""
-	NOK_DIR=""
+	DIRBIN=""
+	DIRMAE=""
+	DIRREC=""
+	DIROK=""
+	DIRPROC=""
+	DIRINFO=""
+	DIRLOG=""
+	DIRNOK=""
 
 	while read -r LINE
 		do
 			case $LINE in
-				BIN=*) extract_dir BIN_DIR $LINE;;
-				MAE=*) extract_dir MAE_DIR $LINE;;
-				REC=*) extract_dir REC_DIR $LINE;;
-				OK=*) extract_dir OK_DIR $LINE;;
-				PROC=*) extract_dir PROC_DIR $LINE;;
-				INFO=*) extract_dir INFO_DIR $LINE;;
-				LOG=*) extract_dir LOG_DIR $LINE;;
-				NOK=*) extract_dir NOK_DIR $LINE;;
+				DIRBIN=*) extract_dir DIRBIN $LINE;;
+				DIRMAE=*) extract_dir DIRMAE $LINE;;
+				DIRREC=*) extract_dir DIRREC $LINE;;
+				DIROK=*) extract_dir DIROK $LINE;;
+				DIRPROC=*) extract_dir DIRPROC $LINE;;
+				DIRINFO=*) extract_dir DIRINFO $LINE;;
+				DIRLOG=*) extract_dir DIRLOG $LINE;;
+				DIRNOK=*) extract_dir DIRNOK $LINE;;
 			esac
 	done < $CONF_FILE
 	
 	#TODO Check for success¿?, log if necessary
 
 	export GRUPO
-	export BIN_DIR
-	export MAE_DIR
-	export REC_DIR
-	export OK_DIR
-	export PROC_DIR
-	export INFO_DIR
-	export LOG_DIR
-	export NOK_DIR
+	export DIRBIN
+	export DIRMAE
+	export DIRREC
+	export DIROK
+	export DIRPROC
+	export DIRINFO
+	export DIRLOG
+	export DIRNOK
 	
-	ENVIRONMENT=1
-	export ENVIRONMENT
+	ENV=1
+	export ENV
 	
 	return $EXIT_CODE
 }
@@ -135,7 +134,7 @@ function init_environment() {
 #######################################
 function check_script_permissions() {
 	EXIT_CODE=0
-	cd $BIN_DIR
+	cd $DIRBIN
 	
 	for SCRIPT in *
 		do
@@ -169,7 +168,7 @@ function check_script_permissions() {
 #######################################
 function check_file_permissions() {
 	EXIT_CODE=0
-	cd $MAE_DIR
+	cd $DIRMAE
 	
 	for FILE in *
 		do
@@ -216,7 +215,7 @@ function start_demonep() {
 					echo "$MSG_DEMONEP_ACTIVATED"
 					
 					#TODO activate demonio & manual stop instructions
-					#"$BIN_DIR/Demonep.sh"
+					#"./$DIRBIN/Demonep.sh"
 					
 					PROCESS_ID=$(pgrep "Demonep")
 					log_message `echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"` "$TYPE_INF"
@@ -256,16 +255,16 @@ function close_log() {
 #######################################
 function destroy_environment() {
 	unset GRUPO
-	unset BIN_DIR
-	unset MAE_DIR
-	unset REC_DIR
-	unset OK_DIR
-	unset PROC_DIR
-	unset INFO_DIR
-	unset LOG_DIR
-	unset NOK_DIR
+	unset DIRBIN
+	unset DIRMAE
+	unset DIRREC
+	unset DIROK
+	unset DIRPROC
+	unset DIRINFO
+	unset DIRLOG
+	unset DIRNOK
 	
-	unset ENVIRONMENT
+	unset ENV
 }
 
 
