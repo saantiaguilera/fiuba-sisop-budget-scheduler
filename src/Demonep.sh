@@ -12,7 +12,6 @@
 DIR_REJECTED=$DIRNOK
 DIR_ACCEPTED=$DIROK
 DIR_NEWS=$DIRREC
-DIR_LOG=$DIRLOG
 DIR_ASSETS=$DIRMAE
 
 #### Shell scripts ####
@@ -96,7 +95,7 @@ function evict_malformed_files() {
 #   CODES_STATES with non-zero array
 #######################################
 function parse_state_codes() {
-	# TODO ver el statedir y codes.csv
+	# TODO ver el codes.csv
 	CODES_STATES=($(cat "$DIR_ASSETS/codes.csv" | cut -d \; -f 1))
 }
 
@@ -174,15 +173,15 @@ function validate_state_code() {
 
 	# Check if code exists in the states code
 	case "${CODES_STATES[@]}" in
-	    "$STATE_CODE")
+		"$STATE_CODE")
 			#Code was found. Move on.	
-	    ;;
-	    *)
+		;;
+		*)
 			print_generic_error_if_needed
-	        log_n_move `echo $MSG_ERR_INVALID_STATE_CODE | sed "s/%STATE%/$STATE_CODE"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
-	        let "EXIT_CODE = 2"
-	    ;;
-  	esac
+			log_n_move `echo $MSG_ERR_INVALID_STATE_CODE | sed "s/%STATE%/$STATE_CODE"` "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+			let "EXIT_CODE = 2"
+		;;
+	esac
 }
 
 #######################################
@@ -300,8 +299,8 @@ while true; do
 
 	get_files_count $DIR_ACCEPTED
 	if [ $FILES_SIZE -gt 0 ]
-		then
-			if [[ $(ps -aux | grep -e "[0-9] [a-z]* $sh_process" ) == "" ]]
+		then # Check if with ax works. Else use -aux?
+			if [[ $(ps -ax | grep -e "[0-9] [a-z]* $sh_process" ) == "" ]]
 				then
 					$sh_process
 					PID_PROCESS=$(pgrep "$sh_process")
