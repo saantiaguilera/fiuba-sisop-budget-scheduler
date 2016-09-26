@@ -18,7 +18,8 @@ MSG_SYSTEM_INITIALIZED="Estado del Sistema: INICIALIZADO"
 MSG_ASK_DEMONEP_ACTIVATION="¿Desea efectuar la activación de Demonep? (S/n)"
 MSG_DEMONEP_ACTIVATED="El proceso Demonep ha sido activado"
 MSG_DEMONEP_PID="Demonep corriendo bajo el no.: %PID%"
-MSG_DEMONEP_MANUAL_ACTIVATION="Para activar al demonio manualmente puede ingresar \"bash Demonep.sh\"."
+MSG_DEMONEP_MANUAL_STOP="Para detener manualmente al proceso Demonep utilice el comando \"kill %PID%\"."
+MSG_DEMONEP_MANUAL_ACTIVATION="Para activar al demonio manualmente puede ingresar \". ./Demonep.sh &\"."
 MSG_ANSWER_FAILURE="Responda por Sí (S) o por No (N)"
 MSG_INITEP_FINISHED="Proceso Initep finalizado exitosamente."
 
@@ -80,7 +81,7 @@ function extract_dir() {
 # Arguments:
 #   None
 # Returns:
-#   None
+#   1 if successful, 0 if not.
 #######################################
 function init_environment() {
 	EXIT_CODE=0
@@ -94,31 +95,30 @@ function init_environment() {
 	DIRLOG=""
 	DIRNOK=""
 
-	while read -r LINE
-		do
-			case $LINE in
-				DIRBIN=*) extract_dir DIRBIN $LINE;;
-				DIRMAE=*) extract_dir DIRMAE $LINE;;
-				DIRREC=*) extract_dir DIRREC $LINE;;
-				DIROK=*) extract_dir DIROK $LINE;;
-				DIRPROC=*) extract_dir DIRPROC $LINE;;
-				DIRINFO=*) extract_dir DIRINFO $LINE;;
-				DIRLOG=*) extract_dir DIRLOG $LINE;;
-				DIRNOK=*) extract_dir DIRNOK $LINE;;
-				*)
-					log_message "$MSG_UNKNOWN_ENV_VAR" "$TYPE_ERR"
-					echo "$MSG_UNKNOWN_ENV_VAR"
-					EXIT_CODE=1
-				;;
-			esac
+	while read -r LINE; do
+		case $LINE in
+			DIRBIN=*) extract_dir DIRBIN $LINE;;
+			DIRMAE=*) extract_dir DIRMAE $LINE;;
+			DIRREC=*) extract_dir DIRREC $LINE;;
+			DIROK=*) extract_dir DIROK $LINE;;
+			DIRPROC=*) extract_dir DIRPROC $LINE;;
+			DIRINFO=*) extract_dir DIRINFO $LINE;;
+			DIRLOG=*) extract_dir DIRLOG $LINE;;
+			DIRNOK=*) extract_dir DIRNOK $LINE;;
+			*)
+				log_message "$MSG_UNKNOWN_ENV_VAR" "$TYPE_ERR"
+				echo "$MSG_UNKNOWN_ENV_VAR"
+				EXIT_CODE=1
+				return $EXIT_CODE
+			;;
+		esac
 	done < $CONF_FILE
 
-	if ["$GRUPO" == "" -o "$DIRBIN" == "" -o "$DIRMAE" == "" -o "$DIRREC" == "" -o "$DIROK" == ""\
-	"$DIRPROC" == "" -o "$DIRINFO" == "" -o "$DIRLOG" == "" -o "$DIRNOK" == ""]
-		then
-			log_message "$MSG_MISSING_ENV_VAR" "$TYPE_ERR"
-			echo "$MSG_MISSING_ENV_VAR"
-			EXIT_CODE=1
+	if [[ -z $GRUPO || -z $DIRBIN || -z $DIRMAE || -z $DIRREC || -z $DIROK || \
+	-z $DIRPROC || -z $DIRINFO || -z $DIRLOG || -z $DIRNOK ]]; then
+		log_message "$MSG_MISSING_ENV_VAR" "$TYPE_ERR"
+		echo "$MSG_MISSING_ENV_VAR"
+		EXIT_CODE=1
 	fi
 
 	export GRUPO
@@ -152,18 +152,16 @@ function check_script_permissions() {
 	
 	for SCRIPT in *
 		do
-			if [ ! -x $SCRIPT ]
-				then
-					log_message `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s/%SCRIPT%/$SCRIPT/"` "$TYPE_WAR"
-					echo `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s/%SCRIPT%/$SCRIPT/"`
-					chmod +x $SCRIPT
+			if [ ! -x $SCRIPT ]; then
+				log_message `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s/%SCRIPT%/$SCRIPT/"` "$TYPE_WAR"
+				echo `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s/%SCRIPT%/$SCRIPT/"`
+				chmod +x $SCRIPT
 			fi
 			
-			if [ ! -x $SCRIPT ]
-				then
-					log_message `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR | sed "s/%SCRIPT%/$SCRIPT/"` "$TYPE_ERR"
-					echo `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR | sed "s/%SCRIPT%/$SCRIPT/"`
-					EXIT_CODE=1
+			if [ ! -x $SCRIPT ]; then
+				log_message `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR | sed "s/%SCRIPT%/$SCRIPT/"` "$TYPE_ERR"
+				echo `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR | sed "s/%SCRIPT%/$SCRIPT/"`
+				EXIT_CODE=1
 			fi
 	done
 	
@@ -186,18 +184,16 @@ function check_file_permissions() {
 	
 	for FILE in *
 		do
-			if [ ! -r $FILE ]
-				then
-					log_message `echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s/%FILE%/$FILE/"` "$TYPE_WAR"
-					echo `echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s/%FILE%/$FILE/"`
-					chmod +r $FILE
+			if [ ! -r $FILE ]; then
+				log_message `echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s/%FILE%/$FILE/"` "$TYPE_WAR"
+				echo `echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s/%FILE%/$FILE/"`
+				chmod +r $FILE
 			fi
 			
-			if [ ! -r $FILE ]
-				then
-					log_message `echo $MSG_FILE_WITHOUT_PERMISSIONS_ERR | sed "s/%FILE%/$FILE/"` "$TYPE_ERR"
-					echo `echo $MSG_FILE_WITHOUT_PERMISSIONS_ERR | sed "s/%FILE%/$FILE/"`
-					EXIT_CODE=1
+			if [ ! -r $FILE ]; then
+				log_message `echo $MSG_FILE_WITHOUT_PERMISSIONS_ERR | sed "s/%FILE%/$FILE/"` "$TYPE_ERR"
+				echo `echo $MSG_FILE_WITHOUT_PERMISSIONS_ERR | sed "s/%FILE%/$FILE/"`
+				EXIT_CODE=1
 			fi
 	done
 	
@@ -216,31 +212,32 @@ function check_file_permissions() {
 #######################################
 function start_demonep() {
 	ANSWER=""
-	while [ "$ANSWER" != "s" -a "$ANSWER" != "n" ]
-		do
-			log_message "$MSG_ASK_DEMONEP_ACTIVATION" "$TYPE_INF"
-			echo "$MSG_ASK_DEMONEP_ACTIVATION"
-			read ANSWER
-			log_message ANSWER "$TYPE_INF"
-			ANSWER="$(echo $ANSWER | tr '[:upper:]' '[:lower:]')"
-			case $ANSWER in
-				"s")
-					log_message "$MSG_DEMONEP_ACTIVATED" "$TYPE_INF"
-					echo "$MSG_DEMONEP_ACTIVATED"
-					
-					#TODO activate demonio & manual stop instructions
-					#"./$DIRBIN/Demonep.sh"
-					
-					PROCESS_ID=$(pgrep "Demonep")
-					log_message `echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"` "$TYPE_INF"
-					echo `echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"`
-				;;
-				"n")
-					log_message "$MSG_DEMONEP_MANUAL_ACTIVATION" "$TYPE_INF"
-					echo "$MSG_DEMONEP_MANUAL_ACTIVATION"
-				;;
-				*) echo "$MSG_ANSWER_FAILURE";;
-			esac
+	while [ "$ANSWER" != "s" -a "$ANSWER" != "n" ]; do
+		log_message "$MSG_ASK_DEMONEP_ACTIVATION" "$TYPE_INF"
+		echo "$MSG_ASK_DEMONEP_ACTIVATION"
+		read ANSWER
+		log_message ANSWER "$TYPE_INF"
+		ANSWER="$(echo $ANSWER | tr '[:upper:]' '[:lower:]')"
+		case $ANSWER in
+			"s")
+				log_message "$MSG_DEMONEP_ACTIVATED" "$TYPE_INF"
+				echo "$MSG_DEMONEP_ACTIVATED"
+				
+				#. "./$DIRBIN/Demonep.sh" &
+				
+				PROCESS_ID=$(pgrep "Demonep")
+				log_message `echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"` "$TYPE_INF"
+				echo `echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"`
+				
+				log_message `echo $MSG_DEMONEP_MANUAL_STOP | sed "s/%PID%/$PROCESS_ID/"` "$TYPE_INF"
+				echo `echo $MSG_DEMONEP_MANUAL_STOP | sed "s/%PID%/$PROCESS_ID/"`
+			;;
+			"n")
+				log_message "$MSG_DEMONEP_MANUAL_ACTIVATION"
+				echo "$MSG_DEMONEP_MANUAL_ACTIVATION"
+			;;
+			*) echo "$MSG_ANSWER_FAILURE";;
+		esac
 	done
 }
 
