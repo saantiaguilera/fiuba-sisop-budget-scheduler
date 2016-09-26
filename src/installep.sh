@@ -105,16 +105,17 @@ function show_values {
 	echo "Directorio de Configuracion: $GRUPO/dirconf"
 	#listar Archivos
 	echo "Directorio de Ejecutables: $DIRBIN"
+  #listar Archivos
 	echo "Directorio de Maestros y Tablas: $DIRMAE"
 	#listar archivos
-	echo "Directorio de Recepción de Novedades: $DIRREC"
+	echo "Directorio de Recepcion de Novedades: $DIRREC"
 	echo "Directorio de Archivos Aceptados: $DIROK"
 	echo "Directorio de Archivos Procesados: $DIRPROC"
 	echo "Directorio de Archivos de Reportes: $DIRINFO"
 	echo "Directorio de Archivos de Log: $DIRLOG"
 	echo "Directorio de Archivos Rechazados: $DIRNOK"
-	echo "Estado de la instalación: LISTA."
-	echo "Desea continuar con la instalación? (Si – No/Otra cosa)"
+	echo "Estado de la instalacion: LISTA."
+	echo "Desea continuar con la instalacion? (Si – No/Otra cosa)"
 
 	read answer
 	answer="${answer,,[SI]}"
@@ -125,4 +126,62 @@ function show_values {
 		#go back to Log (6)
 		return 1
 	fi
+}
+
+function instalation_confirm {
+  echo "Iniciando Instalacion. Esta Ud. seguro? (Si – No/Otra cosa)"
+
+	read answer
+	answer="${answer,,[SI]}"
+	if [ "$answer" == "si" ]
+	then
+		return 0 #True
+	else
+		return 1 #False
+	fi
+}
+
+function instalation {
+  #create directories
+  #move archives, execs and functions.
+}
+
+function create_conf_archive {
+  #create Instalep.conf
+  #write log
+}
+
+function end_process {
+  #delete temporary archives.
+  #write log
+}
+
+
+function main {
+  #Call to log, begin process
+  if system_already_installed
+  then
+    end_process
+    return 0
+  fi
+
+  input_directories
+  set_news_size
+
+  if show_values #Go back to the beginning if the user don't confirms the values
+  then           #maybe it would be better to change "show_values" name.
+    main
+  fi
+
+  if [ ! instalation_confirm ]
+  then
+    end_process
+    return 0
+  fi
+
+  instalation
+  create_conf_archive
+  end_process
+
+  return 0    
 }
