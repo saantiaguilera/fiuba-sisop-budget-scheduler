@@ -37,7 +37,6 @@ function log_message() {
 	return
 }
 
-
 #######################################
 # Check previous environment initialization
 # Globals:
@@ -242,20 +241,6 @@ function start_demonep() {
 }
 
 #######################################
-# Close log file
-# Globals:
-#   None
-# Arguments:
-#   None
-# Returns:
-#   None
-#######################################
-function close_log() {
-	#TODO
-	return
-}
-
-#######################################
 # Unset environment variables
 # Globals:
 #   None
@@ -315,8 +300,6 @@ function main() {
 	# 7. Close Log
 	log_message "$MSG_INITEP_FINISHED" "$TYPE_INF"
 	echo "$MSG_INITEP_FINISHED"
-	close_log
-
 
 	##### Destroy env for debugging purposes #####
 	#destroy_environment
