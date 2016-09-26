@@ -40,7 +40,8 @@ function max_log_size_reached() {
   if [ ! -f $1 ]; then
     return 0
   fi
-  local size=$(echo "`du -b $1 | cut -f1`")
+  #In mac osx replace "du -b" for "stat -f%z"
+  local size=$(echo "`stat -f%z $1 | cut -f1`")
   if [[ size -ge MAX_LOG_SIZE ]]; then
     return 1
   else
@@ -90,6 +91,7 @@ function write_log_file() {
 while getopts "h?c:m:t:" opt; do
   case "$opt" in
     h|\?)
+      echo "Wrong call"
       show_help
       exit 0
       ;;
@@ -106,8 +108,9 @@ while getopts "h?c:m:t:" opt; do
 done
 
 if [[ -z $COMMAND || -z $MESSAGE ]]; then
+  echo "Empty command or msg"
   show_help
   exit 0
 fi
 
-write_log_file $COMMAND $TYPE $MESSAGE
+write_log_file "$COMMAND" "$TYPE" "$MESSAGE"
