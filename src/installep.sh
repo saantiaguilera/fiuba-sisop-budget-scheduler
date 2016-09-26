@@ -101,6 +101,8 @@ function set_news_size {
 	return 0
 }
 
+#Shows the values that had been defined for the directories, lets the user
+#answer if they are OK, returning 0 in that case, 1 if not.
 function show_values {
 	echo "Directorio de Configuracion: $GRUPO/dirconf"
 	#listar Archivos
@@ -123,7 +125,6 @@ function show_values {
 	then
 		return 0
 	else
-		#go back to Log (6)
 		return 1
 	fi
 }
@@ -183,5 +184,5 @@ function main {
   create_conf_archive
   end_process
 
-  return 0    
+  return 0
 }
