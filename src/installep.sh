@@ -149,14 +149,15 @@ else
 fi
 }
 
-function instalation {
+function installation {
 #create directories
 #move archives, execs and functions.
-  bash logep.sh -c instalep -m "Creando Estructuras de directorio ..."
   # Iterate over the ht values
   for i in "{DIRS[@]}"; do
+    echo $i
     mkdir $i
   done
+  bash logep.sh -c instalep -m "Creando Estructuras de directorio ..."
 
   bash logep.sh -c instalep -m "Instalando Programas y Funciones"
   #Completar
@@ -203,13 +204,11 @@ fi
 
 echo "Check"
 if instalation_confirm; then
-  end_process
-  return 0
+  echo "Check"
+  installation
+  create_conf_archive
 fi
 
-echo "Check"
-instalation
-create_conf_archive
 end_process
 }
 
