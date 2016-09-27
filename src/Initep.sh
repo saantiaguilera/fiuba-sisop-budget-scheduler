@@ -19,7 +19,7 @@ MSG_ASK_DEMONEP_ACTIVATION="¿Desea efectuar la activación de Demonep? (S/n)"
 MSG_DEMONEP_ACTIVATED="El proceso Demonep ha sido activado."
 MSG_DEMONEP_PID="Demonep corriendo bajo el no.: %PID%."
 MSG_DEMONEP_MANUAL_STOP="Para detener manualmente al proceso Demonep utilice el comando \"kill %PID%\"."
-MSG_DEMONEP_MANUAL_ACTIVATION="Para activar al demonio manualmente puede ingresar \". ./Demonep.sh &\"."
+MSG_DEMONEP_MANUAL_ACTIVATION="Para activar al demonio manualmente puede ingresar \"bash Demonep.sh &\"."
 MSG_ANSWER_FAILURE="Responda por Sí (S) o por No (N)"
 MSG_INITEP_FINISHED="Proceso Initep finalizado exitosamente."
 
@@ -164,7 +164,7 @@ function check_script_permissions() {
 			fi
 	done
 	
-	cd ..
+	cd -
 	return $EXIT_CODE
 }
 
@@ -196,7 +196,7 @@ function check_file_permissions() {
 			fi
 	done
 	
-	cd ..
+	cd -
 	return $EXIT_CODE
 }
 
@@ -222,7 +222,7 @@ function start_demonep() {
 				log_message "$MSG_DEMONEP_ACTIVATED" "$TYPE_INF"
 				echo "$MSG_DEMONEP_ACTIVATED"
 				
-				#. "./$DIRBIN/Demonep.sh" &
+				#bash "$DIRBIN/Demonep.sh" &
 				
 				PROCESS_ID=$(pgrep "Demonep")
 				log_message "`echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"`" "$TYPE_INF"
@@ -278,24 +278,19 @@ function main() {
 		return 2
 	fi
 	
-	pwd ##DEBUG
-
 	# 3. Check permissions
 	check_script_permissions
 	if [ $? -eq 1 ]; then
 		destroy_environment
 		return 3
 	fi
-	pwd ##DEBUG
 
 	check_file_permissions
 	if [ $? -eq 1 ]; then
 		destroy_environment
 		return 4
 	fi
-	
-	pwd ##DEBUG
-	
+
 	log_message "$MSG_SYSTEM_INITIALIZED" "$TYPE_INF"
 	echo "$MSG_SYSTEM_INITIALIZED"
 	
@@ -305,9 +300,6 @@ function main() {
 	# 7. Close Log
 	log_message "$MSG_INITEP_FINISHED" "$TYPE_INF"
 	echo "$MSG_INITEP_FINISHED"
-
-	##### Destroy env for debugging purposes #####
-	#destroy_environment
 }
 
 main
