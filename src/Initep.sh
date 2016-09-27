@@ -164,7 +164,7 @@ function check_script_permissions() {
 			fi
 	done
 	
-	cd -
+	cd - > /dev/null
 	return $EXIT_CODE
 }
 
@@ -196,7 +196,7 @@ function check_file_permissions() {
 			fi
 	done
 	
-	cd -
+	cd - > /dev/null
 	return $EXIT_CODE
 }
 
