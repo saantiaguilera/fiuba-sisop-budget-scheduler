@@ -8,7 +8,9 @@ DIRREC="$GRUPO/nov"
 DIROK="$GRUPO/ok"
 DIRPROC="$GRUPO/imp"
 DIRINFO="$GRUPO/rep"
-DIRLOG="$GRUPO/log"
+# Temporarly create log files in the default location, if the user specifies
+# another, this script should move it accordingly
+export DIRLOG="$GRUPO/log"
 DIRNOK="$GRUPO/nok"
 
 # Bash 4 supports hash tables ^.^
@@ -71,7 +73,7 @@ return 0
 #Checks if the system has been already installed, returning an 0 in that case
 #and a 1 if not.
 function system_already_installed {
-if [ ! -f /$GRUPO/Instalep.conf ] #Not sure if it works like this...
+if [[ -d /$GRUPO/ ]] && [[ ! -f /$GRUPO/Instalep.conf ]]  #Not sure if it works like this...
 then
   return 0 #True
 else
@@ -147,13 +149,16 @@ else
 fi
 }
 
-function instalation {
+function installation {
 #create directories
 #move archives, execs and functions.
-  bash logep.sh -c instalep -m "Creando Estructuras de directorio ..."
-  for i in "{DIRS[@]}"; do
+  # Iterate over the ht values
+  mkdir $GRUPO
+  for i in "${DIRS[@]}"; do
+    echo $i
     mkdir $i
   done
+  bash logep.sh -c instalep -m "Creando Estructuras de directorio ..."
 
   bash logep.sh -c instalep -m "Instalando Programas y Funciones"
   #Completar
@@ -166,9 +171,9 @@ function create_conf_archive {
 #write log
   bash logep.sh -c instalep -m "Actualizando la configuracion del sistema"
   touch instalep.conf
-  for i in "{!DIRS[@]}"; do
+  for i in "${!DIRS[@]}"; do
     local value=${DIRS[$i]}
-    echo >> "$i\=$value\=$USER\=`date -u`"
+    echo "$i\=$value\=$USER\=`date -u`" >> instalep.conf 
   done
   bash logep.sh -c instalep -m "Instalacion CONCLUIDA."
 }
@@ -176,35 +181,36 @@ function create_conf_archive {
 function end_process {
 #delete temporary archives.
 #write log
-  bash logep.sh -c instalep -m "Fin"
+  #bash logep.sh -c instalep -m "Fin"
+  echo "Fin"
 }
 
 
 function main {
 #Call to log, begin process
-if system_already_installed
-then
+
+echo "Check"
+if system_already_installed; then
   end_process
   return 0
 fi
-
+echo "Check"
 input_directories
 set_news_size
-
-if show_values #Go back to the beginning if the user don't confirms the values
-then           #maybe it would be better to change "show_values" name.
+#Go back to the beginning if the user don't confirms the values
+#maybe it would be better to change "show_values" name.
+if ! show_values; then
   main
 fi
 
-if [ ! instalation_confirm ]
-then
-  end_process
-  return 0
+echo "Check"
+if instalation_confirm; then
+  echo "Check"
+  installation
+  create_conf_archive
 fi
 
-instalation
-create_conf_archive
 end_process
-
-return 0
 }
+
+main
