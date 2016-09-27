@@ -153,7 +153,8 @@ function installation {
 #create directories
 #move archives, execs and functions.
   # Iterate over the ht values
-  for i in "{DIRS[@]}"; do
+  mkdir $GRUPO
+  for i in "${DIRS[@]}"; do
     echo $i
     mkdir $i
   done
@@ -170,9 +171,9 @@ function create_conf_archive {
 #write log
   bash logep.sh -c instalep -m "Actualizando la configuracion del sistema"
   touch instalep.conf
-  for i in "{!DIRS[@]}"; do
+  for i in "${!DIRS[@]}"; do
     local value=${DIRS[$i]}
-    echo >> "$i\=$value\=$USER\=`date -u`"
+    echo "$i\=$value\=$USER\=`date -u`" >> instalep.conf 
   done
   bash logep.sh -c instalep -m "Instalacion CONCLUIDA."
 }
