@@ -16,8 +16,8 @@ MSG_FILE_WITHOUT_PERMISSIONS_WAR="El archivo %FILE% no tiene permisos de lectura
 MSG_FILE_WITHOUT_PERMISSIONS_ERR="El archivo %FILE% no tiene permisos de lectura. No se pudo efectuar la corrección."
 MSG_SYSTEM_INITIALIZED="Estado del Sistema: INICIALIZADO"
 MSG_ASK_DEMONEP_ACTIVATION="¿Desea efectuar la activación de Demonep? (S/n)"
-MSG_DEMONEP_ACTIVATED="El proceso Demonep ha sido activado"
-MSG_DEMONEP_PID="Demonep corriendo bajo el no.: %PID%"
+MSG_DEMONEP_ACTIVATED="El proceso Demonep ha sido activado."
+MSG_DEMONEP_PID="Demonep corriendo bajo el no.: %PID%."
 MSG_DEMONEP_MANUAL_STOP="Para detener manualmente al proceso Demonep utilice el comando \"kill %PID%\"."
 MSG_DEMONEP_MANUAL_ACTIVATION="Para activar al demonio manualmente puede ingresar \". ./Demonep.sh &\"."
 MSG_ANSWER_FAILURE="Responda por Sí (S) o por No (N)"
@@ -33,7 +33,7 @@ MSG_INITEP_FINISHED="Proceso Initep finalizado exitosamente."
 #   None
 #######################################
 function log_message() {
-	#. "./$DIRBIN/logep.sh" -c "Initep" -m "$1" -t "$2"
+	bash "$DIRBIN/logep.sh" -c "Initep" -m "$1" -t "$2"
 	return
 }
 
@@ -152,13 +152,13 @@ function check_script_permissions() {
 	for SCRIPT in *
 		do
 			if [ ! -x $SCRIPT ]; then
-				log_message `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s/%SCRIPT%/$SCRIPT/"` "$TYPE_WAR"
+				log_message "`echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s/%SCRIPT%/$SCRIPT/"`" "$TYPE_WAR"
 				echo `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s/%SCRIPT%/$SCRIPT/"`
 				chmod +x $SCRIPT
 			fi
 			
 			if [ ! -x $SCRIPT ]; then
-				log_message `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR | sed "s/%SCRIPT%/$SCRIPT/"` "$TYPE_ERR"
+				log_message "`echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR | sed "s/%SCRIPT%/$SCRIPT/"`" "$TYPE_ERR"
 				echo `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR | sed "s/%SCRIPT%/$SCRIPT/"`
 				EXIT_CODE=1
 			fi
@@ -184,13 +184,13 @@ function check_file_permissions() {
 	for FILE in *
 		do
 			if [ ! -r $FILE ]; then
-				log_message `echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s/%FILE%/$FILE/"` "$TYPE_WAR"
+				log_message "`echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s/%FILE%/$FILE/"`" "$TYPE_WAR"
 				echo `echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s/%FILE%/$FILE/"`
 				chmod +r $FILE
 			fi
 			
 			if [ ! -r $FILE ]; then
-				log_message `echo $MSG_FILE_WITHOUT_PERMISSIONS_ERR | sed "s/%FILE%/$FILE/"` "$TYPE_ERR"
+				log_message "`echo $MSG_FILE_WITHOUT_PERMISSIONS_ERR | sed "s/%FILE%/$FILE/"`" "$TYPE_ERR"
 				echo `echo $MSG_FILE_WITHOUT_PERMISSIONS_ERR | sed "s/%FILE%/$FILE/"`
 				EXIT_CODE=1
 			fi
@@ -212,10 +212,10 @@ function check_file_permissions() {
 function start_demonep() {
 	ANSWER=""
 	while [ "$ANSWER" != "s" -a "$ANSWER" != "n" ]; do
-		log_message "$MSG_ASK_DEMONEP_ACTIVATION" "$TYPE_INF"
 		echo "$MSG_ASK_DEMONEP_ACTIVATION"
+		log_message "$MSG_ASK_DEMONEP_ACTIVATION" "$TYPE_INF"
 		read ANSWER
-		log_message ANSWER "$TYPE_INF"
+		log_message "$ANSWER" "$TYPE_INF"
 		ANSWER="$(echo $ANSWER | tr '[:upper:]' '[:lower:]')"
 		case $ANSWER in
 			"s")
@@ -225,14 +225,14 @@ function start_demonep() {
 				#. "./$DIRBIN/Demonep.sh" &
 				
 				PROCESS_ID=$(pgrep "Demonep")
-				log_message `echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"` "$TYPE_INF"
+				log_message "`echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"`" "$TYPE_INF"
 				echo `echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"`
 				
-				log_message `echo $MSG_DEMONEP_MANUAL_STOP | sed "s/%PID%/$PROCESS_ID/"` "$TYPE_INF"
+				log_message "`echo $MSG_DEMONEP_MANUAL_STOP | sed "s/%PID%/$PROCESS_ID/"`" "$TYPE_INF"
 				echo `echo $MSG_DEMONEP_MANUAL_STOP | sed "s/%PID%/$PROCESS_ID/"`
 			;;
 			"n")
-				log_message "$MSG_DEMONEP_MANUAL_ACTIVATION"
+				log_message "$MSG_DEMONEP_MANUAL_ACTIVATION" "$TYPE_INF"
 				echo "$MSG_DEMONEP_MANUAL_ACTIVATION"
 			;;
 			*) echo "$MSG_ANSWER_FAILURE";;
@@ -278,19 +278,24 @@ function main() {
 		return 2
 	fi
 	
+	pwd ##DEBUG
+
 	# 3. Check permissions
 	check_script_permissions
 	if [ $? -eq 1 ]; then
 		destroy_environment
 		return 3
 	fi
-		
+	pwd ##DEBUG
+
 	check_file_permissions
 	if [ $? -eq 1 ]; then
 		destroy_environment
 		return 4
 	fi
-		
+	
+	pwd ##DEBUG
+	
 	log_message "$MSG_SYSTEM_INITIALIZED" "$TYPE_INF"
 	echo "$MSG_SYSTEM_INITIALIZED"
 	
