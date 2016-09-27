@@ -2,6 +2,7 @@
 
 export GRUPO="Grupo5"
 
+DIRCONF="$GRUPO/dirconf"
 DIRBIN="$GRUPO/bin"
 DIRMAE="$GRUPO/mae"
 DIRREC="$GRUPO/nov"
@@ -15,7 +16,7 @@ DIRNOK="$GRUPO/nok"
 
 # Bash 4 supports hash tables ^.^
 # I dont know if this dict will be updated after the users sets the direcotries
-declare -A DIRS=(["DIRBIN"]=$DIRBIN ["DIRMAE"]=$DIRMAE ["DIRREC"]=$DIRREC 
+declare -A DIRS=(["dirconf"]=$DIRCONF ["DIRBIN"]=$DIRBIN ["DIRMAE"]=$DIRMAE ["DIRREC"]=$DIRREC 
 ["DIROK"]=$DIROK ["DIRPROC"]=$DIRPROC ["DIRINFO"]=$DIRINFO ["DIRLOG"]=$DIRLOG 
 ["DIRNOK"]=$DIRNOK)
 DATASIZE=100
@@ -170,10 +171,11 @@ function create_conf_archive {
 #create Instalep.conf
 #write log
   bash logep.sh -c instalep -m "Actualizando la configuracion del sistema"
-  touch instalep.conf
+  local conf_file="${DIRS["dirconf"]}/instalep.conf"
+  touch $conf_file
   for i in "${!DIRS[@]}"; do
     local value=${DIRS[$i]}
-    echo "$i\=$value\=$USER\=`date -u`" >> instalep.conf 
+    echo "$i=$value=$USER=`date -u`" >> $conf_file 
   done
   bash logep.sh -c instalep -m "Instalacion CONCLUIDA."
 }
