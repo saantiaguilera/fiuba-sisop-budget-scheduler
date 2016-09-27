@@ -1,7 +1,8 @@
 #!/bin/bash
 
 GRUPO="Grupo5"
-CONF_FILE="$GRUPO/dirconf/EPLAM.conf"
+#CONF_FILE="$GRUPO/dirconf/EPLAM.conf"
+CONF_FILE="$GRUPO/dirconf/instalep.conf"
 
 #### Messages ####
 TYPE_INF="INF"
@@ -96,14 +97,20 @@ function init_environment() {
 
 	while read -r LINE; do
 		case $LINE in
-			DIRBIN=*) extract_dir DIRBIN $LINE;;
-			DIRMAE=*) extract_dir DIRMAE $LINE;;
-			DIRREC=*) extract_dir DIRREC $LINE;;
-			DIROK=*) extract_dir DIROK $LINE;;
-			DIRPROC=*) extract_dir DIRPROC $LINE;;
-			DIRINFO=*) extract_dir DIRINFO $LINE;;
-			DIRLOG=*) extract_dir DIRLOG $LINE;;
-			DIRNOK=*) extract_dir DIRNOK $LINE;;
+			DIRBIN*) extract_dir DIRBIN $LINE
+				echo "encontre dirbin"
+				echo $DIRBIN
+				;;
+			DIRMAE*) extract_dir DIRMAE $LINE;;
+			DIRREC*) extract_dir DIRREC $LINE;;
+			DIROK*) extract_dir DIROK $LINE;;
+			DIRPROC*) extract_dir DIRPROC $LINE;;
+			DIRINFO*) extract_dir DIRINFO $LINE
+				echo "encontre info"
+				echo $DIRINFO;;
+			DIRLOG*) extract_dir DIRLOG $LINE;;
+			DIRNOK*) extract_dir DIRNOK $LINE;;
+			dirconf*) ;;
 			*)
 				log_message "$MSG_UNKNOWN_ENV_VAR" "$TYPE_ERR"
 				echo "$MSG_UNKNOWN_ENV_VAR"
@@ -149,7 +156,7 @@ function check_script_permissions() {
 	EXIT_CODE=0
 	cd $DIRBIN
 	
-	for SCRIPT in *
+	for SCRIPT in ~/*
 		do
 			if [ ! -x $SCRIPT ]; then
 				log_message "`echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s/%SCRIPT%/$SCRIPT/"`" "$TYPE_WAR"
@@ -181,7 +188,11 @@ function check_file_permissions() {
 	EXIT_CODE=0
 	cd $DIRMAE
 	
-	for FILE in *
+	if [ -z ls ]; then 
+		return $EXIT_CODE
+	fi
+
+	for FILE in ~/*
 		do
 			if [ ! -r $FILE ]; then
 				log_message "`echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s/%FILE%/$FILE/"`" "$TYPE_WAR"
