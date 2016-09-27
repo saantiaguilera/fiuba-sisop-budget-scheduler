@@ -197,7 +197,7 @@ input_directories
 set_news_size
 #Go back to the beginning if the user don't confirms the values
 #maybe it would be better to change "show_values" name.
-if show_values; then
+if ! show_values; then
   main
 fi
 
