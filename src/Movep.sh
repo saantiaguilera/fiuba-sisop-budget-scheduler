@@ -18,7 +18,7 @@ sh_log="$DIRBIN/logep.sh"
 
 #### DIRS ####
 
-DPLDIR="dpl"
+DIRDPL="dpl"
 
 #### Messages ####
 
@@ -88,8 +88,8 @@ LOG_MSG=""
 if [ -f "$TARGET/`echo "$SOURCE" | sed "s/.*\///"`" ]
 then
     cd $DIRBIN >/dev/null
-    mkdir $DPLDIR  # Create a dir inside bindir for storing duplicates
-    cd $DPLDIR >/dev/null
+    mkdir $DIRDPL  # Create a dir inside bindir for storing duplicates
+    cd $DIRDPL >/dev/null
     mv --backup=t $SOURCE .
    
     LOG_MSG="-m \"`echo "$MSG_INF_DUPLICATE_FILE" | sed "s/%SRC%/$SOURCE/" | sed "s/%DEST%/$PWD/" | sed "s/%TARGET%/$TARGET/"`\""
