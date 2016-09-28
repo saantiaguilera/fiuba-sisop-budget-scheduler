@@ -97,7 +97,7 @@ function evict_malformed_files() {
 #   CODES_STATES with non-zero array
 #######################################
 function parse_state_codes() {
-	CODES_STATES=($(cat "$DIR_ASSETS/provincias.csv" | cut -d\; -f1))
+	CODES_STATES=($(tail -n +2 "$DIR_ASSETS/provincias.csv" | cut -d\; -f1))
 }
 
 #######################################
