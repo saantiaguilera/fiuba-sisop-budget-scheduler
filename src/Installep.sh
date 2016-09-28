@@ -16,13 +16,21 @@ DIRNOK="$GRUPO/nok"
 
 # Bash 4 supports hash tables ^.^
 # I dont know if this dict will be updated after the users sets the direcotries
-declare -A DIRS=(["dirconf"]=$DIRCONF ["DIRBIN"]=$DIRBIN ["DIRMAE"]=$DIRMAE ["DIRREC"]=$DIRREC 
-["DIROK"]=$DIROK ["DIRPROC"]=$DIRPROC ["DIRINFO"]=$DIRINFO ["DIRLOG"]=$DIRLOG 
+declare -A DIRS=(["dirconf"]=$DIRCONF ["DIRBIN"]=$DIRBIN ["DIRMAE"]=$DIRMAE ["DIRREC"]=$DIRREC
+["DIROK"]=$DIROK ["DIRPROC"]=$DIRPROC ["DIRINFO"]=$DIRINFO ["DIRLOG"]=$DIRLOG
 ["DIRNOK"]=$DIRNOK)
 DATASIZE=100
 
+#######################################
 #Lets the user choose a name for the input_directory, if he enters an invalid
 #name or none address at all, a default one is used instead.
+# Globals:
+#   GRUPO
+# Arguments:
+#   Default directory
+# Returns:
+#   0
+#######################################
 function input_directory {
 read directory
 
@@ -40,9 +48,17 @@ fi
 return 0
 }
 
+#######################################
 #Lets the user choose a name for all the directories the EPLAM program uses,
 #if he enters an invalid name or none address at all, a default one is used
 # instead.
+# Globals:
+#   DIRBIN, DIRMAE, DIRREC, DIROK, DIRPROC, DIRINFO, DIRLOG, DIRNOK
+# Arguments:
+#   None
+# Returns:
+#   0
+#######################################
 function input_directories {
 echo "Defina el directorio de ejecutables ($GRUPO/bin): "
 input_directory DIRBIN
@@ -71,8 +87,15 @@ input_directory DIRNOK
 return 0
 }
 
-#Checks if the system has been already installed, returning an 0 in that case
-#and a 1 if not.
+#######################################
+#Checks if the system has been already installed.
+# Globals:
+#   GRUPO
+# Arguments:
+#   None
+# Returns:
+#   0 if True, 1 if False
+#######################################
 function system_already_installed {
 if [[ -d /$GRUPO/ ]] && [[ ! -f /$GRUPO/Instalep.conf ]]  #Not sure if it works like this...
 then
@@ -82,7 +105,15 @@ else
 fi
 }
 
+#######################################
 #Sets the size for new archives, the size is stored as megabytes.
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   0
+#######################################
 function set_news_size {
 local SYSTEM_SIZE=""
 SYSTEM_SIZE_M=$(df -BM . | tail -1 | awk '{print $4}')
@@ -109,8 +140,16 @@ fi
 return 0
 }
 
+#######################################
 #Shows the values that had been defined for the directories, lets the user
-#answer if they are OK, returning 0 in that case, 1 if not.
+#answer if they are OK.
+# Globals:
+#   GROUPO, DIRBIN, DIRMAE, DIRREC, DIROK, DIRPROC, DIRINFO, DIRLOG, DIRNOK
+# Arguments:
+#   None
+# Returns:
+#   0 if the values are OK, 1 if not.
+#######################################
 function show_values {
 echo "Directorio de Configuracion: $GRUPO/dirconf"
 #listar Archivos
@@ -137,6 +176,15 @@ else
 fi
 }
 
+#######################################
+#Ask the user to confirm the instalation
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   0 if the user confirms, 1 if not.
+#######################################
 function instalation_confirm {
 echo "Iniciando Instalacion. Esta Ud. seguro? (Si – No/Otra cosa)"
 
@@ -150,6 +198,15 @@ else
 fi
 }
 
+#######################################
+#Installs the program.
+# Globals:
+#   GROUPO, DIRBIN, DIRMAE, DIRREC, DIROK, DIRPROC, DIRINFO, DIRLOG, DIRNOK
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
 function installation {
 #create directories
 #move archives, execs and functions.
@@ -167,6 +224,15 @@ function installation {
   #Completar
 }
 
+#######################################
+#Creates the Instalep.conf archive.
+# Globals:
+#   GROUPO, DIRBIN, DIRMAE, DIRREC, DIROK, DIRPROC, DIRINFO, DIRLOG, DIRNOK
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
 function create_conf_archive {
 #create Instalep.conf
 #write log
@@ -175,11 +241,20 @@ function create_conf_archive {
   touch $conf_file
   for i in "${!DIRS[@]}"; do
     local value=${DIRS[$i]}
-    echo "$i=$value=$USER=`date -u`" >> $conf_file 
+    echo "$i=$value=$USER=`date -u`" >> $conf_file
   done
   bash Logep.sh -c instalep -m "Instalacion CONCLUIDA."
 }
 
+#######################################
+#Ends the installation process.
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
 function end_process {
 #delete temporary archives.
 #write log
@@ -187,7 +262,15 @@ function end_process {
   echo "Fin"
 }
 
-
+#######################################
+#Executes the installep
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
 function main {
 #Call to log, begin process
 
