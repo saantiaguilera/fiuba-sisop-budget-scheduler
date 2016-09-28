@@ -97,17 +97,12 @@ function init_environment() {
 
 	while read -r LINE; do
 		case $LINE in
-			DIRBIN*) extract_dir DIRBIN $LINE
-				echo "encontre dirbin"
-				echo $DIRBIN
-				;;
+			DIRBIN*) extract_dir DIRBIN $LINE;;
 			DIRMAE*) extract_dir DIRMAE $LINE;;
 			DIRREC*) extract_dir DIRREC $LINE;;
 			DIROK*) extract_dir DIROK $LINE;;
 			DIRPROC*) extract_dir DIRPROC $LINE;;
-			DIRINFO*) extract_dir DIRINFO $LINE
-				echo "encontre info"
-				echo $DIRINFO;;
+			DIRINFO*) extract_dir DIRINFO $LINE;;
 			DIRLOG*) extract_dir DIRLOG $LINE;;
 			DIRNOK*) extract_dir DIRNOK $LINE;;
 			dirconf*) ;;
@@ -188,10 +183,6 @@ function check_file_permissions() {
 	EXIT_CODE=0
 	cd $DIRMAE
 	
-	if [ -z ls ]; then 
-		return $EXIT_CODE
-	fi
-
 	for FILE in ~/*
 		do
 			if [ ! -r $FILE ]; then
@@ -233,7 +224,7 @@ function start_demonep() {
 				log_message "$MSG_DEMONEP_ACTIVATED" "$TYPE_INF"
 				echo "$MSG_DEMONEP_ACTIVATED"
 				
-				#bash "$DIRBIN/Demonep.sh" &
+				bash "$DIRBIN/Demonep.sh" &
 				
 				PROCESS_ID=$(pgrep "Demonep")
 				log_message "`echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"`" "$TYPE_INF"
