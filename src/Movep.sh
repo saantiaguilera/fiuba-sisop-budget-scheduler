@@ -11,6 +11,8 @@ COMMAND=""
 TARGET="" 
 SOURCE=""
 
+MY_NAME="Movep"
+
 #### SCRIPTS ####
 
 sh_log="$DIRBIN/Logep.sh"
@@ -24,7 +26,10 @@ DIRDPL="dpl"
 TYPE_INF="INF"
 TYPE_ERR="ERR"
 MSG_INF_DUPLICATE_FILE="Se movio %SRC% a %DEST%  porque el archivo ya se encontraba en %TARGET%."
-MSG_INF_FILE="Se movio %SRC% a %DEST%." 
+MSG_INF_FILE="Se movio %SRC% a %DEST%."
+MSG_ERR_NO_TARGET="Destino no existente"
+MSG_ERR_NO_SOURCE="Origen no existente"
+mSG_ERR_SAME_PATHS="Origen y destino identicos"
 
 #######################################
 # Shows help function.
@@ -67,19 +72,19 @@ done
 
 if [[ -z "$TARGET" ]]
 then
-    $sh_log -c "Movep" -m "Destino no existente" -t "$TYPE_ERR"
+    $sh_log -c "$MY_NAME" -m "$MSG_ERR_NO_TARGET" -t "$TYPE_ERR"
     exit 1
 fi
 
 if [[ -z "$SOURCE" ]]
 then
-    $sh_log -c "Movep" -m "Origen no existente" -t "$TYPE_ERR"
+    $sh_log -c "$MY_NAME" -m "$MSG_ERR_NO_SOURCE" -t "$TYPE_ERR"
     exit 1
 fi
 
 if [[ "$TARGET" == "$SOURCE" ]]
 then
-    $sh_log -c "Movep" -m "Origen y destino identicos" -t "$TYPE_ERR"
+    $sh_log -c "$MY_NAME" -m "$MSG_ERR_SAME_PATHS" -t "$TYPE_ERR"
     exit 1
 fi
 
@@ -100,5 +105,5 @@ fi
 
 if ! [[ -z "$LOG_MSG" ]]
 then
-    $sh_log -c "Movep" $LOG_MSG -t "$TYPE_INF"
+    $sh_log -c "$MY_NAME" $LOG_MSG -t "$TYPE_INF"
 fi
