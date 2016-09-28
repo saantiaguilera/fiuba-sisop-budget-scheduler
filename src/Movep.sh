@@ -14,7 +14,7 @@ SOURCE=""
 
 #### SCRIPTS ####
 
-sh_log="$DIRBIN/logep.sh"
+sh_log="$DIRBIN/Logep.sh"
 
 #### DIRS ####
 

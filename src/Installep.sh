@@ -159,31 +159,31 @@ function installation {
     echo $i
     mkdir $i
   done
-  bash logep.sh -c instalep -m "Creando Estructuras de directorio ..."
+  bash Logep.sh -c instalep -m "Creando Estructuras de directorio ..."
 
-  bash logep.sh -c instalep -m "Instalando Programas y Funciones"
+  bash Logep.sh -c instalep -m "Instalando Programas y Funciones"
   #Completar
-  bash logep.sh -c instalep -m "Instalando Archivos Maestros y Tablas"
+  bash Logep.sh -c instalep -m "Instalando Archivos Maestros y Tablas"
   #Completar
 }
 
 function create_conf_archive {
 #create Instalep.conf
 #write log
-  bash logep.sh -c instalep -m "Actualizando la configuracion del sistema"
+  bash Logep.sh -c instalep -m "Actualizando la configuracion del sistema"
   local conf_file="${DIRS["dirconf"]}/instalep.conf"
   touch $conf_file
   for i in "${!DIRS[@]}"; do
     local value=${DIRS[$i]}
     echo "$i=$value=$USER=`date -u`" >> $conf_file 
   done
-  bash logep.sh -c instalep -m "Instalacion CONCLUIDA."
+  bash Logep.sh -c instalep -m "Instalacion CONCLUIDA."
 }
 
 function end_process {
 #delete temporary archives.
 #write log
-  #bash logep.sh -c instalep -m "Fin"
+  #bash Logep.sh -c instalep -m "Fin"
   echo "Fin"
 }
 

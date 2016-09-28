@@ -16,7 +16,7 @@ DIR_ASSETS=$DIRMAE
 
 #### Shell scripts ####
 sh_mov="$DIRBIN/Movep.sh"
-sh_log="$DIRBIN/logep.sh"
+sh_log="$DIRBIN/Logep.sh"
 sh_process="$DIRBIN/Procep.sh"
 
 #### Sleep time ####

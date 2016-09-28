@@ -34,7 +34,7 @@ MSG_INITEP_FINISHED="Proceso Initep finalizado exitosamente."
 #   None
 #######################################
 function log_message() {
-	bash "$DIRBIN/logep.sh" -c "Initep" -m "$1" -t "$2"
+	bash "$DIRBIN/Logep.sh" -c "Initep" -m "$1" -t "$2"
 	return
 }
 
