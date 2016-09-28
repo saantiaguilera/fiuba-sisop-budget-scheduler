@@ -38,8 +38,8 @@ MSG_INF_FILE="Se movio %SRC% a %DEST%."
 #######################################
 function show_help() {
   cat << EOF
-Uso: logep.sh -c comando -m 'Mensaje' -t tipo de mensaje
-Ejemplo: logep.sh -c movep -m 'Se movio archivo foo' -t INF 
+Uso: Movep.sh -c ":caller_name" -o ":origin_path/:file_name" -d ":destiny_path"
+Ejemplo: Movep.sh -c "Demonep" -o "/path/file.csv" -d "/path/NOK/"
   -h                  Muestra este mensaje de ayuda.
   -c comando          Escribir el mensaje en comando.log.
   -d destiny dir      Path al que se desea mover el archivo.
