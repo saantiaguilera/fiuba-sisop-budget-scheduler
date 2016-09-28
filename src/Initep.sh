@@ -1,6 +1,6 @@
 #!/bin/bash
 
-GRUPO="Grupo5"
+GRUPO="Grupo6"
 #CONF_FILE="$GRUPO/dirconf/EPLAM.conf"
 CONF_FILE="$GRUPO/dirconf/instalep.conf"
 

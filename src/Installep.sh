@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export GRUPO="Grupo5"
+export GRUPO="Grupo6"
 
 DIRCONF="$GRUPO/dirconf"
 DIRBIN="$GRUPO/bin"
