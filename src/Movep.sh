@@ -25,7 +25,7 @@ DIRDPL="dpl"
 
 TYPE_INF="INF"
 TYPE_ERR="ERR"
-MSG_INF_DUPLICATE_FILE="Se movio %SRC% a %DEST%  porque el archivo ya se encontraba en %TARGET%."
+MSG_INF_DUPLICATE_FILE="Se movio %SRC% a %DEST% porque el archivo ya se encontraba en %TARGET%."
 MSG_INF_FILE="Se movio %SRC% a %DEST%."
 MSG_ERR_NO_TARGET="Destino no existente"
 MSG_ERR_NO_SOURCE="Origen no existente"
@@ -96,14 +96,14 @@ then
     cd $DIRDPL >/dev/null
     mv --backup=t $SOURCE .
    
-    LOG_MSG="-m \"`echo "$MSG_INF_DUPLICATE_FILE" | sed "s/%SRC%/$SOURCE/" | sed "s/%DEST%/$PWD/" | sed "s/%TARGET%/$TARGET/"`\""
+    LOG_MSG="`echo "$MSG_INF_DUPLICATE_FILE" | sed "s+%SRC%+$SOURCE+" | sed "s+%DEST%+$PWD+" | sed "s+%TARGET%+$TARGET+"`"
 else
     mv $SOURCE $TARGET
 
-    LOG_MSG="-m \"`echo "$MSG_INF_FILE" | sed "s/%SRC%/$SOURCE/" | sed "s/%DEST%/$TARGET/"`\""
+    LOG_MSG="`echo "$MSG_INF_FILE" | sed "s+%SRC%+"$SOURCE"+" | sed "s+%DEST%+"$TARGET"+"`"
 fi
 
 if ! [[ -z "$LOG_MSG" ]]
 then
-    $sh_log -c "$MY_NAME" $LOG_MSG -t "$TYPE_INF"
+    $sh_log -c "$MY_NAME" -m "$LOG_MSG" -t "$TYPE_INF"
 fi

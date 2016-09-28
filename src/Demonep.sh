@@ -202,35 +202,31 @@ function validate_date() {
 	local M_DAY=$(echo ${M_DATE} | cut -c7-8)
 	local CURRENT_YEAR=`date +%Y`
 
-	# Check it wasnt in past years
-	if [ $M_YEAR -lt $CURRENT_YEAR ]; then
+	# Check it wasnt in other years
+	if ! [[ $M_YEAR == $CURRENT_YEAR ]]; then
 		print_generic_error_if_needed
 		log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 		let "EXIT_CODE = 2"
 		return
 	fi
 
-	# Check if it was this year
-	if [ $M_YEAR -eq $CURRENT_YEAR ]
+    # Check it was in this month and in a future day
+	if [ $M_MONTH -eq `date +%m` ] && [ $M_DAY -gt `date +%d` ]
 		then
-			# Check it wasnt in this month but in a future day
-			if [ $M_MONTH -eq `date +%m` ] && [ $M_DAY -gt `date +%d` ]
-				then
-					#its in this month but some days in the future
-					print_generic_error_if_needed
-					log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
-					let "EXIT_CODE = 2"
-					return
-			fi
+			#its in this month but some days in the future
+			print_generic_error_if_needed
+			log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+			let "EXIT_CODE = 2"
+			return
+	fi
 
-			# Check it wasnt in a future month
-			if [ $M_MONTH -gt `date +%m` ]
-				then
-					print_generic_error_if_needed
-					log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
-					let "EXIT_CODE = 2"
-					return
-			fi
+	# Check it wasnt in a future month
+	if [ $M_MONTH -gt `date +%m` ]
+		then
+			print_generic_error_if_needed
+			log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+			let "EXIT_CODE = 2"
+			return
 	fi
 
 	# Check date is not malformed
