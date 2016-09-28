@@ -29,7 +29,7 @@ MSG_INF_DUPLICATE_FILE="Se movio %SRC% a %DEST% porque el archivo ya se encontra
 MSG_INF_FILE="Se movio %SRC% a %DEST%."
 MSG_ERR_NO_TARGET="Destino no existente"
 MSG_ERR_NO_SOURCE="Origen no existente"
-mSG_ERR_SAME_PATHS="Origen y destino identicos"
+MSG_ERR_SAME_PATHS="Origen y destino identicos"
 
 #######################################
 # Shows help function.
