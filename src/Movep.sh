@@ -3,7 +3,6 @@
 ##############################
 ############ MOVEP ###########
 ##############################
-# Made by: Me.
 # TODO Dice algo de numeros de secuencia... NPI que es, hay que hacerlo
 
 #### VARS ####

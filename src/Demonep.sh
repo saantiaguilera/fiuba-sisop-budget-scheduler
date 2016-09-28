@@ -4,7 +4,6 @@
 ################       DAEMON       ################
 ####################################################
 # NOTES;
-# - Daemon task made by: Santiago Aguilera
 # - Please always ensure the daemon is run in a background job. For this append at the end of the shell command a '&' eg "echo "test" &"
 # - Must be runned in an environment which has previously run Initep (To ensure we can reach the environment variables set by it in their exports).
 
