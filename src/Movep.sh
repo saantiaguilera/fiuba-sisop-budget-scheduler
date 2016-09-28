@@ -1,0 +1,105 @@
+#!/bin/bash
+
+##############################
+############ MOVEP ###########
+##############################
+# Made by: Me.
+# TODO Dice algo de numeros de secuencia... NPI que es, hay que hacerlo
+
+#### VARS ####
+
+COMMAND=""
+TARGET="" 
+SOURCE=""
+
+#### SCRIPTS ####
+
+sh_log="$DIRBIN/logep.sh"
+
+#### DIRS ####
+
+DPLDIR="dpl"
+
+#### Messages ####
+
+TYPE_INF="INF"
+TYPE_ERR="ERR"
+MSG_INF_DUPLICATE_FILE="Se movio %SRC% a %DEST%  porque el archivo ya se encontraba en %TARGET%."
+MSG_INF_FILE="Se movio %SRC% a %DEST%." 
+
+#######################################
+# Shows help function.
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+function show_help() {
+  cat << EOF
+Uso: logep.sh -c comando -m 'Mensaje' -t tipo de mensaje
+Ejemplo: logep.sh -c movep -m 'Se movio archivo foo' -t INF 
+  -h                  Muestra este mensaje de ayuda.
+  -c comando          Escribir el mensaje en comando.log.
+  -d destiny dir      Path al que se desea mover el archivo.
+  -o origin path      Path (+ Archivo) el cual se va a mover.
+EOF
+}
+
+while getopts "h?c:d:o:" opt; do
+  case "$opt" in
+    h|\?)
+      echo "Wrong call"
+      show_help
+      exit 0
+      ;;
+    c)
+      COMMAND=$OPTARG
+      ;;
+    d)
+      TARGET=$OPTARG
+      ;;
+    o)
+      SOURCE=$OPTARG
+      ;;
+  esac
+done
+
+if [[ -z "$TARGET" ]]
+then
+    $sh_log -c "Movep" -m "Destino no existente" -t "$TYPE_ERR"
+    exit 1
+fi
+
+if [[ -z "$SOURCE" ]]
+then
+    $sh_log -c "Movep" -m "Origen no existente" -t "$TYPE_ERR"
+    exit 1
+fi
+
+if [[ "$TARGET" == "$SOURCE" ]]
+then
+    $sh_log -c "Movep" -m "Origen y destino identicos" -t "$TYPE_ERR"
+    exit 1
+fi
+
+LOG_MSG=""
+if [ -f "$SOURCE/`echo "$TARGET" | sed "s/.*\///"`" ]
+then
+    cd $BINDIR >/dev/null
+    mkdir $DPLDIR  # Create a dir inside bindir for storing duplicates
+    cd $DPLDIR >/dev/null
+    mv --backup=t $SOURCE .
+   
+    LOG_MSG="-m \"`echo "$MSG_INF_DUPLICATE_FILE" | sed "s/%SRC%/$SOURCE/" | sed "s/%DEST%/$PWD/" | sed "s/%TARGET%/$TARGET/"`\""
+else
+    mv $SOURCE $TARGET
+
+    LOG_MSG="-m \"`echo "$MSG_INF_FILE" | sed "s/%SRC%/$SOURCE/" | sed "s/%DEST%/$TARGET/"`\""
+fi
+
+if ! [[ -z "$LOG_MSG" ]]
+then
+    $sh_log -c "Movep" $LOG_MSG -t "$TYPE_INF"
+fi
