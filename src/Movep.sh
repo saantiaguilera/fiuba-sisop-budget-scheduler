@@ -85,9 +85,9 @@ then
 fi
 
 LOG_MSG=""
-if [ -f "$SOURCE/`echo "$TARGET" | sed "s/.*\///"`" ]
+if [ -f "$TARGET/`echo "$SOURCE" | sed "s/.*\///"`" ]
 then
-    cd $BINDIR >/dev/null
+    cd $DIRBIN >/dev/null
     mkdir $DPLDIR  # Create a dir inside bindir for storing duplicates
     cd $DPLDIR >/dev/null
     mv --backup=t $SOURCE .
