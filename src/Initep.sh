@@ -1,6 +1,6 @@
 #!/bin/bash
 
-GRUPO="Grupo5"
+GRUPO="Grupo6"
 #CONF_FILE="$GRUPO/dirconf/EPLAM.conf"
 CONF_FILE="$GRUPO/dirconf/instalep.conf"
 
@@ -34,7 +34,7 @@ MSG_INITEP_FINISHED="Proceso Initep finalizado exitosamente."
 #   None
 #######################################
 function log_message() {
-	bash "$DIRBIN/logep.sh" -c "Initep" -m "$1" -t "$2"
+	bash "$DIRBIN/Logep.sh" -c "Initep" -m "$1" -t "$2"
 	return
 }
 

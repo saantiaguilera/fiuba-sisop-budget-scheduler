@@ -4,7 +4,6 @@
 ################       DAEMON       ################
 ####################################################
 # NOTES;
-# - Daemon task made by: Santiago Aguilera
 # - Please always ensure the daemon is run in a background job. For this append at the end of the shell command a '&' eg "echo "test" &"
 # - Must be runned in an environment which has previously run Initep (To ensure we can reach the environment variables set by it in their exports).
 
@@ -16,7 +15,7 @@ DIR_ASSETS=$DIRMAE
 
 #### Shell scripts ####
 sh_mov="$DIRBIN/Movep.sh"
-sh_log="$DIRBIN/logep.sh"
+sh_log="$DIRBIN/Logep.sh"
 sh_process="$DIRBIN/Procep.sh"
 
 #### Sleep time ####
@@ -97,7 +96,7 @@ function evict_malformed_files() {
 #   CODES_STATES with non-zero array
 #######################################
 function parse_state_codes() {
-	CODES_STATES=($(cat "$DIR_ASSETS/provincias.csv" | cut -d\; -f1))
+	CODES_STATES=($(tail -n +2 "$DIR_ASSETS/provincias.csv" | cut -d\; -f1))
 }
 
 #######################################
@@ -203,35 +202,31 @@ function validate_date() {
 	local M_DAY=$(echo ${M_DATE} | cut -c7-8)
 	local CURRENT_YEAR=`date +%Y`
 
-	# Check it wasnt in past years
-	if [ $M_YEAR -lt $CURRENT_YEAR ]; then
+	# Check it wasnt in other years
+	if ! [[ $M_YEAR == $CURRENT_YEAR ]]; then
 		print_generic_error_if_needed
 		log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 		let "EXIT_CODE = 2"
 		return
 	fi
 
-	# Check if it was this year
-	if [ $M_YEAR -eq $CURRENT_YEAR ]
+    # Check it was in this month and in a future day
+	if [ $M_MONTH -eq `date +%m` ] && [ $M_DAY -gt `date +%d` ]
 		then
-			# Check it wasnt in this month but in a future day
-			if [ $M_MONTH -eq `date +%m` ] && [ $M_DAY -gt `date +%d` ]
-				then
-					#its in this month but some days in the future
-					print_generic_error_if_needed
-					log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
-					let "EXIT_CODE = 2"
-					return
-			fi
+			#its in this month but some days in the future
+			print_generic_error_if_needed
+			log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+			let "EXIT_CODE = 2"
+			return
+	fi
 
-			# Check it wasnt in a future month
-			if [ $M_MONTH -gt `date +%m` ]
-				then
-					print_generic_error_if_needed
-					log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
-					let "EXIT_CODE = 2"
-					return
-			fi
+	# Check it wasnt in a future month
+	if [ $M_MONTH -gt `date +%m` ]
+		then
+			print_generic_error_if_needed
+			log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+			let "EXIT_CODE = 2"
+			return
 	fi
 
 	# Check date is not malformed

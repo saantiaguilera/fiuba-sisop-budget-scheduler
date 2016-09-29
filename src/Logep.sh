@@ -17,8 +17,8 @@ TYPE="INF"
 #######################################
 function show_help() {
   cat << EOF
-Uso: logep.sh -c comando -m 'Mensaje' -t tipo de mensaje
-Ejemplo: logep.sh -c movep -m 'Se movio archivo foo' -t INF 
+Uso: Logep.sh -c comando -m 'Mensaje' -t tipo de mensaje
+Ejemplo: Logep.sh -c movep -m 'Se movio archivo foo' -t INF 
   -h                  Muestra este mensaje de ayuda.
   -c comando          Escribir el mensaje en comando.log.
   -m 'Mensaje'        Mensaje a escribir.
