@@ -221,12 +221,14 @@ function installation {
   bash Logep.sh -c instalep -m "Creando Estructuras de directorio ..."
 
   bash Logep.sh -c instalep -m "Instalando Programas y Funciones"
-  for file in ~/*.sh; do
-    mv file "$DIRBIN/$file"
+  shopt -s nullglob
+  for file in *.sh; do
+    mv $file "$DIRBIN/$file"
   done
   bash Logep.sh -c instalep -m "Instalando Archivos Maestros y Tablas"
-  for file in ~/*.csv; do
-    mv file "$DIRMAE/$file"
+  #shopt -s nullglob
+  for file in *.csv; do
+    mv $file "$DIRMAE/$file"
   done
 }
 
