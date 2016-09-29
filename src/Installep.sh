@@ -2,6 +2,7 @@
 
 export GRUPO="Grupo6"
 
+# Dirs
 DIRCONF="$GRUPO/dirconf"
 DIRBIN="$GRUPO/bin"
 DIRMAE="$GRUPO/mae"
@@ -13,12 +14,18 @@ DIRINFO="$GRUPO/rep"
 # another, this script should move it accordingly
 export DIRLOG="$GRUPO/log"
 DIRNOK="$GRUPO/nok"
+# I dont know if this dict will be updated after the users sets the directories
+declare -A DIRS=(["dirconf"]=$DIRCONF ["DIRBIN"]=$DIRBIN ["DIRMAE"]=$DIRMAE 
+["DIRREC"]=$DIRREC ["DIROK"]=$DIROK ["DIRPROC"]=$DIRPROC ["DIRINFO"]=$DIRINFO 
+["DIRLOG"]=$DIRLOG ["DIRNOK"]=$DIRNOK)
 
-# Bash 4 supports hash tables ^.^
-# I dont know if this dict will be updated after the users sets the direcotries
-declare -A DIRS=(["dirconf"]=$DIRCONF ["DIRBIN"]=$DIRBIN ["DIRMAE"]=$DIRMAE ["DIRREC"]=$DIRREC
-["DIROK"]=$DIROK ["DIRPROC"]=$DIRPROC ["DIRINFO"]=$DIRINFO ["DIRLOG"]=$DIRLOG
-["DIRNOK"]=$DIRNOK)
+
+# Commands
+readonly INITEP="Initep.sh"
+readonly DEMONEP="Demonep.sh"
+readonly LOGEP="Logep.sh"
+readonly MOVEP="Movep.sh"
+#declare -A COMMANDS=(["Demonep"]=)
 DATASIZE=100
 
 #######################################
@@ -97,8 +104,7 @@ return 0
 #   0 if True, 1 if False
 #######################################
 function system_already_installed {
-if [[ -d /$GRUPO/ ]] && [[ ! -f /$GRUPO/Instalep.conf ]]  #Not sure if it works like this...
-then
+if [[ -d /$GRUPO/ ]] && [[ ! -f /$GRUPO/Instalep.conf ]]; then
   return 0 #True
 else
   return 1 #False
@@ -122,8 +128,7 @@ SYSTEM_SIZE="`echo $SYSTEM_SIZE_M | sed "s/M$//"`"
 echo "Defina espacio minimo libre para la recepcion de archivos en Mbytes (100): "
 read size
 
-if [[ $size -gt $SYSTEM_SIZE ]]
-then
+if [[ $size -gt $SYSTEM_SIZE ]]; then
   echo "Insuficiente espacio en disco."
   echo "Espacio disponible: $SYSTEM_SIZE Mb."
   echo "Espacio requerido $size Mb."
@@ -168,8 +173,7 @@ echo "Desea continuar con la instalacion? (Si – No/Otra cosa)"
 
 read answer
 answer="${answer,,[SI]}"
-if [ "$answer" == "si" ]
-then
+if [ "$answer" == "si" ]; then
   return 0
 else
   return 1
@@ -187,11 +191,9 @@ fi
 #######################################
 function instalation_confirm {
 echo "Iniciando Instalacion. Esta Ud. seguro? (Si – No/Otra cosa)"
-
 read answer
 answer="${answer,,[SI]}"
-if [ "$answer" == "si" ]
-then
+if [ "$answer" == "si" ]; then
   return 0 #True
 else
   return 1 #False
@@ -219,9 +221,13 @@ function installation {
   bash Logep.sh -c instalep -m "Creando Estructuras de directorio ..."
 
   bash Logep.sh -c instalep -m "Instalando Programas y Funciones"
-  #Completar
+  for file in ~/*.sh; do
+    mv file "$DIRBIN/$file"
+  done
   bash Logep.sh -c instalep -m "Instalando Archivos Maestros y Tablas"
-  #Completar
+  for file in ~/*.csv; do
+    mv file "$DIRMAE/$file"
+  done
 }
 
 #######################################
