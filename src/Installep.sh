@@ -237,7 +237,7 @@ function installation {
   done
   bash $LOGEP -c instalep -m "Instalando Archivos Maestros y Tablas"
   #shopt -s nullglob
-  for file in centros.csv provincias.csv trimestres.csv; do
+  for file in actividades.csv sancionado-2016.csv centros.csv provincias.csv tabla-AxC.csv trimestres.csv; do
     mv $file "$DIRMAE/$file"
   done
 }
