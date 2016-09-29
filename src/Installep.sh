@@ -42,14 +42,13 @@ function input_directory {
 read directory
 
 if [ "$directory" == "dirconf" ] || [[ -z "${directory// }" ]]; then
-  echo "El directorio "$GRUPO/dirconf" o un nombre de directorio que contiene 
-  solo espacios son directorios invalidos. Ingrese otro nombre: "
+  echo "El directorio "$GRUPO/dirconf", un nombre de directorio que contiene 
+  solo espacios o es vacio son directorios invalidos. Ingrese otro nombre: "
   input_directory $1 #Ask the user again for another directory name
 else
   local dir=$1
   set -- "$GRUPO/$directory" "$1"
   DIRS["$dir"]=$1
-  echo "NUEVO DIR: ${!DIRS[$dir]} -  ${DIRS[$dir]}"
 fi
 
 #if [[ ! -z "${directory// }" ]] && [ "$directory" != "dirconf" ]; then
@@ -235,7 +234,7 @@ function installation {
   done
   bash Logep.sh -c instalep -m "Instalando Archivos Maestros y Tablas"
   #shopt -s nullglob
-  for file in *.csv; do
+  for file in centros.csv provincias.csv trimestres.csv; do
     mv $file "$DIRMAE/$file"
   done
 }
@@ -290,28 +289,25 @@ function end_process {
 function main {
 #Call to log, begin process
 
-echo "Check"
 if system_already_installed; then
-  end_process
+  echo "Fin"
   return 0
 fi
-echo "Check"
+
 input_directories
 set_news_size
 #Go back to the beginning if the user don't confirms the values
 #maybe it would be better to change "show_values" name.
+
 if ! show_values; then
   main
 fi
 
-echo "Check"
 if instalation_confirm; then
-  echo "Check"
   installation
   create_conf_archive
 fi
-
-end_process
+bash Logep.sh -c instalep -m "Fin"
 }
 
 main
