@@ -2,6 +2,7 @@
 
 export GRUPO="Grupo6"
 
+# Dirs
 DIRCONF="$GRUPO/dirconf"
 DIRBIN="$GRUPO/bin"
 DIRMAE="$GRUPO/mae"
@@ -13,12 +14,18 @@ DIRINFO="$GRUPO/rep"
 # another, this script should move it accordingly
 export DIRLOG="$GRUPO/log"
 DIRNOK="$GRUPO/nok"
+# I dont know if this dict will be updated after the users sets the directories
+declare -A DIRS=(["dirconf"]=$DIRCONF ["DIRBIN"]=$DIRBIN ["DIRMAE"]=$DIRMAE 
+["DIRREC"]=$DIRREC ["DIROK"]=$DIROK ["DIRPROC"]=$DIRPROC ["DIRINFO"]=$DIRINFO 
+["DIRLOG"]=$DIRLOG ["DIRNOK"]=$DIRNOK)
 
-# Bash 4 supports hash tables ^.^
-# I dont know if this dict will be updated after the users sets the direcotries
-declare -A DIRS=(["dirconf"]=$DIRCONF ["DIRBIN"]=$DIRBIN ["DIRMAE"]=$DIRMAE ["DIRREC"]=$DIRREC
-["DIROK"]=$DIROK ["DIRPROC"]=$DIRPROC ["DIRINFO"]=$DIRINFO ["DIRLOG"]=$DIRLOG
-["DIRNOK"]=$DIRNOK)
+
+# Commands
+INITEP="Initep.sh"
+DEMONEP="Demonep.sh"
+LOGEP="Logep.sh"
+MOVEP="Movep.sh"
+#declare -A COMMANDS=(["Demonep"]=)
 DATASIZE=100
 
 #######################################
@@ -34,16 +41,23 @@ DATASIZE=100
 function input_directory {
 read directory
 
-if [[ $directory != "" ]] || [ "$directory" != "dirconf" ]
-then
+if [ "$directory" == "dirconf" ] || [[ -z "${directory// }" ]]; then
+  echo "El directorio "$GRUPO/dirconf", un nombre de directorio que contiene 
+  solo espacios o es vacio son directorios invalidos. Ingrese otro nombre: "
+  input_directory $1 #Ask the user again for another directory name
+else
+  local dir=$1
   set -- "$GRUPO/$directory" "$1"
+  DIRS["$dir"]=$1
 fi
 
-if [ "$directory" == "dirconf" ]
-then
-  echo "El directorio "$GRUPO/dirconf" es un directorio invalido. Ingrese otro nombre: "
-  input_directory #Ask the user again for another directory name
-fi
+#if [[ ! -z "${directory// }" ]] && [ "$directory" != "dirconf" ]; then
+#  local dir=$1
+#  set -- "$GRUPO/$directory" "$1"
+#  DIRS["$dir"]=$1
+#  echo "NUEVO DIR: ${!DIRS[$dir]} -  ${DIRS[$dir]}"
+#fi
+
 
 return 0
 }
@@ -97,8 +111,7 @@ return 0
 #   0 if True, 1 if False
 #######################################
 function system_already_installed {
-if [[ -d /$GRUPO/ ]] && [[ ! -f /$GRUPO/Instalep.conf ]]  #Not sure if it works like this...
-then
+if [[ -d /$GRUPO/ ]] && [[ ! -f /$GRUPO/Instalep.conf ]]; then
   return 0 #True
 else
   return 1 #False
@@ -122,8 +135,7 @@ SYSTEM_SIZE="`echo $SYSTEM_SIZE_M | sed "s/M$//"`"
 echo "Defina espacio minimo libre para la recepcion de archivos en Mbytes (100): "
 read size
 
-if [[ $size -gt $SYSTEM_SIZE ]]
-then
+if [[ $size -gt $SYSTEM_SIZE ]]; then
   echo "Insuficiente espacio en disco."
   echo "Espacio disponible: $SYSTEM_SIZE Mb."
   echo "Espacio requerido $size Mb."
@@ -168,8 +180,7 @@ echo "Desea continuar con la instalacion? (Si – No/Otra cosa)"
 
 read answer
 answer="${answer,,[SI]}"
-if [ "$answer" == "si" ]
-then
+if [ "$answer" == "si" ]; then
   return 0
 else
   return 1
@@ -187,11 +198,9 @@ fi
 #######################################
 function instalation_confirm {
 echo "Iniciando Instalacion. Esta Ud. seguro? (Si – No/Otra cosa)"
-
 read answer
 answer="${answer,,[SI]}"
-if [ "$answer" == "si" ]
-then
+if [ "$answer" == "si" ]; then
   return 0 #True
 else
   return 1 #False
@@ -216,12 +225,21 @@ function installation {
     echo $i
     mkdir $i
   done
-  bash Logep.sh -c instalep -m "Creando Estructuras de directorio ..."
+  bash $LOGEP -c instalep -m "Creando Estructuras de directorio ..."
 
-  bash Logep.sh -c instalep -m "Instalando Programas y Funciones"
-  #Completar
-  bash Logep.sh -c instalep -m "Instalando Archivos Maestros y Tablas"
-  #Completar
+  bash $LOGEP -c instalep -m "Instalando Programas y Funciones"
+  shopt -s nullglob
+  for file in *.sh; do
+    mv $file "$DIRBIN/$file"
+    if [[ "$file" == "Logep.sh" ]]; then
+      LOGEP="$DIRBIN/$file"
+    fi
+  done
+  bash $LOGEP -c instalep -m "Instalando Archivos Maestros y Tablas"
+  #shopt -s nullglob
+  for file in centros.csv provincias.csv trimestres.csv; do
+    mv $file "$DIRMAE/$file"
+  done
 }
 
 #######################################
@@ -236,14 +254,14 @@ function installation {
 function create_conf_archive {
 #create Instalep.conf
 #write log
-  bash Logep.sh -c instalep -m "Actualizando la configuracion del sistema"
+  bash $LOGEP -c instalep -m "Actualizando la configuracion del sistema"
   local conf_file="${DIRS["dirconf"]}/instalep.conf"
   touch $conf_file
   for i in "${!DIRS[@]}"; do
     local value=${DIRS[$i]}
     echo "$i=$value=$USER=`date -u`" >> $conf_file
   done
-  bash Logep.sh -c instalep -m "Instalacion CONCLUIDA."
+  bash $LOGEP -c instalep -m "Instalacion CONCLUIDA."
 }
 
 #######################################
@@ -258,7 +276,7 @@ function create_conf_archive {
 function end_process {
 #delete temporary archives.
 #write log
-  #bash Logep.sh -c instalep -m "Fin"
+  #bash $LOGEP -c instalep -m "Fin"
   echo "Fin"
 }
 
@@ -274,28 +292,25 @@ function end_process {
 function main {
 #Call to log, begin process
 
-echo "Check"
 if system_already_installed; then
-  end_process
+  echo "Fin"
   return 0
 fi
-echo "Check"
+
 input_directories
 set_news_size
 #Go back to the beginning if the user don't confirms the values
 #maybe it would be better to change "show_values" name.
+
 if ! show_values; then
   main
 fi
 
-echo "Check"
 if instalation_confirm; then
-  echo "Check"
   installation
   create_conf_archive
 fi
-
-end_process
+bash $LOGEP -c instalep -m "Fin"
 }
 
 main
