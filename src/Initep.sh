@@ -149,9 +149,8 @@ function init_environment() {
 #######################################
 function check_script_permissions() {
 	EXIT_CODE=0
-	cd $DIRBIN
 	
-	for SCRIPT in ~/*
+	for SCRIPT in "$DIRBIN/*"
 		do
 			if [ ! -x $SCRIPT ]; then
 				log_message "`echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s/%SCRIPT%/$SCRIPT/"`" "$TYPE_WAR"
@@ -166,7 +165,6 @@ function check_script_permissions() {
 			fi
 	done
 	
-	cd - > /dev/null
 	return $EXIT_CODE
 }
 
@@ -181,9 +179,8 @@ function check_script_permissions() {
 #######################################
 function check_file_permissions() {
 	EXIT_CODE=0
-	cd $DIRMAE
 	
-	for FILE in ~/*
+	for FILE in "$DIRMAE/*"
 		do
 			if [ ! -r $FILE ]; then
 				log_message "`echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s/%FILE%/$FILE/"`" "$TYPE_WAR"
@@ -198,7 +195,6 @@ function check_file_permissions() {
 			fi
 	done
 	
-	cd - > /dev/null
 	return $EXIT_CODE
 }
 
