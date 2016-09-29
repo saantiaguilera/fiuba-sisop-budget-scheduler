@@ -21,10 +21,10 @@ declare -A DIRS=(["dirconf"]=$DIRCONF ["DIRBIN"]=$DIRBIN ["DIRMAE"]=$DIRMAE
 
 
 # Commands
-readonly INITEP="Initep.sh"
-readonly DEMONEP="Demonep.sh"
-readonly LOGEP="Logep.sh"
-readonly MOVEP="Movep.sh"
+INITEP="Initep.sh"
+DEMONEP="Demonep.sh"
+LOGEP="Logep.sh"
+MOVEP="Movep.sh"
 #declare -A COMMANDS=(["Demonep"]=)
 DATASIZE=100
 
@@ -225,14 +225,17 @@ function installation {
     echo $i
     mkdir $i
   done
-  bash Logep.sh -c instalep -m "Creando Estructuras de directorio ..."
+  bash $LOGEP -c instalep -m "Creando Estructuras de directorio ..."
 
-  bash Logep.sh -c instalep -m "Instalando Programas y Funciones"
+  bash $LOGEP -c instalep -m "Instalando Programas y Funciones"
   shopt -s nullglob
   for file in *.sh; do
     mv $file "$DIRBIN/$file"
+    if [[ "$file" == "Logep.sh" ]]; then
+      LOGEP="$DIRBIN/$file"
+    fi
   done
-  bash Logep.sh -c instalep -m "Instalando Archivos Maestros y Tablas"
+  bash $LOGEP -c instalep -m "Instalando Archivos Maestros y Tablas"
   #shopt -s nullglob
   for file in centros.csv provincias.csv trimestres.csv; do
     mv $file "$DIRMAE/$file"
@@ -251,14 +254,14 @@ function installation {
 function create_conf_archive {
 #create Instalep.conf
 #write log
-  bash Logep.sh -c instalep -m "Actualizando la configuracion del sistema"
+  bash $LOGEP -c instalep -m "Actualizando la configuracion del sistema"
   local conf_file="${DIRS["dirconf"]}/instalep.conf"
   touch $conf_file
   for i in "${!DIRS[@]}"; do
     local value=${DIRS[$i]}
     echo "$i=$value=$USER=`date -u`" >> $conf_file
   done
-  bash Logep.sh -c instalep -m "Instalacion CONCLUIDA."
+  bash $LOGEP -c instalep -m "Instalacion CONCLUIDA."
 }
 
 #######################################
@@ -273,7 +276,7 @@ function create_conf_archive {
 function end_process {
 #delete temporary archives.
 #write log
-  #bash Logep.sh -c instalep -m "Fin"
+  #bash $LOGEP -c instalep -m "Fin"
   echo "Fin"
 }
 
@@ -307,7 +310,7 @@ if instalation_confirm; then
   installation
   create_conf_archive
 fi
-bash Logep.sh -c instalep -m "Fin"
+bash $LOGEP -c instalep -m "Fin"
 }
 
 main
