@@ -1,6 +1,5 @@
 # EPLAM
 ## Grupo 6
----
 
 ### Integrantes
 * Agustina Barbetta (96528)
