@@ -95,6 +95,11 @@ while getopts "h?c:d:o:" opt; do
   esac
 done
 
+if ! [[ -z "$COMMAND" ]] 
+then
+    MY_NAME="$COMMAND"
+fi
+
 if [[ -z "$TARGET" ]]
 then
     $sh_log -c "$MY_NAME" -m "$MSG_ERR_NO_TARGET" -t "$TYPE_ERR"
