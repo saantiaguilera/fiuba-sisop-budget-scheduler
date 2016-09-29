@@ -51,6 +51,31 @@ Ejemplo: Movep.sh -c "Demonep" -o "/path/file.csv" -d "/path/NOK/"
 EOF
 }
 
+#######################################
+# Move file from one place to another with
+# backup and incremental suffix
+# Globals:
+#   None
+# Arguments:
+#   SOURCE: Path + File to move
+#   TARGET: Path to drop the file
+# Returns:
+#   None
+#######################################
+function mv_with_backup() {
+    local SUFFIX=0
+    local FILENAME=$(basename "$1")
+    local EXTENSION="${FILENAME##*.}"
+    FILENAME="${FILENAME%.*}"
+    local FILE="$2/$FILENAME.$EXTENSION"
+
+    while test -e "$FILE"; do
+        FILE="$2/$FILENAME.$((++SUFFIX)).$EXTENSION"
+    done
+
+    mv "$1" "$FILE"
+}
+
 while getopts "h?c:d:o:" opt; do
   case "$opt" in
     h|\?)
@@ -91,11 +116,9 @@ fi
 LOG_MSG=""
 if [ -f "$TARGET/`echo "$SOURCE" | sed "s/.*\///"`" ]
 then
-    cd $DIRBIN >/dev/null
-    mkdir $DIRDPL  # Create a dir inside bindir for storing duplicates
-    cd $DIRDPL >/dev/null
-    mv --backup=t $SOURCE .
-   
+    mkdir -p "$DIRBIN/$DIRDPL" >/dev/null  # Create a dir inside bindir for storing duplicates
+    mv_with_backup "$SOURCE" "$DIRBIN/$DIRDPL"
+
     LOG_MSG="`echo "$MSG_INF_DUPLICATE_FILE" | sed "s+%SRC%+$SOURCE+" | sed "s+%DEST%+$PWD+" | sed "s+%TARGET%+$TARGET+"`"
 else
     mv $SOURCE $TARGET
