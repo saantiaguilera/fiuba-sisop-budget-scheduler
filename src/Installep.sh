@@ -41,16 +41,24 @@ DATASIZE=100
 function input_directory {
 read directory
 
-if [[ $directory != "" ]] || [ "$directory" != "dirconf" ]
-then
+if [ "$directory" == "dirconf" ] || [[ -z "${directory// }" ]]; then
+  echo "El directorio "$GRUPO/dirconf" o un nombre de directorio que contiene 
+  solo espacios son directorios invalidos. Ingrese otro nombre: "
+  input_directory $1 #Ask the user again for another directory name
+else
+  local dir=$1
   set -- "$GRUPO/$directory" "$1"
+  DIRS["$dir"]=$1
+  echo "NUEVO DIR: ${!DIRS[$dir]} -  ${DIRS[$dir]}"
 fi
 
-if [ "$directory" == "dirconf" ]
-then
-  echo "El directorio "$GRUPO/dirconf" es un directorio invalido. Ingrese otro nombre: "
-  input_directory #Ask the user again for another directory name
-fi
+#if [[ ! -z "${directory// }" ]] && [ "$directory" != "dirconf" ]; then
+#  local dir=$1
+#  set -- "$GRUPO/$directory" "$1"
+#  DIRS["$dir"]=$1
+#  echo "NUEVO DIR: ${!DIRS[$dir]} -  ${DIRS[$dir]}"
+#fi
+
 
 return 0
 }
