@@ -50,7 +50,7 @@ if [ "$directory" == "dirconf" ] || [[ -z "${directory// }" ]]; then
 else
   local dir=$1
   #set -- "$GRUPO/$directory" "$1"
-  DIRS["$dir"]=$directory
+  DIRS["$dir"]="$GRUPO/$directory"
 fi
 
 #if [[ ! -z "${directory// }" ]] && [ "$directory" != "dirconf" ]; then
@@ -115,7 +115,7 @@ return 0
 #   0 if True, 1 if False
 #######################################
 function system_already_installed {
-if [[ -d /$GRUPO/ ]] && [[ ! -f /$GRUPO/Instalep.conf ]]; then
+if [[ -d /$GRUPO/ ]] && [[ ! -f /$GRUPO/instalep.conf ]]; then
   return 0 #True
 else
   return 1 #False
@@ -168,7 +168,7 @@ return 0
 #######################################
 function show_values {
 for desc in "${!DESCS[@]}"; do
-  echo "Directorio de ${DESCS[$desc]}: (${DIRS[$desc]}):"
+  echo "Directorio de ${DESCS[$desc]} ${DIRS[$desc]}"
 done
 #echo "Directorio de Configuracion: $GRUPO/dirconf"
 #echo "Directorio de Ejecutables: $DIRBIN"
