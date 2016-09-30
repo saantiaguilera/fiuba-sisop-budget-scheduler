@@ -3,6 +3,7 @@
 export GRUPO="Grupo6"
 
 # Dirs
+# TODO: use absolute paths
 DIRCONF="$GRUPO/dirconf"
 DIRBIN="$GRUPO/bin"
 DIRMAE="$GRUPO/mae"
@@ -10,22 +11,23 @@ DIRREC="$GRUPO/nov"
 DIROK="$GRUPO/ok"
 DIRPROC="$GRUPO/imp"
 DIRINFO="$GRUPO/rep"
-# Temporarly create log files in the default location, if the user specifies
-# another, this script should move it accordingly
-export DIRLOG="$GRUPO/log"
 DIRNOK="$GRUPO/nok"
-# I dont know if this dict will be updated after the users sets the directories
-declare -A DIRS=(["dirconf"]=$DIRCONF ["DIRBIN"]=$DIRBIN ["DIRMAE"]=$DIRMAE 
+DIRLOG="$GRUPO/log"
+
+declare -A DIRS=(["DIRBIN"]=$DIRBIN ["DIRMAE"]=$DIRMAE 
 ["DIRREC"]=$DIRREC ["DIROK"]=$DIROK ["DIRPROC"]=$DIRPROC ["DIRINFO"]=$DIRINFO 
 ["DIRLOG"]=$DIRLOG ["DIRNOK"]=$DIRNOK)
 
+declare -A DESCS=(["DIRBIN"]="ejecutables" ["DIRMAE"]="Maestros y Tablas"
+["DIRREC"]="recepcion de novedades" ["DIROK"]="Archivos Aceptados" 
+["DIRPROC"]="Archivos Procesados" ["DIRINFO"]="Reportes" ["DIRLOG"]="Log" 
+["DIRNOK"]="Archivos Rechazados")
 
 # Commands
-INITEP="Initep.sh"
-DEMONEP="Demonep.sh"
+# Temporarly create log files in the dirconf location, if the user specifies
+# another, this script should move it accordingly
+export DIRLOG="$GRUPO/dirconf"
 LOGEP="Logep.sh"
-MOVEP="Movep.sh"
-#declare -A COMMANDS=(["Demonep"]=)
 DATASIZE=100
 
 #######################################
@@ -34,7 +36,7 @@ DATASIZE=100
 # Globals:
 #   GRUPO
 # Arguments:
-#   Default directory
+#   Default directory1
 # Returns:
 #   0
 #######################################
@@ -47,8 +49,8 @@ if [ "$directory" == "dirconf" ] || [[ -z "${directory// }" ]]; then
   input_directory $1 #Ask the user again for another directory name
 else
   local dir=$1
-  set -- "$GRUPO/$directory" "$1"
-  DIRS["$dir"]=$1
+  #set -- "$GRUPO/$directory" "$1"
+  DIRS["$dir"]=$directory
 fi
 
 #if [[ ! -z "${directory// }" ]] && [ "$directory" != "dirconf" ]; then
@@ -57,9 +59,6 @@ fi
 #  DIRS["$dir"]=$1
 #  echo "NUEVO DIR: ${!DIRS[$dir]} -  ${DIRS[$dir]}"
 #fi
-
-
-return 0
 }
 
 #######################################
@@ -74,29 +73,34 @@ return 0
 #   0
 #######################################
 function input_directories {
-echo "Defina el directorio de ejecutables ($GRUPO/bin): "
-input_directory DIRBIN
 
-echo "Defina el directorio de Maestros y Tablas ($GRUPO/mae): "
-input_directory DIRMAE
-
-echo "Defina el directorio de recepcion de novedades ($GRUPO/nov): "
-input_directory DIRREC
-
-echo "Defina el directorio de Archivos Aceptados ($GRUPO/ok): "
-input_directory DIROK
-
-echo "Defina el directorio de Archivos Procesados ($GRUPO/imp): "
-input_directory DIRPROC
-
-echo "Defina el directorio de Reportes($GRUPO/rep): "
-input_directory DIRINFO
-
-echo "Defina el directorio de log ($GRUPO/log): "
-input_directory DIRLOG
-
-echo "Defina el directorio de rechazador ($GRUPO/nok): "
-input_directory DIRNOK
+for desc in "${!DESCS[@]}"; do
+  echo "Defina el directorio de ${DESCS[$desc]} (${DIRS[$desc]}):"
+  input_directory $desc
+done
+#echo "Defina el directorio de ejecutables ($GRUPO/bin): "
+#input_directory DIRBIN
+#
+#echo "Defina el directorio de Maestros y Tablas ($GRUPO/mae): "
+#input_directory DIRMAE
+#
+#echo "Defina el directorio de recepcion de novedades ($GRUPO/nov): "
+#input_directory DIRREC
+#
+#echo "Defina el directorio de Archivos Aceptados ($GRUPO/ok): "
+#input_directory DIROK
+#
+#echo "Defina el directorio de Archivos Procesados ($GRUPO/imp): "
+#input_directory DIRPROC
+#
+#echo "Defina el directorio de Reportes($GRUPO/rep): "
+#input_directory DIRINFO
+#
+#echo "Defina el directorio de log ($GRUPO/log): "
+#input_directory DIRLOG
+#
+##echo "Defina el directorio de rechazador ($GRUPO/nok): "
+##input_directory DIRNOK
 
 return 0
 }
@@ -163,20 +167,20 @@ return 0
 #   0 if the values are OK, 1 if not.
 #######################################
 function show_values {
-echo "Directorio de Configuracion: $GRUPO/dirconf"
-#listar Archivos
-echo "Directorio de Ejecutables: $DIRBIN"
-#listar Archivos
-echo "Directorio de Maestros y Tablas: $DIRMAE"
-#listar archivos
-echo "Directorio de Recepcion de Novedades: $DIRREC"
-echo "Directorio de Archivos Aceptados: $DIROK"
-echo "Directorio de Archivos Procesados: $DIRPROC"
-echo "Directorio de Archivos de Reportes: $DIRINFO"
-echo "Directorio de Archivos de Log: $DIRLOG"
-echo "Directorio de Archivos Rechazados: $DIRNOK"
+for desc in "${!DESCS[@]}"; do
+  echo "Directorio de ${DESCS[$desc]}: (${DIRS[$desc]}):"
+done
+#echo "Directorio de Configuracion: $GRUPO/dirconf"
+#echo "Directorio de Ejecutables: $DIRBIN"
+#echo "Directorio de Maestros y Tablas: $DIRMAE"
+#echo "Directorio de Recepcion de Novedades: $DIRREC"
+#echo "Directorio de Archivos Aceptados: $DIROK"
+#echo "Directorio de Archivos Procesados: $DIRPROC"
+#echo "Directorio de Archivos de Reportes: $DIRINFO"
+#echo "Directorio de Archivos de Log: $DIRLOG"
+#echo "Directorio de Archivos Rechazados: $DIRNOK"
 echo "Estado de la instalacion: LISTA."
-echo "Desea continuar con la instalacion? (Si – No/Otra cosa)"
+echo "Desea continuar con la instalacion? (Si - No/Otra cosa)"
 
 read answer
 answer="${answer,,[SI]}"
@@ -197,14 +201,14 @@ fi
 #   0 if the user confirms, 1 if not.
 #######################################
 function instalation_confirm {
-echo "Iniciando Instalacion. Esta Ud. seguro? (Si – No/Otra cosa)"
-read answer
-answer="${answer,,[SI]}"
-if [ "$answer" == "si" ]; then
-  return 0 #True
-else
-  return 1 #False
-fi
+  echo "Iniciando Instalacion. Esta Ud. seguro? (Si - No/Otra cosa)"
+  read answer
+  answer="${answer,,[SI]}"
+  if [ "$answer" == "si" ]; then
+    return 0 #True
+  else
+    return 1 #False
+  fi
 }
 
 #######################################
@@ -217,10 +221,6 @@ fi
 #   None
 #######################################
 function installation {
-#create directories
-#move archives, execs and functions.
-  # Iterate over the ht values
-  mkdir $GRUPO
   for i in "${DIRS[@]}"; do
     echo $i
     mkdir $i
@@ -230,15 +230,16 @@ function installation {
   bash $LOGEP -c instalep -m "Instalando Programas y Funciones"
   shopt -s nullglob
   for file in *.sh; do
-    mv $file "$DIRBIN/$file"
+    if [[ "$file" != "Installep.sh" ]]; then
+      mv $file "${DIRS["DIRBIN"]}/$file"
+    fi
     if [[ "$file" == "Logep.sh" ]]; then
-      LOGEP="$DIRBIN/$file"
+      LOGEP="${DIRS["DIRBIN"]}/$file"
     fi
   done
   bash $LOGEP -c instalep -m "Instalando Archivos Maestros y Tablas"
-  #shopt -s nullglob
   for file in actividades.csv sancionado-2016.csv centros.csv provincias.csv tabla-AxC.csv trimestres.csv; do
-    mv $file "$DIRMAE/$file"
+    mv $file "${DIRS["DIRMAE"]}/$file"
   done
 }
 
@@ -252,10 +253,8 @@ function installation {
 #   None
 #######################################
 function create_conf_archive {
-#create Instalep.conf
-#write log
   bash $LOGEP -c instalep -m "Actualizando la configuracion del sistema"
-  local conf_file="${DIRS["dirconf"]}/instalep.conf"
+  local conf_file="$GRUPO/dirconf/instalep.conf"
   touch $conf_file
   for i in "${!DIRS[@]}"; do
     local value=${DIRS[$i]}
