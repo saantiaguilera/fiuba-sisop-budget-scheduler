@@ -226,22 +226,24 @@ function validate_state_code() {
 function validate_date() {
 	local M_DATE="`echo "$1" | sed "s/^ejecutado_.*_.*_//" | sed "s/\..*$//"`"
 
+    # Get indexes of the dates we have to validate against from the .csv
     local BUDGET_START_DATE_INDEX=$(($CURRENT_BUDGET_YEAR_INDEX+$BUDGET_SIZE))
     local BUDGET_END_DATE_INDEX=$(($CURRENT_BUDGET_YEAR_INDEX+$BUDGET_SIZE+$BUDGET_SIZE))
 
+    # Get the dates from the array and format them in YYYYmmdd
     # Uncomment the one you need. -d is Linux distro / -j -f OS X
-    #local BUDGET_START_DATE="`date -d "${BUDGET_DATA[$BUDGET_START_DATE_INDEX]} +"%Y%m%d"`"
-    local BUDGET_START_DATE="`date -j -f "%d/%m/%Y" "${BUDGET_DATA[$BUDGET_START_DATE_INDEX]}" +"%Y%m%d"`"
+    local BUDGET_START_DATE="`echo "${BUDGET_DATA[$BUDGET_START_DATE_INDEX]}" | sed -r "s/(.{2}).(.{2}).(.{4})/\3\2\1/"`"
+    #local BUDGET_START_DATE="`date -j -f "%d/%m/%Y" "${BUDGET_DATA[$BUDGET_START_DATE_INDEX]}" +"%Y%m%d"`"
 
     # Uncomment the one you need. -d is Linux distro / -j -f OS X
-    #local BUDGET_END_DATE="`echo "${BUDGET_DATA[$BUDGET_END_DATE_INDEX]}" | sed -r "s/(.{2}).(.{2}).(.{4})/\3-\2-\1/" | date -d +"%Y%m%d"`"
-    local BUDGET_END_DATE="`date -j -f "%d/%m/%Y" "${BUDGET_DATA[$BUDGET_END_DATE_INDEX]}" +"%Y%m%d"`"
+    local BUDGET_END_DATE="`echo "${BUDGET_DATA[$BUDGET_END_DATE_INDEX]}" | sed -r "s/(.{2}).(.{2}).(.{4})/\3\2\1/"`"
+    #local BUDGET_END_DATE="`date -j -f "%d/%m/%Y" "${BUDGET_DATA[$BUDGET_END_DATE_INDEX]}" +"%Y%m%d"`"
 
+    # Check our date is in between both
 	if [ $M_DATE -lt $BUDGET_START_DATE ]; then
 		print_generic_error_if_needed
 		log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 		let "EXIT_CODE = 2"
-		return
 	fi
 	
 	if [ $M_DATE -gt $BUDGET_END_DATE ]; then
@@ -249,6 +251,16 @@ function validate_date() {
 		log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
 		let "EXIT_CODE = 2"
 	fi
+
+    # Check our date is also not malformed
+    #Uncomment the one needed first is macosx, second linux
+    # if [ $(date -j -f "%Y%m%d" "$M_DATE" 2>/dev/null 1>/dev/null; echo $?) == 1 ]
+    if [ $(date -d "$M_DATE" +"%Y%m%d" 2>/dev/null 1>/dev/null; echo $?) == 1 ]
+    then
+        print_generic_error_if_needed
+        log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+        let "EXIT_CODE = 2"
+    fi
 }
 
 #### Main ####
