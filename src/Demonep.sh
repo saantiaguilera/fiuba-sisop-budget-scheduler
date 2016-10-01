@@ -143,7 +143,7 @@ function print_generic_error_if_needed() {
 #######################################
 function validate_file_name() {
 	# Check if filename at least matches the start and end the name should have
-	if ! [[ `echo $1 | sed "s/^ejecutado_.*\.csv$//"` == "" ]]
+	if ! [[ `echo $1 | sed -r "s/^ejecutado_[0-9]{4}_[0-9]{1,2}_[0-9]{8}\.csv$//"` == "" ]]
 		then
 			log_n_move "$MSG_ERR_INVALID_FILE_NAME" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED" 
 			let "EXIT_CODE = 2"
