@@ -162,7 +162,7 @@ function validate_file_name() {
 #   Exit code with state
 #######################################
 function validate_budget_year() {
-	local FILE_BUDGET_YEAR="`echo "$1" | sed "s/^ejecutado_//" | sed "s/_.*$//"`"
+    local FILE_BUDGET_YEAR="`echo "$1" | sed "s/^ejecutado_//" | sed "s/_.*$//"`"
     CURRENT_BUDGET_YEAR_INDEX="-1"
 
     local i=0
@@ -175,13 +175,13 @@ function validate_budget_year() {
         let "i++"
     done
 
-	# Check if the budget year is this one
-	if [[ $CURRENT_BUDGET_YEAR_INDEX == "-1" ]]
-		then
-			print_generic_error_if_needed
-			log_n_move "`echo "$MSG_ERR_INVALID_BUDGET_YEAR" | sed "s/%YEAR%/$FILE_BUDGET_YEAR/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
-	    	let "EXIT_CODE = 2"
-	fi
+    # Check if the budget year is this one
+    if [[ $CURRENT_BUDGET_YEAR_INDEX == "-1" ]]
+        then
+            print_generic_error_if_needed
+            log_n_move "`echo "$MSG_ERR_INVALID_BUDGET_YEAR" | sed "s/%YEAR%/$FILE_BUDGET_YEAR/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+            let "EXIT_CODE = 2"
+    fi
 }
 
 #######################################
@@ -224,7 +224,7 @@ function validate_state_code() {
 #   Exit code with state
 #######################################
 function validate_date() {
-	local M_DATE="`echo "$1" | sed "s/^ejecutado_.*_.*_//" | sed "s/\..*$//"`"
+    local M_DATE="`echo "$1" | sed "s/^ejecutado_.*_.*_//" | sed "s/\..*$//"`"
 
     # Get indexes of the dates we have to validate against from the .csv
     local BUDGET_START_DATE_INDEX=$(($CURRENT_BUDGET_YEAR_INDEX+$BUDGET_SIZE))
@@ -240,17 +240,17 @@ function validate_date() {
     #local BUDGET_END_DATE="`date -j -f "%d/%m/%Y" "${BUDGET_DATA[$BUDGET_END_DATE_INDEX]}" +"%Y%m%d"`"
 
     # Check our date is in between both
-	if [ $M_DATE -lt $BUDGET_START_DATE ]; then
-		print_generic_error_if_needed
-		log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
-		let "EXIT_CODE = 2"
-	fi
+    if [ $M_DATE -lt $BUDGET_START_DATE ]; then
+        print_generic_error_if_needed
+        log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+        let "EXIT_CODE = 2"
+    fi
 	
-	if [ $M_DATE -gt $BUDGET_END_DATE ]; then
-		print_generic_error_if_needed
-		log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
-		let "EXIT_CODE = 2"
-	fi
+    if [ $M_DATE -gt $BUDGET_END_DATE ]; then
+        print_generic_error_if_needed
+        log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+        let "EXIT_CODE = 2"
+    fi
 
     # Check our date is also not malformed
     #Uncomment the one needed first is macosx, second linux
@@ -286,7 +286,7 @@ while true; do
 	evict_malformed_files
 
 	parse_state_codes
-    parse_budget_dates
+       parse_budget_dates
 	FILES=$(ls $DIR_NEWS)
 	for FILE in $FILES ;do
 		# Exit code can be: 0-OK / 1-Error_found_but_dunno_which / 2-Error_sought_n_destroyed
