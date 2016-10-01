@@ -322,11 +322,11 @@ while true; do
 
 	get_files_count $DIR_ACCEPTED
 	if [ $FILES_SIZE -gt 0 ]
-		then # Check if with ax works. Else use -aux?
-			if [[ $(ps -ax | grep -e "[0-9] [a-z]* $sh_process" ) == "" ]]
+		then
+			if [[ $(ps aux | grep "Procep") == "" ]]
 				then
 					$sh_process
-					PID_PROCESS=$(pgrep "$sh_process")
+					PID_PROCESS=$(pgrep "Procep")
 					$sh_log -c "Demonep" -m "`echo "$MSG_INFO_PROCESS_RUNNING" | sed "s/%PID%/$PID_PROCESS/"`" -t "$TYPE_INFO"
 				else
 					$sh_log -c "Demonep" -m "$MSG_INFO_PROCESS_POSTPONED" -t "$TYPE_INFO"
