@@ -104,7 +104,7 @@ unless (is_initialized) {
 }
 
 if (is_already_running) {
-	say "Ya hay un AFLIST corriendo";
+	say "Ya hay un Listep corriendo";
 	exit 1;
 }
 
