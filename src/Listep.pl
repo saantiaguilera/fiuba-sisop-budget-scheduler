@@ -1,5 +1,7 @@
 #!/usr/bin/env perl
 
+# Add docs to functions
+
 use v5.10.0;
 use warnings;
 use Getopt::Long qw(GetOptions);
