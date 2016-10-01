@@ -167,7 +167,6 @@ function validate_budget_year() {
 
     local i=0
     while ((i<BUDGET_SIZE)); do
-        echo "Comparing ${BUDGET_DATA[$i]} with $FILE_BUDGET_YEAR"
         if [[ "${BUDGET_DATA[$i]}" == "$FILE_BUDGET_YEAR" ]]
         then
             CURRENT_BUDGET_YEAR_INDEX="$i"
@@ -229,8 +228,14 @@ function validate_date() {
 
     local BUDGET_START_DATE_INDEX=$(($CURRENT_BUDGET_YEAR_INDEX+$BUDGET_SIZE))
     local BUDGET_END_DATE_INDEX=$(($CURRENT_BUDGET_YEAR_INDEX+$BUDGET_SIZE+$BUDGET_SIZE))
-    local BUDGET_START_DATE="`echo "${BUDGET_DATA[$BUDGET_START_DATE_INDEX]}" | sed "s/\//"`"
-    local BUDGET_END_DATE="`echo "${BUDGET_DATA[$BUDGET_END_DATE_INDEX]}" | sed "s/\///"`"
+
+    # Uncomment the one you need. -d is Linux distro / -j -f OS X
+    #local BUDGET_START_DATE="`date -d "${BUDGET_DATA[$BUDGET_START_DATE_INDEX]} +"%Y%m%d"`"
+    local BUDGET_START_DATE="`date -j -f "%d/%m/%Y" "${BUDGET_DATA[$BUDGET_START_DATE_INDEX]}" +"%Y%m%d"`"
+
+    # Uncomment the one you need. -d is Linux distro / -j -f OS X
+    #local BUDGET_END_DATE="`echo "${BUDGET_DATA[$BUDGET_END_DATE_INDEX]}" | sed -r "s/(.{2}).(.{2}).(.{4})/\3-\2-\1/" | date -d +"%Y%m%d"`"
+    local BUDGET_END_DATE="`date -j -f "%d/%m/%Y" "${BUDGET_DATA[$BUDGET_END_DATE_INDEX]}" +"%Y%m%d"`"
 
 	if [ $M_DATE -lt $BUDGET_START_DATE ]; then
 		print_generic_error_if_needed
@@ -240,9 +245,9 @@ function validate_date() {
 	fi
 	
 	if [ $M_DATE -gt $BUDGET_END_DATE ]; then
-			print_generic_error_if_needed
-			log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
-			let "EXIT_CODE = 2"
+		print_generic_error_if_needed
+		log_n_move "`echo "$MSG_ERR_OUTOFBOUNDS_DATE" | sed "s/%DATE%/$M_DATE/"`" "$TYPE_ERROR" "$DIR_NEWS/$1" "$DIR_REJECTED"
+		let "EXIT_CODE = 2"
 	fi
 }
 
