@@ -35,13 +35,13 @@ sub show_help {
 	ct : Ordenados por codigo de central y sino por trimestres
 	tc : Ordenados por trimestres y sino por codigo de central
 	
-	Ejemplo: ./Listep.pl --sanc --ct 
+	Ejemplo: ./Listep.pl -sanc -ct 
 
 	Argumentos para presupuesto ejecutado:
 	all : Filtra todas las actividades
 	act : Filtra una o mas actividades (Se pasan dentro de comillas, separados con \",\")
 	
-	Ejemplo: ./Listep.pl --ejec --act \"Actividad uno\", \"Actividad dos\"
+	Ejemplo: ./Listep.pl -ejec -act \"Actividad uno\", \"Actividad dos\"
 
 	Argumentos para control de un presupuesto ejecutado:
 	trim-all : Todos los trimestres
@@ -49,7 +49,9 @@ sub show_help {
 	cent-all : Todos los centros
 	cent : Uno o mas centros (Se pasan dentro de comillas, separados con \",\")
 
-	Ejemplo: ./Listep.pl --ctrl --trim \"Trimestre uno\", \"Trimestre dos\" --cent-all"
+	Ejemplo: ./Listep.pl -ctrl -trim \"Trimestre uno\", \"Trimestre dos\" -cent-all
+
+	Para mostrar ayuda (esto): ./Listep.pl -h"
 }
 
 # Main!
@@ -94,14 +96,28 @@ GetOptions(
     'cent-all' => \$CTRL_CENT_ALL,
     'cent=s{,}' => \@CTRL_CENT,
     'help|h' => \$HELP,
-) or show_help;
+) or $HELP=1;
 
 if ("$HELP") {
 	show_help;
 	exit 1;
 }
 
-say @EJEC_ACT
+unless ($SANC or $EJEC or $CTRL) {
+	show_help;
+	exit 1;
+}
 
+if ($SANC) {
+	# Do something
+}
+
+if ($EJEC) {
+	# Do something
+}
+
+if ($CTRL) {
+	# Do something
+}
 
 
