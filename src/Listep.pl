@@ -4,6 +4,8 @@ use v5.10.0;
 use warnings;
 use Getopt::Long qw(GetOptions);
 
+# UTILS
+
 sub is_initialized {
 	$MAEDIR=$ENV{'DIRMAE'};
 	if ("$MAEDIR") {
@@ -29,29 +31,67 @@ sub show_help {
 	
 	Argumento obligatorio!
 	Listar un tipo de presupuesto: 'sanc', 'ejec', 'ctrl' 
-	(Presupuesto sancionado, Presupuesto ejecutado o Presupuesto de control)
+	(Presupuesto sancionado, Presupuesto ejecutado o Presupuesto de control).
+    Nota: Solo puede estar presente uno de los tres.
 	
 	Argumentos para presupuesto sancionado:
+
 	ct : Ordenados por codigo de central y sino por trimestres
 	tc : Ordenados por trimestres y sino por codigo de central
+    Nota: Solo se puede ingresar uno de los dos.
 	
 	Ejemplo: ./Listep.pl -sanc -ct 
 
 	Argumentos para presupuesto ejecutado:
+
 	all : Filtra todas las actividades
 	act : Filtra una o mas actividades (Se pasan dentro de comillas, separados con \",\")
 	
 	Ejemplo: ./Listep.pl -ejec -act \"Actividad uno\", \"Actividad dos\"
+    Nota: Si no se pasan filtros, se tomara por default -all
+    Nota: Si se pasan tanto filtros de act como de all, se invalidan los de act y se usan solo all. (Uno pisa al otro)
 
 	Argumentos para control de un presupuesto ejecutado:
-	trim-all : Todos los trimestres
+	
+    trim-all : Todos los trimestres
 	trim : Uno o mas trimestres (Se pasan dentro de comillas, separados con \",\")
 	cent-all : Todos los centros
 	cent : Uno o mas centros (Se pasan dentro de comillas, separados con \",\")
 
 	Ejemplo: ./Listep.pl -ctrl -trim \"Trimestre uno\", \"Trimestre dos\" -cent-all
-
+    Nota: Si no se pasan filtros, se tomaran por default trim-all y cent-all.
+    Nota: Si se pasan filtros especificos y el -all en algun caso, se tomaran todos y no se hara uso de los especificos
+    
 	Para mostrar ayuda (esto): ./Listep.pl -h"
+}
+
+# VERIFICATION
+
+sub verify_sanc() {
+    # If using also ejec or ctrl, or both ct and tc are used (or none), git rekt.
+    if ($EJEC or $CTRL or ($SANC_CT and $SANC_TC) or not($SANC_CT or $SANC_TC)) {
+        show_help;
+        return 1;
+    }
+    return 0;
+}
+
+sub verify_ejec() {
+    # If using one of the others two, git rekt.
+    if ($SANC or $CTRL) {
+        show_help;
+        return 1;
+    }
+    return 0;
+}
+
+sub verify_ctrl() {
+    # If using one of the others two, git rekt.
+    if ($SANC or $EJEC) {
+        show_help;
+        return 1;
+    }
+    return 0;
 }
 
 # Main!
@@ -109,15 +149,22 @@ unless ($SANC or $EJEC or $CTRL) {
 }
 
 if ($SANC) {
-	# Do something
+	if (not(verify_sanc)) {
+        # Do something
+    }
+	exit 0;
 }
 
 if ($EJEC) {
-	# Do something
+    if (not(verify_ejec)) {
+    	# Do something
+    }
+	exit 0;
 }
 
 if ($CTRL) {
-	# Do something
+	if (not(verify_ctrl)) {
+        # Do something
+    }
+    exit 0;
 }
-
-
