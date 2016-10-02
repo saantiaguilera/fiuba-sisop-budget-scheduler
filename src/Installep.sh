@@ -158,9 +158,10 @@ echo "Defina espacio minimo libre para la recepcion de archivos en Mbytes (100):
 read size
 
 digits='^[0-9]+$'
-if [[ $size =~ $digits ]]; then
+if ! [[ $size =~ $digits ]]; then
   echo "Debe ingresar un numero entero positivo."
   set_news_size
+  return 0
 fi
 
 if [[ $size -gt $SYSTEM_SIZE ]]; then
