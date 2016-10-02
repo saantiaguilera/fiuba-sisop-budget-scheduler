@@ -1,10 +1,12 @@
 #!/usr/bin/env perl
 
-# Add docs to functions
+# TODO Add docs to functions
+# If using OSX replace all grep -> ggrep / If using Linux distro replace ggrep -> grep
 
-use v5.10.0;
+use v5.10.0; # Maybe we could use latest 5.18.2 But for compatibility measures lets leave it in 5.10
 use warnings;
 use Getopt::Long qw(GetOptions);
+use Time::HiRes qw(time);
 
 # Args Variables
 
@@ -24,6 +26,11 @@ my $CTRL_CENT_ALL;
 my @CTRL_CENT = ();
 
 my $HELP = 0;
+
+my $OUTPUT;
+my $OUTPUT_FILE_NAME = time;
+$OUTPUT_FILE_NAME =~ s/\.//g;
+my $OUTPUT_FILE;
 
 # UTILS
 
@@ -96,7 +103,11 @@ Arguments para control de un presupuesto ejecutado:
     
 	Ejemplo: ./Listep.pl -ctrl -trim \"Trimestre uno\" \"Trimestre dos\" -cent-all
 
--h : Help"
+-help | -h : Help
+
+-output | -o : Output file. Si no se especifica un nombre en particular, TIMESTAMP-listep-file.csv va a ser el nombre del archivo.
+	
+	Nota: Es recomendable que la extension sea .csv, pero no se hacen validaciones asi que se puede usar cualquiera.";
 }
 
 # VERIFICATION
@@ -157,7 +168,12 @@ sub print_sanc() {
 	close DATA or warn $! ? "Error closing sort pipe: $!"
                    : "Exit status $? from sort";
 
-	say "Anio presupuestario;Total sancionado";
+	$OUTPUT_STRING = "Anio presupuestario;Total sancionado\n";
+	print "$OUTPUT_STRING";
+    if (defined $OUTPUT) {
+		printf $OUTPUT_FILE "$OUTPUT_STRING";
+    }
+
 	my $TOTAL_SUM = 0;
 	for (@ROWS) {
 		my $COST_SUM = $_->[2] + $_->[3];
@@ -178,10 +194,20 @@ sub print_sanc() {
 			$NAME =~ s/4to/Cuarto/g;
 		}
 
-		say "$NAME;$COST_SUM";
+		$OUTPUT_STRING = "$NAME;$COST_SUM\n";
+		print "$OUTPUT_STRING";
+		if (defined $OUTPUT) {
+			printf $OUTPUT_FILE "$OUTPUT_STRING";
+		}
+
 		$TOTAL_SUM += $COST_SUM;
 	}
-	say "Total Anual;$TOTAL_SUM";
+
+	$OUTPUT_STRING = "Total Anual;$TOTAL_SUM\n";
+	print "$OUTPUT_STRING";
+	if (defined $OUTPUT) {
+		printf $OUTPUT_FILE "$OUTPUT_STRING";
+	}
 }
 
 sub contains_activity {
@@ -222,7 +248,13 @@ sub print_ejec() {
 	@ROWS = sort { $a->[3] cmp $b->[3] } @ROWS;
 
 	my $FIELD_TOTAL_BUDGET = 0;
-	say "Fecha;Centro;Nom Cen;cod Act; Actividad; Trimestre; Gasto; control";
+
+	$OUTPUT_STRING = "Fecha;Centro;Nom Cen;cod Act;Actividad;Trimestre;Gasto;control\n";
+	print "$OUTPUT_STRING";
+	if (defined $OUTPUT) {
+		printf $OUTPUT_FILE "$OUTPUT_STRING";
+	}
+	
 	for (@ROWS) {
 		my $ROW = $_;
 
@@ -244,12 +276,21 @@ sub print_ejec() {
 
 		# No f'ing idea were to get the 'provincia'. Theres no field in any of the data sources. Only actividades.csv has :nom_act with some fields with 'provincias' but still there are a lot more without, so its not.
 
-		say "$ROW->[1];$ROW->[2];$FIELD_CENTRAL_NAME;$FIELD_ACT_CODE;$ROW->[3];$ROW->[4];$ROW->[5];$FIELD_EXPENSE_SCHEDULED";
+		$OUTPUT_STRING = "$ROW->[1];$ROW->[2];$FIELD_CENTRAL_NAME;$FIELD_ACT_CODE;$ROW->[3];$ROW->[4];$ROW->[5];$FIELD_EXPENSE_SCHEDULED\n";
+		print "$OUTPUT_STRING";			
+		if (defined $OUTPUT) {
+			printf $OUTPUT_FILE "$OUTPUT_STRING";
+		}
 		
 		$ROW->[5] =~ s/,/\./g;
 		$FIELD_TOTAL_BUDGET += $ROW->[5];
 	}
-	say ";;;;;Total Credito Fiscal; $FIELD_TOTAL_BUDGET;;"
+
+	$OUTPUT_STRING = ";;;;;Total Credito Fiscal; $FIELD_TOTAL_BUDGET;;\n";
+	print "$OUTPUT_STRING";
+	if (defined $OUTPUT) {
+		printf $OUTPUT_FILE "$OUTPUT_STRING";
+	}
 }
 
 sub contains_trimester {
@@ -298,7 +339,11 @@ sub append_starting_budget_year() {
 	$DATE = $AUX[2];
 	$DATE =~ s/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/$3$2$1/g;
 
-	say "(++);$DATE;$LAST_LINE_CENTRAL;0;$LAST_LINE_TRIMESTRE;$TRIMESTRE_BUDGET;$TRIMESTRE_BUDGET;;$CUMULATIVE_BUDGET";
+	$OUTPUT_STRING = "(++);$DATE;$LAST_LINE_CENTRAL;0;$LAST_LINE_TRIMESTRE;$TRIMESTRE_BUDGET;$TRIMESTRE_BUDGET;;$CUMULATIVE_BUDGET\n";
+	print "$OUTPUT_STRING";
+	if (defined $OUTPUT) {
+		printf $OUTPUT_FILE "$OUTPUT_STRING";
+	}
 }
 
 sub check_starting_budget_year {
@@ -349,7 +394,13 @@ sub print_ctrl() {
 	$TRIMESTRE_BUDGET = 0;
 	$LAST_LINE_CENTRAL = "";
 	$LAST_LINE_TRIMESTRE = "";
-	say "Id;Fecha;Centro;Actividad;Trimestre;Importe;SALDO por TRIMESTRE;CONTROL; SALDO ACUMULADO";
+
+	$OUTPUT_STRING = "Id;Fecha;Centro;Actividad;Trimestre;Importe;SALDO por TRIMESTRE;CONTROL;SALDO ACUMULADO\n";
+	print "$OUTPUT_STRING";		
+	if (defined $OUTPUT) {
+		printf $OUTPUT_FILE "$OUTPUT_STRING";
+	}
+
 	for (@ROWS) {
 		$ROW = $_;
 
@@ -385,7 +436,11 @@ sub print_ctrl() {
 		# Update cumulative budget
 		$CUMULATIVE_BUDGET -= $ROW->[5];
 
-		say "$ROW->[0];$ROW->[1];$ROW->[2];$ROW->[3];$ROW->[4];$ROW->[5];$TRIMESTRE_BUDGET;$FIELD_EXPENSE_SCHEDULED;$CUMULATIVE_BUDGET";
+		$OUTPUT_STRING = "$ROW->[0];$ROW->[1];$ROW->[2];$ROW->[3];$ROW->[4];$ROW->[5];$TRIMESTRE_BUDGET;$FIELD_EXPENSE_SCHEDULED;$CUMULATIVE_BUDGET\n";
+		print "$OUTPUT_STRING";	
+		if (defined $OUTPUT) {
+			printf $OUTPUT_FILE "$OUTPUT_STRING";
+		}
 	}
 }
 
@@ -413,12 +468,21 @@ GetOptions(
     'trim=s{,}' => \@CTRL_TRIM,
     'cent-all' => \$CTRL_CENT_ALL,
     'cent=s{,}' => \@CTRL_CENT,
-    'help|h' => \$HELP
+    'help|h' => \$HELP,
+    'output|o:s' => \$OUTPUT
 ) or $HELP = 1;
 
-if ("$HELP") {
+if ($HELP) {
 	show_help;
-	exit 1;
+	exit 0;
+}
+
+if (defined $OUTPUT) {
+	if (length $OUTPUT > 0) {
+		$OUTPUT_FILE_NAME .= ("-" . $OUTPUT);
+	} else {
+		$OUTPUT_FILE_NAME = (time . "-listep-file.csv");
+	}
 }
 
 unless ($SANC or $EJEC or @CTRL) {
@@ -428,21 +492,42 @@ unless ($SANC or $EJEC or @CTRL) {
 
 if ($SANC) {
 	unless (verify_sanc) {
+		# Lazy to do this modularized.. Will be copypasta 3 times
+		if (defined $OUTPUT) {
+			open($OUTPUT_FILE, '>', $OUTPUT_FILE_NAME) or die "Could not open file '$OUTPUT_FILE_NAME' $!";
+		}
 		print_sanc;
+		if (defined $OUTPUT) {
+			close $OUTPUT_FILE;
+		}
     }
 	exit 0;
 }
 
 if ($EJEC) {
     unless (verify_ejec) {
-    	print_ejec;
+		# Lazy to do this modularized.. Will be copypasta 3 times
+		if (defined $OUTPUT) {
+			open($OUTPUT_FILE, '>', $OUTPUT_FILE_NAME) or die "Could not open file '$OUTPUT_FILE_NAME' $!";
+		}
+		print_ejec;
+		if (defined $OUTPUT) {
+			close $OUTPUT_FILE;
+		}
     }
 	exit 0;
 }
 
 if (@CTRL) {
 	unless (verify_ctrl) {
-        print_ctrl;
+		# Lazy to do this modularized.. Will be copypasta 3 times
+		if (defined $OUTPUT) {
+			open($OUTPUT_FILE, '>', $OUTPUT_FILE_NAME) or die "Could not open file '$OUTPUT_FILE_NAME' $!";
+		}
+		print_ctrl;
+		if (defined $OUTPUT) {
+			close $OUTPUT_FILE;
+		}
     }
     exit 0;
 }
