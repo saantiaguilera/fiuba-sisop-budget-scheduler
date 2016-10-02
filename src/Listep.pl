@@ -51,9 +51,11 @@ sub show_help {
 	say "	Uso: $0 ARGS
 	
 	Argumento obligatorio!
-	Listar un tipo de presupuesto: 'sanc', 'ejec', 'ctrl' 
+	Listar un tipo de presupuesto: 'sanc', 'ejec', 'ctrl' seguido del archivo a procesar
 	(Presupuesto sancionado, Presupuesto ejecutado o Presupuesto de control).
 	Nota: Solo puede estar presente uno de los tres.
+
+	Ejemplo: ./Listep.pl -sanc path/a/mi/archivo.csv
 	
 	Argumentos para presupuesto sancionado:
 
@@ -119,7 +121,7 @@ sub verify_ctrl() {
 
 sub print_sanc() {
 	# Filename should come dynamically in the getopt of snac/ejec/ctrl
-	open(DATA, "<", "sancionado-2016.csv") or die "Couldn't open file sancionado-2016, reason: $!";
+	open(DATA, "<", "$SANC") or die "Couldn't open file $SANC, reason: $!";
 
 	# Parse csv splitting by ;. Avoid the header.
 	<DATA>; # Read the header
@@ -161,9 +163,9 @@ if (is_already_running) {
 }
 
 GetOptions(
-    'sanc' => \$SANC,
-    'ejec' => \$EJEC,
-    'ctrl' => \$CTRL,
+    'sanc=s' => \$SANC,
+    'ejec=s' => \$EJEC,
+    'ctrl=s' => \$CTRL,
     'ct' => \$SANC_CT,
     'tc' => \$SANC_TC,
     'all' => \$EJEC_ALL,
@@ -176,19 +178,16 @@ GetOptions(
 ) or $HELP = 1;
 
 if ("$HELP") {
-	say "O la cagagaste o pusiste -h";
 	show_help;
 	exit 1;
 }
 
 unless ($SANC or $EJEC or $CTRL) {
-	say "Ninguno se esta usando";
 	show_help;
 	exit 1;
 }
 
 if ($SANC) {
-	say "Chequeando verification del sanc";
 	unless (verify_sanc) {
 		print_sanc;
     }
