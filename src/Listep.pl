@@ -68,20 +68,20 @@ sub show_help {
 	Argumentos para presupuesto ejecutado:
 
 	all : Filtra todas las actividades
-	act : Filtra una o mas actividades (Se pasan dentro de comillas, separados con \",\")
+	act : Filtra una o mas actividades (Se pasan dentro de comillas, separados con espacios)
 	
-	Ejemplo: ./Listep.pl -ejec -act \"Actividad uno\", \"Actividad dos\"
+	Ejemplo: ./Listep.pl -ejec -act \"Actividad uno\" \"Actividad dos\"
 	Nota: Si no se pasan filtros, se tomara por default -all
 	Nota: Si se pasan tanto filtros de act como de all, se invalidan los de act y se usan solo all. (Uno pisa al otro)
 
 	Argumentos para control de un presupuesto ejecutado:
 	
 	trim-all : Todos los trimestres
-	trim : Uno o mas trimestres (Se pasan dentro de comillas, separados con \",\")
+	trim : Uno o mas trimestres (Se pasan dentro de comillas, separados cone spacios)
 	cent-all : Todos los centros
-	cent : Uno o mas centros (Se pasan dentro de comillas, separados con \",\")
+	cent : Uno o mas centros (Se pasan dentro de comillas, separados con espacios)
 
-	Ejemplo: ./Listep.pl -ctrl -trim \"Trimestre uno\", \"Trimestre dos\" -cent-all
+	Ejemplo: ./Listep.pl -ctrl -trim \"Trimestre uno\" \"Trimestre dos\" -cent-all
 	Nota: Si no se pasan filtros, se tomaran por default trim-all y cent-all.
 	Nota: Si se pasan filtros especificos y el -all en algun caso, se tomaran todos y no se hara uso de los especificos
     
@@ -120,12 +120,11 @@ sub verify_ctrl() {
 # Printings
 
 sub print_sanc() {
-	# Filename should come dynamically in the getopt of snac/ejec/ctrl
 	open(DATA, "<", "$SANC") or die "Couldn't open file $SANC, reason: $!";
 
 	# Parse csv splitting by ;. Avoid the header.
 	<DATA>; # Read the header
-	my @rows = map { chomp; [ split ";", $_ ] } <DATA>;
+	@rows = map { chomp; [ split ";", $_ ] } <DATA>;
 
 	# Modify some stuff about each row (because its really hard to operate how its by default)
 	for (@rows) {
@@ -150,6 +149,7 @@ sub print_sanc() {
 		
 		if ($SANC_TC) {
 			$NAME = $_->[0];
+			#ggggggggggggggggggggggggrep
 			$NAME = `ggrep -r $NAME\\\; $MAEDIR/centros.csv`;
 			chomp $NAME;
 			$NAME =~ s/.+;//g;
@@ -168,8 +168,39 @@ sub print_sanc() {
 	say "Total Anual: $TOTAL_SUM";
 }
 
-sub print_ejec() {
+sub contains_activity {
+	($LINE) = @_;
 
+	if ($EJEC_ALL) {
+		return 1; # TRUE
+	} else {
+		for (@EJEC_ACT) {
+			if ($LINE =~ m/$_/i) {
+				return 1;
+			}
+		}
+
+		return 0;
+	}
+}
+
+sub print_ejec() {
+	open(DATA, "<", "$EJEC") or die "Couldn't open file $EJEC, reason: $!";
+
+	for (@EJEC_ACT) {
+		say "$_";
+	}
+
+	# Parse csv splitting by ;. Avoid the header.
+	<DATA>; # Read the header
+	@rows = map { 
+		chomp; 
+		contains_activity($_) ? [ split ";", $_ ] : ();
+	} <DATA>;
+
+	for (@rows) {
+		say "$_->[0], $_->[1], $_->[2], $_->[3]";
+	}
 }
 
 # Main!
@@ -218,7 +249,7 @@ if ($SANC) {
 
 if ($EJEC) {
     unless (verify_ejec) {
-    	# Do something
+    	print_ejec;
     }
 	exit 0;
 }
