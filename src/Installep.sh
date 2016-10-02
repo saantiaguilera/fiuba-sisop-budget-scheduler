@@ -40,7 +40,7 @@ DATASIZE=100
 #   0 if True, 1 if False
 #######################################
 function directory_already_exists {
-  for dir in "${!DIRS[@]}"; do
+  for dir in "${DIRS[@]}"; do
     if [ "$dir" == "$GRUPO/$1" ]; then
       return 0
     fi
