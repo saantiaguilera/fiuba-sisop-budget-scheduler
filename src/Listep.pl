@@ -101,7 +101,7 @@ sub verify_sanc() {
 
 sub verify_ejec() {
     # If using one of the others two, git rekt.
-    if ($SANC or $CTRL) {
+    if ($SANC or $CTRL or not($EJEC_ALL or @EJEC_ACT)) {
         show_help;
         return 1;
     }
@@ -186,10 +186,6 @@ sub contains_activity {
 
 sub print_ejec() {
 	open(DATA, "<", "$EJEC") or die "Couldn't open file $EJEC, reason: $!";
-
-	for (@EJEC_ACT) {
-		say "$_";
-	}
 
 	# Parse csv splitting by ;. Avoid the header.
 	<DATA>; # Read the header
