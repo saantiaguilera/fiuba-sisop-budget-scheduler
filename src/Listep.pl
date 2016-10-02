@@ -1,12 +1,14 @@
 #!/usr/bin/env perl
 
-# TODO Add docs to functions
+######################################
+############### LISTEP ###############
+######################################
 # If using OSX replace all grep -> ggrep / If using Linux distro replace ggrep -> grep
 
 use v5.10.0; # Maybe we could use latest 5.18.2 But for compatibility measures lets leave it in 5.10
-use warnings;
-use Getopt::Long qw(GetOptions);
-use Time::HiRes qw(time);
+use warnings; # For lints and not being too error prone
+use Getopt::Long qw(GetOptions); # GetOpt api
+use Time::HiRes qw(time); # Time api
 
 # Args Variables
 
@@ -34,6 +36,13 @@ my $OUTPUT_FILE;
 
 # UTILS
 
+#######################################
+# Checks if environment is initialized.
+# Globals:
+#   MAEDIR
+# Returns:
+#   True if initialized, false otherwise
+#######################################
 sub is_initialized {
 	$MAEDIR=$ENV{'DIRMAE'};
 	if ("$MAEDIR") {
@@ -43,17 +52,9 @@ sub is_initialized {
 	}
 }
 
-sub is_already_running {
-	$COUNTER = `ps -a | grep -c 'Listep'`;
-	#$COUNTER_IF_ISNT_RUNNING = 2; #Linux
-	$COUNTER_IF_ISNT_RUNNING = 3; #MAC
-	if ($COUNTER > $COUNTER_IF_ISNT_RUNNING) {
-		return 1;
-	} else {
-		return 0;
-	}
-}
-
+#######################################
+# Show the help menu.
+#######################################
 sub show_help {
 	say "Uso: $0 -[sanc|ejec|ctrl] -[ct|tc] -[act|all] -[trim|trim-all|cent|cent-all]
 	
@@ -112,6 +113,13 @@ Arguments para control de un presupuesto ejecutado:
 
 # VERIFICATION
 
+#######################################
+# Verify sanction can be invoked safely.
+# Globals:
+#   EJEC / CTRL / SANC_CT / SANC_TC
+# Returns:
+#   true if there are problems, false if its ok
+#######################################
 sub verify_sanc() {
     # If using also ejec or ctrl, or both ct and tc are used (or none), git rekt.
     if ($EJEC or $CTRL or ($SANC_CT and $SANC_TC) or not($SANC_CT or $SANC_TC)) {
@@ -121,6 +129,13 @@ sub verify_sanc() {
     return 0;
 }
 
+#######################################
+# Verify ejecutados can be invoked safely.
+# Globals:
+#   SANC / CTRL / EJEC_ALL / EJEC_ACT
+# Returns:
+#   true if there are problems, false if its ok
+#######################################
 sub verify_ejec() {
     # If using one of the others two, git rekt.
     if ($SANC or $CTRL or not($EJEC_ALL or @EJEC_ACT)) {
@@ -130,6 +145,13 @@ sub verify_ejec() {
     return 0;
 }
 
+#######################################
+# Verify control can be invoked safely.
+# Globals:
+#   EJEC / SANC / CTRL_TRIM / CTRL_TRIM_ALL / CTRL_CENT / CTRL_CENT_ALL
+# Returns:
+#   true if there are problems, false if its ok
+#######################################
 sub verify_ctrl() {
     # If using one of the others two, git rekt.
     if ($SANC or $EJEC or not(@CTRL_TRIM or $CTRL_TRIM_ALL) or not(@CTRL_CENT or $CTRL_CENT_ALL)) {
@@ -141,6 +163,11 @@ sub verify_ctrl() {
 
 # Printings
 
+#######################################
+# Process sanction file and dump results.
+# Globals:
+#   OUTPUT_FILE / SANC_CT / SANC_TC
+#######################################
 sub print_sanc() {	
 	# Headers of files we use:
 	# row:      :centre_code :trim :expense1 :expense2
@@ -210,6 +237,14 @@ sub print_sanc() {
 	}
 }
 
+#######################################
+# Contains method to filter entries by 
+# acitivities passed as arguments.
+# Globals:
+#     EJEC_ALL / EJEC_ACT
+# Returns:
+#     true if exists, false otherwise.
+#######################################
 sub contains_activity {
 	my ($LINE) = @_;
 
@@ -226,6 +261,11 @@ sub contains_activity {
 	}
 }
 
+#######################################
+# Process ejecutado file and dump results.
+# Globals:
+#   OUTPUT_FILE / EJEC_ALL / EJEC_ACT
+#######################################
 sub print_ejec() {
 	# Headers of files we use:
 	# row:      :id :date :central_code :act_name :trim :expense
@@ -293,6 +333,14 @@ sub print_ejec() {
 	}
 }
 
+#######################################
+# Contains method to filter entries by 
+# trimester passed as arguments.
+# Globals:
+#     CTRL_TRIM_ALL / CTRL_TRIM
+# Returns:
+#     true if exists, false otherwise.
+#######################################
 sub contains_trimester {
 	my ($LINE) = @_;
 
@@ -309,6 +357,14 @@ sub contains_trimester {
 	}
 }
 
+#######################################
+# Contains method to filter entries by 
+# center passed as arguments.
+# Globals:
+#     CTRL_CENTER / CTRL_CENTER_ALL
+# Returns:
+#     true if exists, false otherwise.
+#######################################
 sub contains_center {
 	my ($LINE) = @_;
 
@@ -325,6 +381,12 @@ sub contains_center {
 	}
 }
 
+#######################################
+# Append to stdout (and file) a new sanctioned entry, 
+# updates trimester and sensible data.
+# Globals:
+#     TRIMESTRE_BUDGET / CUMULATIVE_BUDGET
+#######################################
 sub append_starting_budget_year() {
 	my $LINE = `ggrep -r $LAST_LINE_CENTRAL\\\;\Q$LAST_LINE_TRIMESTRE\E \Q$CTRL[1]`;
 	my @AUX = ( split ";", $LINE );
@@ -346,6 +408,14 @@ sub append_starting_budget_year() {
 	}
 }
 
+#######################################
+# Check if should append to stdout (and file) a new sanctioned entry.
+# This updates the last entry processed data.
+# Globals:
+#     LAST_LINE_CENTRAL / LAST_LINE_TRIMESTRE
+# Returns:
+#     true if should append, false otherwise.
+#######################################
 sub check_starting_budget_year {
 	my ($CENTRAL_CODE, $TRIM) = @_;
 
@@ -366,6 +436,11 @@ sub check_starting_budget_year {
 	}
 }
 
+#######################################
+# Process control file and dump results.
+# Globals:
+#   OUTPUT_FILE / CTRL_FILTERS
+#######################################
 sub print_ctrl() {
 	# Headers of files we use:
 	# row:      :id :date :central_code :act_name :trim :expense
@@ -447,12 +522,7 @@ sub print_ctrl() {
 # Main!
 
 unless (is_initialized) {
-	say "No esta realizada la inicializacion de ambiente";
-	exit 1;
-}
-
-if (is_already_running) {
-	say "Ya hay un Listep corriendo";
+	say "No esta inicializado el environment";
 	exit 1;
 }
 
