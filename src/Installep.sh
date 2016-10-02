@@ -139,6 +139,12 @@ SYSTEM_SIZE="`echo $SYSTEM_SIZE_M | sed "s/M$//"`"
 echo "Defina espacio minimo libre para la recepcion de archivos en Mbytes (100): "
 read size
 
+digits='^[0-9]+$'
+if [[ $size =~ $digits ]]; then
+  echo "Debe ingresar un numero entero positivo."
+  set_news_size
+fi
+
 if [[ $size -gt $SYSTEM_SIZE ]]; then
   echo "Insuficiente espacio en disco."
   echo "Espacio disponible: $SYSTEM_SIZE Mb."
