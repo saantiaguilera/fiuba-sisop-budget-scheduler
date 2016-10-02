@@ -216,6 +216,9 @@ sub print_ejec() {
 		contains_activity($_) ? [ split ";", $_ ] : ();
 	} <DATA>;
 
+	close DATA or warn $! ? "Error closing sort pipe: $!"
+                   : "Exit status $? from sort";
+
 	@ROWS = sort { $a->[3] cmp $b->[3] } @ROWS;
 
 	my $FIELD_TOTAL_BUDGET = 0;
@@ -296,37 +299,24 @@ sub append_starting_budget_year() {
 	say "(++);$DATE;$LAST_LINE_CENTRAL;0;$LAST_LINE_TRIMESTRE;$TRIMESTRE_BUDGET;$TRIMESTRE_BUDGET;;$CUMULATIVE_BUDGET";
 }
 
-sub swap_last_line_values {
-	my ($LINE) = @_;
-	my $AUX = $LINE;
-	$AUX =~ s/.+\;//;
-	$AUX =~ s/.+\;//;
-	$AUX =~ s/\;.+//;
-	$LAST_LINE_CENTRAL = $AUX;
-
-	$AUX = $LINE;
-	$AUX =~ s/.+\;//;
-	$AUX =~ s/.+\;//;
-	$AUX =~ s/.+\;//;
-	$AUX =~ s/.+\;//;
-	$AUX =~ s/\;.+//;
-	$LAST_LINE_TRIMESTRE = $AUX;
-}
-
 sub check_starting_budget_year {
-	my ($LINE) = @_;
+	my ($ID, $DATE, $CENTRAL_CODE, $ACT_NAME, $TRIM, $EXPENSE) = @_;
 
 	if ($LAST_LINE_CENTRAL and $LAST_LINE_TRIMESTRE) {
 		#LOGIC FOR CHECKING IF ITS A NEW TRIMESTRE OR CODE AND PRINTING
-		unless ($LINE =~ $LAST_LINE_CENTRAL and $LINE =~ $LAST_LINE_TRIMESTRE) {
-			swap_last_line_values($LINE);
+		unless ($CENTRAL_CODE =~ $LAST_LINE_CENTRAL and $TRIM =~ $LAST_LINE_TRIMESTRE) {
+			$LAST_LINE_CENTRAL = $CENTRAL_CODE;
+			$LAST_LINE_TRIMESTRE = $TRIM;
 			return 1;
 		}
 
 		return 0;
 	} else {
 		# Theres no last line, create it and append stuff
-		swap_last_line_values($LINE);
+		$LAST_LINE_CENTRAL = $CENTRAL_CODE;
+		$LAST_LINE_TRIMESTRE = $TRIM;
+
+		say "$LAST_LINE_TRIMESTRE, $LAST_LINE_CENTRAL";
 		return 1;
 	}
 }
@@ -346,6 +336,9 @@ sub print_ctrl() {
 		chomp; 
 		(contains_trimester($_) and contains_center($_)) ? [ split ";", $_ ] : ();
 	} <DATA>;
+	
+	close DATA or warn $! ? "Error closing sort pipe: $!"
+                   : "Exit status $? from sort";
 
 	# Sort by trimester -> central_code -> date.
 	@ROWS = sort { $a->[4] cmp $b->[4] or
@@ -363,6 +356,8 @@ sub print_ctrl() {
 		if (check_starting_budget_year($ROW)) {
 			append_starting_budget_year;
 		}
+
+		return 1;
 
 		# gggggggggggggggggggrep
 		$FIELD_ACT_CODE = `ggrep -r \Q$ROW->[3]\E \Q$MAEDIR/actividades.csv`;
