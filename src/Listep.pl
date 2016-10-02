@@ -37,10 +37,10 @@ sub is_initialized {
 }
 
 sub is_already_running {
-	$counter = `ps -a | grep -c 'Listep'`;
-	#$counterIfIsNotRunning = 2; #Linux
-	$counterIfIsNotRunning = 3; #MAC
-	if ($counter > $counterIfIsNotRunning) {
+	$COUNTER = `ps -a | grep -c 'Listep'`;
+	#$COUNTER_IF_ISNT_RUNNING = 2; #Linux
+	$COUNTER_IF_ISNT_RUNNING = 3; #MAC
+	if ($COUNTER > $COUNTER_IF_ISNT_RUNNING) {
 		return 1;
 	} else {
 		return 0;
@@ -119,15 +119,19 @@ sub verify_ctrl() {
 
 # Printings
 
-sub print_sanc() {
+sub print_sanc() {	
+	# Headers of files we use:
+	# row:      :centre_code :trim :expense1 :expense2
+	# cent.csv: :centre_code :centre_name
+
 	open(DATA, "<", "$SANC") or die "Couldn't open file $SANC, reason: $!";
 
 	# Parse csv splitting by ;. Avoid the header.
 	<DATA>; # Read the header
-	@rows = map { chomp; [ split ";", $_ ] } <DATA>;
+	@ROWS = map { chomp; [ split ";", $_ ] } <DATA>;
 
 	# Modify some stuff about each row (because its really hard to operate how its by default)
-	for (@rows) {
+	for (@ROWS) {
 		$_->[1] =~ s/Primer/1er/g;
 		$_->[1] =~ s/Segundo/2do/g;
 		$_->[1] =~ s/Tercer/3er/g;
@@ -136,21 +140,21 @@ sub print_sanc() {
 		$_->[3] =~ s/,/\./g;
 	}
 	
-	@rows = sort { $a->[$SANC_CT ? 0 : 1] cmp $b->[$SANC_CT ? 0 : 1] or
-					$a->[$SANC_CT ? 1 : 0] cmp $b->[$SANC_CT ? 1 : 0] } @rows;
+	@ROWS = sort { $a->[$SANC_CT ? 0 : 1] cmp $b->[$SANC_CT ? 0 : 1] or
+					$a->[$SANC_CT ? 1 : 0] cmp $b->[$SANC_CT ? 1 : 0] } @ROWS;
 	
 	close DATA or warn $! ? "Error closing sort pipe: $!"
                    : "Exit status $? from sort";
 
-	say "A;o presupuestario, Total sancionado";
+	say "Anio presupuestario;Total sancionado";
 	$TOTAL_SUM = 0;
-	for (@rows) {
+	for (@ROWS) {
 		$COST_SUM = $_->[2] + $_->[3];
 		
 		if ($SANC_TC) {
 			$NAME = $_->[0];
 			#ggggggggggggggggggggggggrep
-			$NAME = `ggrep -r $NAME\\\; $MAEDIR/centros.csv`;
+			$NAME = `ggrep -r \Q$NAME\\\;\E \Q$MAEDIR/centros.csv`;
 			chomp $NAME;
 			$NAME =~ s/.+;//g;
 		}
@@ -162,10 +166,10 @@ sub print_sanc() {
 			$NAME =~ s/4to/Cuarto/g;
 		}
 
-		say "$NAME, $COST_SUM";
+		say "$NAME;$COST_SUM";
 		$TOTAL_SUM += $COST_SUM;
 	}
-	say "Total Anual: $TOTAL_SUM";
+	say "Total Anual;$TOTAL_SUM";
 }
 
 sub contains_activity {
@@ -185,18 +189,51 @@ sub contains_activity {
 }
 
 sub print_ejec() {
+	# Headers of files we use:
+	# row:      :id :date :central_code :act_name :trim :expense
+	# act.csv:  :act_code :act_category :act_pgm :act_name
+	# cent.csv: :central_code :central_name
+	# axc.csv:  :act_code :central_code
+
 	open(DATA, "<", "$EJEC") or die "Couldn't open file $EJEC, reason: $!";
 
 	# Parse csv splitting by ;. Avoid the header.
 	<DATA>; # Read the header
-	@rows = map { 
+	@ROWS = map { 
 		chomp; 
 		contains_activity($_) ? [ split ";", $_ ] : ();
 	} <DATA>;
 
-	for (@rows) {
-		say "$_->[0], $_->[1], $_->[2], $_->[3]";
+	@ROWS = sort { $a->[3] cmp $b->[3] } @ROWS;
+
+	$FIELD_TOTAL_BUDGET = 0;
+	say "Fecha;Centro;Nom Cen;cod Act; Actividad; Trimestre; Gasto; control";
+	for (@ROWS) {
+		$ROW = $_;
+
+		# gggggggggggggggggggrep
+		$FIELD_ACT_CODE = `ggrep -r \Q$ROW->[3]\E \Q$MAEDIR/actividades.csv`;
+		if ($FIELD_ACT_CODE) {
+			$FIELD_ACT_CODE =~ s/\;.+//g;
+
+			$EXISTS_IN_AXC = `ggrep -r \Q$FIELD_ACT_CODE\\\;$ROW->[2]\$\E \Q$MAEDIR/tabla-AxC.csv`;
+			$FIELD_EXPENSE_SCHEDULED = $EXISTS_IN_AXC ? "" : "gasto fuera de la planificacion";
+		} else {
+			die "actividades.csv file doesn't contain $ROW->[3].";
+		}
+
+		# Get the central name.
+		$FIELD_CENTRAL_NAME = `ggrep -r \Q$ROW->[2]\\\;\E \Q$MAEDIR/centros.csv`;
+		$FIELD_CENTRAL_NAME =~ s/.+\;//g;
+
+		# No f'ing idea were to get the 'provincia'. Theres no field in any of the data sources. Only actividades.csv has :nom_act with some fields with 'provincias' but still there are a lot more without, so its not.
+
+		say "$ROW->[1];$ROW->[2];$FIELD_CENTRAL_NAME;$FIELD_ACT_CODE;$ROW->[3];$ROW->[4];$ROW->[5];$FIELD_EXPENSE_SCHEDULED";
+		
+		$ROW->[5] =~ s/,/\./g;
+		$FIELD_TOTAL_BUDGET += $ROW->[5];
 	}
+	say ";;;;;Total Credito Fiscal; $FIELD_TOTAL_BUDGET;;"
 }
 
 # Main!
