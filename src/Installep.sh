@@ -31,6 +31,23 @@ LOGEP="Logep.sh"
 DATASIZE=100
 
 #######################################
+#Checks if a directory exists inside of the system files.
+# Globals:
+#   GRUPO
+# Arguments:
+#   Name of a directory
+# Returns:
+#   0 if True, 1 if False
+#######################################
+function directory_already_exists {
+  if [[ -d $PWD/$GRUPO/ ]] && [[ -f $PWD/$GRUPO/$1 ]]; then
+    return 0 #True
+  else
+    return 1 #False
+  fi
+}
+
+#######################################
 #Lets the user choose a name for the input_directory, if he enters an invalid
 #name or none address at all, a default one is used instead.
 # Globals:
@@ -43,9 +60,10 @@ DATASIZE=100
 function input_directory {
 read directory
 
-if [ "$directory" == "dirconf" ] || [[ -z "${directory// }" ]]; then
+if [ "$directory" == "dirconf" ] || [[ -z "${directory// }" ]] || directory_already_exists $directory; then
   echo "El directorio "$GRUPO/dirconf", un nombre de directorio que contiene
-  solo espacios o es vacio son directorios invalidos. Ingrese otro nombre: "
+  solo espacios, un directorio ya existente o que es vacio son directorios
+  invalidos. Ingrese otro nombre: "
   input_directory $1 #Ask the user again for another directory name
 else
   local dir=$1
@@ -115,7 +133,7 @@ return 0
 #   0 if True, 1 if False
 #######################################
 function system_already_installed {
-if [[ -d /$GRUPO/ ]] && [[ ! -f /$GRUPO/instalep.conf ]]; then
+if [[ -d /$GRUPO/ ]] && [[ -f /$GRUPO/instalep.conf ]]; then
   return 0 #True
 else
   return 1 #False
