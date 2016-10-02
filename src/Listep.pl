@@ -139,15 +139,37 @@ sub print_sanc() {
 	
 	@rows = sort { $a->[$SANC_CT ? 0 : 1] cmp $b->[$SANC_CT ? 0 : 1] or
 					$a->[$SANC_CT ? 1 : 0] cmp $b->[$SANC_CT ? 1 : 0] } @rows;
+	
+	close DATA or warn $! ? "Error closing sort pipe: $!"
+                   : "Exit status $? from sort";
 
-	say "Centro, Trimestre, Total sancionado";
+	say "A;o presupuestario, Total sancionado";
 	$TOTAL_SUM = 0;
 	for (@rows) {
 		$COST_SUM = $_->[2] + $_->[3];
-		say "$_->[0], $_->[1], $COST_SUM";
+		
+		if ($SANC_TC) {
+			$NAME = $_->[0];
+			$NAME = `ggrep -r $NAME\\\; $MAEDIR/centros.csv`;
+			chomp $NAME;
+			$NAME =~ s/.+;//g;
+		}
+		if ($SANC_CT) {
+			$NAME = $_->[1];
+			$NAME =~ s/1er/Primer/g;
+			$NAME =~ s/2do/Segundo/g;
+			$NAME =~ s/3er/Tercer/g;
+			$NAME =~ s/4to/Cuarto/g;
+		}
+
+		say "$NAME, $COST_SUM";
 		$TOTAL_SUM += $COST_SUM;
 	}
 	say "Total Anual: $TOTAL_SUM";
+}
+
+sub print_ejec() {
+
 }
 
 # Main!
@@ -203,7 +225,7 @@ if ($EJEC) {
 
 if ($CTRL) {
 	if (not(verify_ctrl)) {
-        # Do something
+        print_ejec;
     }
     exit 0;
 }
