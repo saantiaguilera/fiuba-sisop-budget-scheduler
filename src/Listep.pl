@@ -197,9 +197,9 @@ sub print_sanc() {
 
 	$OUTPUT_STRING = "Anio presupuestario;Total sancionado\n";
 	print "$OUTPUT_STRING";
-    if (defined $OUTPUT) {
+	if (defined $OUTPUT) {
 		printf $OUTPUT_FILE "$OUTPUT_STRING";
-    }
+	}
 
 	my $TOTAL_SUM = 0;
 	for (@ROWS) {
@@ -570,12 +570,12 @@ if ($SANC) {
 		if (defined $OUTPUT) {
 			close $OUTPUT_FILE;
 		}
-    }
+	}
 	exit 0;
 }
 
 if ($EJEC) {
-    unless (verify_ejec) {
+	unless (verify_ejec) {
 		# Lazy to do this modularized.. Will be copypasta 3 times
 		if (defined $OUTPUT) {
 			open($OUTPUT_FILE, '>', $OUTPUT_FILE_NAME) or die "Could not open file '$OUTPUT_FILE_NAME' $!";
@@ -584,7 +584,7 @@ if ($EJEC) {
 		if (defined $OUTPUT) {
 			close $OUTPUT_FILE;
 		}
-    }
+	}
 	exit 0;
 }
 
@@ -598,6 +598,6 @@ if (@CTRL) {
 		if (defined $OUTPUT) {
 			close $OUTPUT_FILE;
 		}
-    }
-    exit 0;
+	}
+	exit 0;
 }
