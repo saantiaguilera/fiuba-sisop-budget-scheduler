@@ -14,13 +14,13 @@ DIRINFO="$GRUPO/rep"
 DIRNOK="$GRUPO/nok"
 DIRLOG="$GRUPO/log"
 
-declare -A DIRS=(["DIRBIN"]=$DIRBIN ["DIRMAE"]=$DIRMAE 
-["DIRREC"]=$DIRREC ["DIROK"]=$DIROK ["DIRPROC"]=$DIRPROC ["DIRINFO"]=$DIRINFO 
+declare -A DIRS=(["DIRBIN"]=$DIRBIN ["DIRMAE"]=$DIRMAE
+["DIRREC"]=$DIRREC ["DIROK"]=$DIROK ["DIRPROC"]=$DIRPROC ["DIRINFO"]=$DIRINFO
 ["DIRLOG"]=$DIRLOG ["DIRNOK"]=$DIRNOK)
 
 declare -A DESCS=(["DIRBIN"]="ejecutables" ["DIRMAE"]="Maestros y Tablas"
-["DIRREC"]="recepcion de novedades" ["DIROK"]="Archivos Aceptados" 
-["DIRPROC"]="Archivos Procesados" ["DIRINFO"]="Reportes" ["DIRLOG"]="Log" 
+["DIRREC"]="recepcion de novedades" ["DIROK"]="Archivos Aceptados"
+["DIRPROC"]="Archivos Procesados" ["DIRINFO"]="Reportes" ["DIRLOG"]="Log"
 ["DIRNOK"]="Archivos Rechazados")
 
 # Commands
@@ -44,7 +44,7 @@ function input_directory {
 read directory
 
 if [ "$directory" == "dirconf" ] || [[ -z "${directory// }" ]]; then
-  echo "El directorio "$GRUPO/dirconf", un nombre de directorio que contiene 
+  echo "El directorio "$GRUPO/dirconf", un nombre de directorio que contiene
   solo espacios o es vacio son directorios invalidos. Ingrese otro nombre: "
   input_directory $1 #Ask the user again for another directory name
 else
@@ -229,18 +229,21 @@ function installation {
 
   bash $LOGEP -c instalep -m "Instalando Programas y Funciones"
   shopt -s nullglob
-  for file in *.sh; do
-    if [[ "$file" != "Installep.sh" ]]; then
-      mv $file "${DIRS["DIRBIN"]}/$file"
-    fi
-    if [[ "$file" == "Logep.sh" ]]; then
-      LOGEP="${DIRS["DIRBIN"]}/$file"
-    fi
-  done
-  bash $LOGEP -c instalep -m "Instalando Archivos Maestros y Tablas"
-  for file in actividades.csv sancionado-2016.csv centros.csv provincias.csv tabla-AxC.csv trimestres.csv; do
-    mv $file "${DIRS["DIRMAE"]}/$file"
-  done
+  bash Movep.sh -c "Instalep" -o "*.sh" -d "$PWD/$DIRBIN"
+  #for file in *.sh; do
+  #  if [[ "$file" != "Installep.sh" ]]; then
+  #    mv $file "${DIRS["DIRBIN"]}/$file"
+  #  fi
+  #  if [[ "$file" == "Logep.sh" ]]; then
+  #    LOGEP="${DIRS["DIRBIN"]}/$file"
+  #  fi
+  #done
+  #bash $LOGEP -c instalep -m "Instalando Archivos Maestros y Tablas"
+  bash Movep.sh -c "Instalep" -o "*(^[0-9]).csv" -d "$PWD/$DIRMAE"
+  bash Movep.sh -c "Instalep" -o "*.csv" -d "$PWD/$DIRNOV"
+  #for file in actividades.csv sancionado-2016.csv centros.csv provincias.csv tabla-AxC.csv trimestres.csv; do
+  #  mv $file "${DIRS["DIRMAE"]}/$file"
+  #done
 }
 
 #######################################
