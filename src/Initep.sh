@@ -35,7 +35,6 @@ MSG_INITEP_FINISHED="Proceso Initep finalizado exitosamente."
 #######################################
 function log_message() {
 	bash "$DIRBIN/Logep.sh" -c "Initep" -m "$1" -t "$2"
-	return
 }
 
 #######################################
@@ -152,13 +151,13 @@ function check_script_permissions() {
 	
 	for SCRIPT in "$DIRBIN/*"
 		do
-			if [ ! -x $SCRIPT ]; then
+			if [ ! -x "$SCRIPT" ]; then
 				log_message "`echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s/%SCRIPT%/$SCRIPT/"`" "$TYPE_WAR"
 				echo `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s/%SCRIPT%/$SCRIPT/"`
 				chmod +x $SCRIPT
 			fi
 			
-			if [ ! -x $SCRIPT ]; then
+			if [ ! -x "$SCRIPT" ]; then
 				log_message "`echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR | sed "s/%SCRIPT%/$SCRIPT/"`" "$TYPE_ERR"
 				echo `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR | sed "s/%SCRIPT%/$SCRIPT/"`
 				EXIT_CODE=1
@@ -182,13 +181,13 @@ function check_file_permissions() {
 	
 	for FILE in "$DIRMAE/*"
 		do
-			if [ ! -r $FILE ]; then
+			if [ ! -r "$FILE" ]; then
 				log_message "`echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s/%FILE%/$FILE/"`" "$TYPE_WAR"
 				echo `echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s/%FILE%/$FILE/"`
 				chmod +r $FILE
 			fi
 			
-			if [ ! -r $FILE ]; then
+			if [ ! -r "$FILE" ]; then
 				log_message "`echo $MSG_FILE_WITHOUT_PERMISSIONS_ERR | sed "s/%FILE%/$FILE/"`" "$TYPE_ERR"
 				echo `echo $MSG_FILE_WITHOUT_PERMISSIONS_ERR | sed "s/%FILE%/$FILE/"`
 				EXIT_CODE=1
@@ -264,12 +263,14 @@ function destroy_environment() {
 
 function main() {
 	# 1. Verify if environment has been initialized
+	echo "1"
 	check_previous_init
 	if [ $? -eq 1 ]; then
 		return 1
 	fi
 	
 	# 2. Initialize environment variables
+	echo "2"
 	init_environment
 	if [ $? -eq 1 ]; then
 		destroy_environment
@@ -277,25 +278,30 @@ function main() {
 	fi
 	
 	# 3. Check permissions
+	echo "3.1"
 	check_script_permissions
 	if [ $? -eq 1 ]; then
 		destroy_environment
 		return 3
 	fi
 
+	echo "3.2"
 	check_file_permissions
 	if [ $? -eq 1 ]; then
 		destroy_environment
 		return 4
 	fi
 
+	echo "4"
 	log_message "$MSG_SYSTEM_INITIALIZED" "$TYPE_INF"
 	echo "$MSG_SYSTEM_INITIALIZED"
 	
 	# 4-6. Ask to release the DEMONIO
+	echo "5"
 	start_demonep
 	
 	# 7. Close Log
+	echo "7"
 	log_message "$MSG_INITEP_FINISHED" "$TYPE_INF"
 	echo "$MSG_INITEP_FINISHED"
 }
