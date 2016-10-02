@@ -10,7 +10,7 @@ use Getopt::Long qw(GetOptions);
 
 my $SANC;
 my $EJEC;
-my $CTRL;
+my @CTRL = ();
 
 my $SANC_CT;
 my $SANC_TC;
@@ -48,44 +48,55 @@ sub is_already_running {
 }
 
 sub show_help {
-	say "	Uso: $0 ARGS
+	say "Uso: $0 -[sanc|ejec|ctrl] -[ct|tc] -[act|all] -[trim|trim-all|cent|cent-all]
 	
-	Argumento obligatorio!
-	Listar un tipo de presupuesto: 'sanc', 'ejec', 'ctrl' seguido del archivo a procesar
-	(Presupuesto sancionado, Presupuesto ejecutado o Presupuesto de control).
-	Nota: Solo puede estar presente uno de los tres.
+Arguments:
+
+--sanc: Lista en modo de sanciones. Debe estar seguido de un archivo de sanciones a ser procesado.
+
+--ejec: Lista en modo de ejecutados. Debe estar seguido de un archivo de presupuestos a ser procesado.
+
+--ctrl: Lista en modo de control. Debe estar seguido de un archivo de presupuestos y otro de sanciones.
+
+	Nota: Solo uno de los tres puede estar presente a la vez.
 
 	Ejemplo: ./Listep.pl -sanc path/a/mi/archivo.csv
 	
-	Argumentos para presupuesto sancionado:
+Arguments para presupuesto sancionado:
 
-	ct : Ordenados por codigo de central y sino por trimestres
-	tc : Ordenados por trimestres y sino por codigo de central
+-ct : Ordenados por codigo de central y sino por trimestres
+	
+-tc : Ordenados por trimestres y sino por codigo de central
+	
 	Nota: Solo se puede ingresar uno de los dos.
 	
 	Ejemplo: ./Listep.pl -sanc -ct 
 
-	Argumentos para presupuesto ejecutado:
+Arguments para presupuesto ejecutado:
 
-	all : Filtra todas las actividades
-	act : Filtra una o mas actividades (Se pasan dentro de comillas, separados con espacios)
+-all : Filtra todas las actividades
 	
-	Ejemplo: ./Listep.pl -ejec -act \"Actividad uno\" \"Actividad dos\"
-	Nota: Si no se pasan filtros, se tomara por default -all
+-act : Filtra una o mas actividades (Se pasan dentro de comillas, separados con espacios)
+	
 	Nota: Si se pasan tanto filtros de act como de all, se invalidan los de act y se usan solo all. (Uno pisa al otro)
 
-	Argumentos para control de un presupuesto ejecutado:
-	
-	trim-all : Todos los trimestres
-	trim : Uno o mas trimestres (Se pasan dentro de comillas, separados cone spacios)
-	cent-all : Todos los centros
-	cent : Uno o mas centros (Se pasan dentro de comillas, separados con espacios)
+	Ejemplo: ./Listep.pl -ejec -act \"Actividad uno\" \"Actividad dos\"
 
-	Ejemplo: ./Listep.pl -ctrl -trim \"Trimestre uno\" \"Trimestre dos\" -cent-all
-	Nota: Si no se pasan filtros, se tomaran por default trim-all y cent-all.
+Arguments para control de un presupuesto ejecutado:
+	
+-trim-all : Todos los trimestres
+	
+-trim : Uno o mas trimestres (Se pasan dentro de comillas, separados cone spacios)
+	
+-cent-all : Todos los centros
+	
+-cent : Uno o mas centros (Se pasan dentro de comillas, separados con espacios)
+
 	Nota: Si se pasan filtros especificos y el -all en algun caso, se tomaran todos y no se hara uso de los especificos
     
-	Para mostrar ayuda (esto): ./Listep.pl -h"
+	Ejemplo: ./Listep.pl -ctrl -trim \"Trimestre uno\" \"Trimestre dos\" -cent-all
+
+-h : Help"
 }
 
 # VERIFICATION
@@ -110,7 +121,7 @@ sub verify_ejec() {
 
 sub verify_ctrl() {
     # If using one of the others two, git rekt.
-    if ($SANC or $EJEC) {
+    if ($SANC or $EJEC or not(@CTRL_TRIM or $CTRL_TRIM_ALL) or not(@CTRL_CENT or $CTRL_CENT_ALL)) {
         show_help;
         return 1;
     }
@@ -128,7 +139,7 @@ sub print_sanc() {
 
 	# Parse csv splitting by ;. Avoid the header.
 	<DATA>; # Read the header
-	@ROWS = map { chomp; [ split ";", $_ ] } <DATA>;
+	my @ROWS = map { chomp; [ split ";", $_ ] } <DATA>;
 
 	# Modify some stuff about each row (because its really hard to operate how its by default)
 	for (@ROWS) {
@@ -147,10 +158,11 @@ sub print_sanc() {
                    : "Exit status $? from sort";
 
 	say "Anio presupuestario;Total sancionado";
-	$TOTAL_SUM = 0;
+	my $TOTAL_SUM = 0;
 	for (@ROWS) {
-		$COST_SUM = $_->[2] + $_->[3];
+		my $COST_SUM = $_->[2] + $_->[3];
 		
+		my $NAME = "";
 		if ($SANC_TC) {
 			$NAME = $_->[0];
 			#ggggggggggggggggggggggggrep
@@ -173,7 +185,7 @@ sub print_sanc() {
 }
 
 sub contains_activity {
-	($LINE) = @_;
+	my ($LINE) = @_;
 
 	if ($EJEC_ALL) {
 		return 1; # TRUE
@@ -199,17 +211,158 @@ sub print_ejec() {
 
 	# Parse csv splitting by ;. Avoid the header.
 	<DATA>; # Read the header
-	@ROWS = map { 
+	my @ROWS = map { 
 		chomp; 
 		contains_activity($_) ? [ split ";", $_ ] : ();
 	} <DATA>;
 
 	@ROWS = sort { $a->[3] cmp $b->[3] } @ROWS;
 
-	$FIELD_TOTAL_BUDGET = 0;
+	my $FIELD_TOTAL_BUDGET = 0;
 	say "Fecha;Centro;Nom Cen;cod Act; Actividad; Trimestre; Gasto; control";
 	for (@ROWS) {
+		my $ROW = $_;
+
+		# gggggggggggggggggggrep
+		my $FIELD_ACT_CODE = `ggrep -r \Q$ROW->[3]\E \Q$MAEDIR/actividades.csv`;
+		my $FIELD_EXPENSE_SCHEDULED = "";
+		if ($FIELD_ACT_CODE) {
+			$FIELD_ACT_CODE =~ s/\;.+//g;
+
+			my $EXISTS_IN_AXC = `ggrep -r \Q$FIELD_ACT_CODE\\\;$ROW->[2]\$\E \Q$MAEDIR/tabla-AxC.csv`;
+			$FIELD_EXPENSE_SCHEDULED = $EXISTS_IN_AXC ? "" : "gasto fuera de la planificacion";
+		} else {
+			die "actividades.csv file doesn't contain $ROW->[3].";
+		}
+
+		# Get the central name.
+		my $FIELD_CENTRAL_NAME = `ggrep -r \Q$ROW->[2]\\\;\E \Q$MAEDIR/centros.csv`;
+		$FIELD_CENTRAL_NAME =~ s/.+\;//g;
+
+		# No f'ing idea were to get the 'provincia'. Theres no field in any of the data sources. Only actividades.csv has :nom_act with some fields with 'provincias' but still there are a lot more without, so its not.
+
+		say "$ROW->[1];$ROW->[2];$FIELD_CENTRAL_NAME;$FIELD_ACT_CODE;$ROW->[3];$ROW->[4];$ROW->[5];$FIELD_EXPENSE_SCHEDULED";
+		
+		$ROW->[5] =~ s/,/\./g;
+		$FIELD_TOTAL_BUDGET += $ROW->[5];
+	}
+	say ";;;;;Total Credito Fiscal; $FIELD_TOTAL_BUDGET;;"
+}
+
+sub contains_trimester {
+	my ($LINE) = @_;
+
+	if ($CTRL_TRIM_ALL) {
+		return 1; # TRUE
+	} else {
+		for (@CTRL_TRIM) {
+			if ($LINE =~ m/$_/i) {
+				return 1;
+			}
+		}
+
+		return 0;
+	}
+}
+
+sub contains_center {
+	my ($LINE) = @_;
+
+	if ($CTRL_CENT_ALL) {
+		return 1; # TRUE
+	} else {
+		for (@CTRL_CENT) {
+			if ($LINE =~ m/$_/i) {
+				return 1;
+			}
+		}
+
+		return 0;
+	}
+}
+
+sub append_starting_budget_year() {
+	my $LINE = `ggrep -r $LAST_LINE_CENTRAL\\\;\Q$LAST_LINE_TRIMESTRE\E $CTRL[1]`;
+	my @AUX = ( split ";", $LINE );
+	$AUX[2] =~ s/,/\./g;
+	$AUX[3] =~ s/,/\./g;
+	$TRIMESTRE_BUDGET = ($AUX[2] + $AUX[3]);
+	$CUMULATIVE_BUDGET += $TRIMESTRE_BUDGET;
+
+	my $DATE = `ggrep -r $LAST_LINE_TRIMESTRE $MAEDIR/trimestres.csv`;
+	@AUX = ( split ";", $DATE);
+	$DATE = $AUX[2];
+
+	say "(++);$DATE;$LAST_LINE_CENTRAL;0;$LAST_LINE_TRIMESTRE;$TRIMESTRE_BUDGET;$TRIMESTRE_BUDGET;;$CUMULATIVE_BUDGET";
+}
+
+sub swap_last_line_values {
+	my ($LINE) = @_;
+	my $AUX = $LINE;
+	$AUX =~ s/.+\;//;
+	$AUX =~ s/.+\;//;
+	$AUX =~ s/\;.+//;
+	$LAST_LINE_CENTRAL = $AUX;
+
+	$AUX = $LINE;
+	$AUX =~ s/.+\;//;
+	$AUX =~ s/.+\;//;
+	$AUX =~ s/.+\;//;
+	$AUX =~ s/.+\;//;
+	$AUX =~ s/\;.+//;
+	$LAST_LINE_TRIMESTRE = $AUX;
+}
+
+sub check_starting_budget_year {
+	my ($LINE) = @_;
+
+	if ($LAST_LINE_CENTRAL and $LAST_LINE_TRIMESTRE) {
+		#LOGIC FOR CHECKING IF ITS A NEW TRIMESTRE OR CODE AND PRINTING
+		unless ($LINE =~ $LAST_LINE_CENTRAL and $LINE =~ $LAST_LINE_TRIMESTRE) {
+			swap_last_line_values($LINE);
+			return 1;
+		}
+
+		return 0;
+	} else {
+		# Theres no last line, create it and append stuff
+		swap_last_line_values($LINE);
+		return 1;
+	}
+}
+
+sub print_ctrl() {
+	# Headers of files we use:
+	# row:      :id :date :central_code :act_name :trim :expense
+	# act.csv:  :act_code :act_category :act_pgm :act_name
+	# cent.csv: :central_code :central_name
+	# axc.csv:  :act_code :central_code
+
+	open(DATA, "<", "$CTRL[0]") or die "Couldn't open file $CTRL[0], reason: $!";
+
+	# Parse csv splitting by ;. Avoid the header.
+	<DATA>; # Read the header
+	my @ROWS = map { 
+		chomp; 
+		(contains_trimester($_) and contains_center($_)) ? [ split ";", $_ ] : ();
+	} <DATA>;
+
+	# Sort by trimester -> central_code -> date.
+	@ROWS = sort { $a->[4] cmp $b->[4] or
+					$a->[2] cmp $b->[2] or
+					$a->[1] cmp $b->[1] } @ROWS;
+
+	$CUMULATIVE_BUDGET = 0;
+	$TRIMESTRE_BUDGET = 0;
+	$LAST_LINE_CENTRAL = "";
+	$LAST_LINE_TRIMESTRE = "";
+	say "Id;Fecha;Centro;Actividad;Trimestre;Importe;SALDO por TRIMESTRE;CONTROL; SALDO ACUMULADO";
+	for (@ROWS) {
 		$ROW = $_;
+
+		if (check_starting_budget_year($ROW)) {
+			append_starting_budget_year;
+		}
 
 		# gggggggggggggggggggrep
 		$FIELD_ACT_CODE = `ggrep -r \Q$ROW->[3]\E \Q$MAEDIR/actividades.csv`;
@@ -222,18 +375,21 @@ sub print_ejec() {
 			die "actividades.csv file doesn't contain $ROW->[3].";
 		}
 
-		# Get the central name.
-		$FIELD_CENTRAL_NAME = `ggrep -r \Q$ROW->[2]\\\;\E \Q$MAEDIR/centros.csv`;
-		$FIELD_CENTRAL_NAME =~ s/.+\;//g;
-
-		# No f'ing idea were to get the 'provincia'. Theres no field in any of the data sources. Only actividades.csv has :nom_act with some fields with 'provincias' but still there are a lot more without, so its not.
-
-		say "$ROW->[1];$ROW->[2];$FIELD_CENTRAL_NAME;$FIELD_ACT_CODE;$ROW->[3];$ROW->[4];$ROW->[5];$FIELD_EXPENSE_SCHEDULED";
-		
 		$ROW->[5] =~ s/,/\./g;
-		$FIELD_TOTAL_BUDGET += $ROW->[5];
+
+		# Update trimestre budget.
+		$TRIMESTRE_BUDGET -= $ROW->[5];
+
+		# Check if trimestre budget is below zero, have message in control
+		if ($TRIMESTRE_BUDGET < 0) {
+			$FIELD_EXPENSE_SCHEDULED += ". Presupuesto excedido.";
+		}
+
+		# Update cumulative budget
+		$CUMULATIVE_BUDGET -= $ROW->[5];
+
+		say "$ROW->[0];$ROW->[1];$ROW->[2];$ROW->[3];$ROW->[4];$ROW->[5];$TRIMESTRE_BUDGET;$FIELD_EXPENSE_SCHEDULED;$CUMULATIVE_BUDGET";
 	}
-	say ";;;;;Total Credito Fiscal; $FIELD_TOTAL_BUDGET;;"
 }
 
 # Main!
@@ -251,7 +407,7 @@ if (is_already_running) {
 GetOptions(
     'sanc=s' => \$SANC,
     'ejec=s' => \$EJEC,
-    'ctrl=s' => \$CTRL,
+    'ctrl=s{2,2}' => \@CTRL,
     'ct' => \$SANC_CT,
     'tc' => \$SANC_TC,
     'all' => \$EJEC_ALL,
@@ -268,7 +424,7 @@ if ("$HELP") {
 	exit 1;
 }
 
-unless ($SANC or $EJEC or $CTRL) {
+unless ($SANC or $EJEC or @CTRL) {
 	show_help;
 	exit 1;
 }
@@ -287,9 +443,9 @@ if ($EJEC) {
 	exit 0;
 }
 
-if ($CTRL) {
-	if (not(verify_ctrl)) {
-        print_ejec;
+if (@CTRL) {
+	unless (verify_ctrl) {
+        print_ctrl;
     }
     exit 0;
 }
