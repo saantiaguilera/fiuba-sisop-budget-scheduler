@@ -40,6 +40,12 @@ DATASIZE=100
 #   0 if True, 1 if False
 #######################################
 function directory_already_exists {
+  for dir in "${!DIRS[@]}"; do
+    if [ "$dir" == "$GRUPO/$1" ]; then
+      return 0
+    fi
+  done
+
   if [[ -d $PWD/$GRUPO/ ]] && [[ -f $PWD/$GRUPO/$1 ]]; then
     return 0 #True
   else
@@ -133,11 +139,11 @@ return 0
 #   0 if True, 1 if False
 #######################################
 function system_already_installed {
-if [[ -d /$GRUPO/ ]] && [[ -f /$GRUPO/instalep.conf ]]; then
-  return 0 #True
-else
-  return 1 #False
-fi
+  if [[ -d /$GRUPO/ ]] && [[ -f /$GRUPO/instalep.conf ]]; then
+    return 0 #True
+  else
+    return 1 #False
+  fi
 }
 
 #######################################
