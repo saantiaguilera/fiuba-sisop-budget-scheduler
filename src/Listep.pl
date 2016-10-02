@@ -233,7 +233,7 @@ sub print_ejec() {
 			$FIELD_ACT_CODE =~ s/\;.+//g;
 
 			my $EXISTS_IN_AXC = `ggrep -r \Q$FIELD_ACT_CODE\\\;$ROW->[2]\$\E \Q$MAEDIR/tabla-AxC.csv`;
-			$FIELD_EXPENSE_SCHEDULED = $EXISTS_IN_AXC ? "" : "gasto fuera de la planificacion";
+			$FIELD_EXPENSE_SCHEDULED = $EXISTS_IN_AXC ? "" : "Gasto fuera de la planificacion.";
 		} else {
 			die "actividades.csv file doesn't contain $ROW->[3].";
 		}
@@ -363,7 +363,7 @@ sub print_ctrl() {
 			$FIELD_ACT_CODE =~ s/\;.+//g;
 
 			$EXISTS_IN_AXC = `ggrep -r \Q$FIELD_ACT_CODE\\\;$ROW->[2]\$\E \Q$MAEDIR/tabla-AxC.csv`;
-			$FIELD_EXPENSE_SCHEDULED = $EXISTS_IN_AXC ? "" : "gasto fuera de la planificacion";
+			$FIELD_EXPENSE_SCHEDULED = $EXISTS_IN_AXC ? "" : "Gasto fuera de la planificacion.";
 		} else {
 			die "actividades.csv file doesn't contain $ROW->[3].";
 		}
@@ -375,7 +375,11 @@ sub print_ctrl() {
 
 		# Check if trimestre budget is below zero, have message in control
 		if ($TRIMESTRE_BUDGET < 0) {
-			$FIELD_EXPENSE_SCHEDULED += ". Presupuesto excedido.";
+			if ($FIELD_EXPENSE_SCHEDULED) {
+				$FIELD_EXPENSE_SCHEDULED .= " ";
+			}
+
+			$FIELD_EXPENSE_SCHEDULED .= "Presupuesto excedido.";
 		}
 
 		# Update cumulative budget
