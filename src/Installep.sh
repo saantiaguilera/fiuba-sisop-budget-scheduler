@@ -46,7 +46,7 @@ function directory_already_exists {
     fi
   done
 
-  if [[ -d $PWD/$GRUPO/ ]] && [[ -f $PWD/$GRUPO/$1 ]]; then
+  if [[ -d $PWD/$GRUPO/ ]] && [[ -r $PWD/$GRUPO/$1 ]]; then
     return 0 #True
   else
     return 1 #False
@@ -66,9 +66,14 @@ function directory_already_exists {
 function input_directory {
 read directory
 
-if [ "$directory" == "dirconf" ] || [[ -z "${directory// }" ]] || directory_already_exists $directory; then
+if directory_already_exists $directory; then
+  echo "El directorio ya existe. Ingrese otro nombre: "
+  input_directory $1 #Ask the user again for another directory name
+fi
+
+if [ "$directory" == "dirconf" ] || [[ -z "${directory// }" ]]; then
   echo "El directorio "$GRUPO/dirconf", un nombre de directorio que contiene
-  solo espacios, un directorio ya existente o que es vacio son directorios
+  solo espacios o es vacio son directorios
   invalidos. Ingrese otro nombre: "
   input_directory $1 #Ask the user again for another directory name
 else
@@ -139,7 +144,7 @@ return 0
 #   0 if True, 1 if False
 #######################################
 function system_already_installed {
-  if [[ -d /$GRUPO/ ]] && [[ -f /$GRUPO/instalep.conf ]]; then
+  if [[ -d /$GRUPO/ ]] && [[ -r /$GRUPO/instalep.conf ]]; then
     return 0 #True
   else
     return 1 #False
