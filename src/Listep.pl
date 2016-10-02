@@ -195,7 +195,7 @@ if ($SANC) {
 }
 
 if ($EJEC) {
-    if (not(verify_ejec)) {
+    unless (verify_ejec) {
     	# Do something
     }
 	exit 0;
