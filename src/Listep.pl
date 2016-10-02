@@ -285,22 +285,24 @@ sub contains_center {
 }
 
 sub append_starting_budget_year() {
-	my $LINE = `ggrep -r $LAST_LINE_CENTRAL\\\;\Q$LAST_LINE_TRIMESTRE\E $CTRL[1]`;
+	my $LINE = `ggrep -r $LAST_LINE_CENTRAL\\\;\Q$LAST_LINE_TRIMESTRE\E \Q$CTRL[1]`;
 	my @AUX = ( split ";", $LINE );
 	$AUX[2] =~ s/,/\./g;
 	$AUX[3] =~ s/,/\./g;
+
 	$TRIMESTRE_BUDGET = ($AUX[2] + $AUX[3]);
 	$CUMULATIVE_BUDGET += $TRIMESTRE_BUDGET;
 
-	my $DATE = `ggrep -r $LAST_LINE_TRIMESTRE $MAEDIR/trimestres.csv`;
+	my $DATE = `ggrep -r \Q$LAST_LINE_TRIMESTRE\E \Q$MAEDIR/trimestres.csv`;
 	@AUX = ( split ";", $DATE);
 	$DATE = $AUX[2];
+	$DATE =~ s/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/$3$2$1/g;
 
 	say "(++);$DATE;$LAST_LINE_CENTRAL;0;$LAST_LINE_TRIMESTRE;$TRIMESTRE_BUDGET;$TRIMESTRE_BUDGET;;$CUMULATIVE_BUDGET";
 }
 
 sub check_starting_budget_year {
-	my ($ID, $DATE, $CENTRAL_CODE, $ACT_NAME, $TRIM, $EXPENSE) = @_;
+	my ($CENTRAL_CODE, $TRIM) = @_;
 
 	if ($LAST_LINE_CENTRAL and $LAST_LINE_TRIMESTRE) {
 		#LOGIC FOR CHECKING IF ITS A NEW TRIMESTRE OR CODE AND PRINTING
@@ -315,8 +317,6 @@ sub check_starting_budget_year {
 		# Theres no last line, create it and append stuff
 		$LAST_LINE_CENTRAL = $CENTRAL_CODE;
 		$LAST_LINE_TRIMESTRE = $TRIM;
-
-		say "$LAST_LINE_TRIMESTRE, $LAST_LINE_CENTRAL";
 		return 1;
 	}
 }
@@ -336,7 +336,7 @@ sub print_ctrl() {
 		chomp; 
 		(contains_trimester($_) and contains_center($_)) ? [ split ";", $_ ] : ();
 	} <DATA>;
-	
+
 	close DATA or warn $! ? "Error closing sort pipe: $!"
                    : "Exit status $? from sort";
 
@@ -353,11 +353,9 @@ sub print_ctrl() {
 	for (@ROWS) {
 		$ROW = $_;
 
-		if (check_starting_budget_year($ROW)) {
+		if (check_starting_budget_year($ROW->[2], $ROW->[4])) {
 			append_starting_budget_year;
 		}
-
-		return 1;
 
 		# gggggggggggggggggggrep
 		$FIELD_ACT_CODE = `ggrep -r \Q$ROW->[3]\E \Q$MAEDIR/actividades.csv`;
