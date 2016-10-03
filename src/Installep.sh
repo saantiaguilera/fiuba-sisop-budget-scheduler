@@ -42,11 +42,13 @@ DATASIZE=100
 function directory_already_exists {
   for dir in "${DIRS[@]}"; do
     if [ "$dir" == "$GRUPO/$1" ]; then
+      echo "dir exists in DIRS"
       return 0
     fi
   done
 
-  if [[ -d $PWD/$GRUPO/ ]] && [[ -r $PWD/$GRUPO/$1 ]]; then
+  if [[ -d $PWD/$GRUPO/ ]] && [[ ! -z $1 && -r $PWD/$GRUPO/$1 ]]; then
+    echo "dir exists in $GRUPO"
     return 0 #True
   else
     return 1 #False
@@ -167,21 +169,25 @@ SYSTEM_SIZE="`echo $SYSTEM_SIZE_M | sed "s/M$//"`"
 
 echo "Defina espacio minimo libre para la recepcion de archivos en Mbytes (100): "
 read size
+bash $LOGEP -c instalep -m "Espacio que intenta reservar el usuario: $size"
 
 digits='^[0-9]+$'
 if ! [[ $size =~ $digits ]]; then
+  bash $LOGEP -c instalep -m "El espacio ingresado no es un valor numerico." -t ERR
   echo "Debe ingresar un numero entero positivo."
   set_news_size
   return 0
 fi
 
 if [[ $size -gt $SYSTEM_SIZE ]]; then
+  bash $LOGEP -c instalep -m "El espacio ingresado ($size) es insuficiente" -t ERR
   echo "Insuficiente espacio en disco."
   echo "Espacio disponible: $SYSTEM_SIZE Mb."
   echo "Espacio requerido $size Mb."
   echo "Intentelo nuevamente."
   set_news_size
 else
+  bash $LOGEP -c instalep -m "El espacio ingresado ($size) es suficiente" 
   echo "Suficiente espacio en disco."
   echo "Espacio disponible: $SYSTEM_SIZE Mb."
   echo "Espacio requerido $size Mb."
@@ -267,20 +273,20 @@ function installation {
   bash $LOGEP -c instalep -m "Instalando Programas y Funciones"
   shopt -s nullglob
   #bash Movep.sh -c "Instalep" -o "*.sh" -d "$PWD/$DIRBIN"
-  #for file in *.sh; do
-  #  if [[ "$file" != "Installep.sh" ]]; then
-  #    mv $file "${DIRS["DIRBIN"]}/$file"
-  #  fi
-  #  if [[ "$file" == "Logep.sh" ]]; then
-  #    LOGEP="${DIRS["DIRBIN"]}/$file"
-  #  fi
-  #done
+  for file in *.sh; do
+    if [[ "$file" != "Installep.sh" ]]; then
+      mv $file "${DIRS["DIRBIN"]}/$file"
+    fi
+    if [[ "$file" == "Logep.sh" ]]; then
+      LOGEP="${DIRS["DIRBIN"]}/$file"
+    fi
+  done
   bash $LOGEP -c instalep -m "Instalando Archivos Maestros y Tablas"
-  bash Movep.sh -c "Instalep" -o "*(^[0-9]).csv" -d "$PWD/$DIRMAE"
-  bash Movep.sh -c "Instalep" -o "*.csv" -d "$PWD/$DIRNOV"
-  #for file in actividades.csv sancionado-2016.csv centros.csv provincias.csv tabla-AxC.csv trimestres.csv; do
-  #  mv $file "${DIRS["DIRMAE"]}/$file"
-  #done
+  #bash Movep.sh -c "Instalep" -o "*(^[0-9]).csv" -d "$PWD/$DIRMAE"
+  #bash Movep.sh -c "Instalep" -o "*.csv" -d "$PWD/$DIRNOV"
+  for file in actividades.csv sancionado-2016.csv centros.csv provincias.csv tabla-AxC.csv trimestres.csv; do
+    mv $file "${DIRS["DIRMAE"]}/$file"
+  done
 }
 
 #######################################
