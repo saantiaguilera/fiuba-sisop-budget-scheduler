@@ -71,12 +71,12 @@ if directory_already_exists $directory; then
   input_directory $1 #Ask the user again for another directory name
 fi
 
-if [ "$directory" == "dirconf" ] || [[ -z "${directory// }" ]]; then
+if [ "$directory" == "dirconf" ] || [[ ! -z $directory &&  -z "${directory// }" ]]; then
   echo "El directorio "$GRUPO/dirconf", un nombre de directorio que contiene
   solo espacios o es vacio son directorios
   invalidos. Ingrese otro nombre: "
   input_directory $1 #Ask the user again for another directory name
-else
+elif [[ ! -z $directory ]]; then
   local dir=$1
   #set -- "$GRUPO/$directory" "$1"
   DIRS["$dir"]="$GRUPO/$directory"
@@ -258,6 +258,7 @@ function instalation_confirm {
 #######################################
 function installation {
   for i in "${DIRS[@]}"; do
+    bash $LOGEP -c instalep -m "Creando directorio $i"
     echo $i
     mkdir $i
   done
@@ -265,7 +266,7 @@ function installation {
 
   bash $LOGEP -c instalep -m "Instalando Programas y Funciones"
   shopt -s nullglob
-  bash Movep.sh -c "Instalep" -o "*.sh" -d "$PWD/$DIRBIN"
+  #bash Movep.sh -c "Instalep" -o "*.sh" -d "$PWD/$DIRBIN"
   #for file in *.sh; do
   #  if [[ "$file" != "Installep.sh" ]]; then
   #    mv $file "${DIRS["DIRBIN"]}/$file"
@@ -274,7 +275,7 @@ function installation {
   #    LOGEP="${DIRS["DIRBIN"]}/$file"
   #  fi
   #done
-  #bash $LOGEP -c instalep -m "Instalando Archivos Maestros y Tablas"
+  bash $LOGEP -c instalep -m "Instalando Archivos Maestros y Tablas"
   bash Movep.sh -c "Instalep" -o "*(^[0-9]).csv" -d "$PWD/$DIRMAE"
   bash Movep.sh -c "Instalep" -o "*.csv" -d "$PWD/$DIRNOV"
   #for file in actividades.csv sancionado-2016.csv centros.csv provincias.csv tabla-AxC.csv trimestres.csv; do
@@ -297,7 +298,7 @@ function create_conf_archive {
   touch $conf_file
   for i in "${!DIRS[@]}"; do
     local value=${DIRS[$i]}
-    echo "$i=$value=$USER=`date -u`" >> $conf_file
+    echo "$i=$PWD/$value=$USER=`date -u`" >> $conf_file
   done
   bash $LOGEP -c instalep -m "Instalacion CONCLUIDA."
 }
