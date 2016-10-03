@@ -152,14 +152,14 @@ function check_script_permissions() {
 	for SCRIPT in "$DIRBIN/*"
 		do
 			if [ ! -x "$SCRIPT" ]; then
-				log_message "`echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s/%SCRIPT%/$SCRIPT/"`" "$TYPE_WAR"
-				echo `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s/%SCRIPT%/$SCRIPT/"`
+				log_message "`echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s@%SCRIPT%@$SCRIPT@"`" "$TYPE_WAR"
+				echo `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s@%SCRIPT%@$SCRIPT@"`
 				chmod +x $SCRIPT
 			fi
 			
 			if [ ! -x "$SCRIPT" ]; then
-				log_message "`echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR | sed "s/%SCRIPT%/$SCRIPT/"`" "$TYPE_ERR"
-				echo `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR | sed "s/%SCRIPT%/$SCRIPT/"`
+				log_message "`echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR | sed "s@%SCRIPT%@$SCRIPT@"`" "$TYPE_ERR"
+				echo `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_ERR | sed "s@%SCRIPT%@$SCRIPT@"`
 				EXIT_CODE=1
 			fi
 	done
@@ -182,14 +182,14 @@ function check_file_permissions() {
 	for FILE in "$DIRMAE/*"
 		do
 			if [ ! -r "$FILE" ]; then
-				log_message "`echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s/%FILE%/$FILE/"`" "$TYPE_WAR"
-				echo `echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s/%FILE%/$FILE/"`
+				log_message "`echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s@%FILE%@$FILE@"`" "$TYPE_WAR"
+				echo `echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s@%FILE%@$FILE@"`
 				chmod +r $FILE
 			fi
 			
 			if [ ! -r "$FILE" ]; then
-				log_message "`echo $MSG_FILE_WITHOUT_PERMISSIONS_ERR | sed "s/%FILE%/$FILE/"`" "$TYPE_ERR"
-				echo `echo $MSG_FILE_WITHOUT_PERMISSIONS_ERR | sed "s/%FILE%/$FILE/"`
+				log_message "`echo $MSG_FILE_WITHOUT_PERMISSIONS_ERR | sed "s@%FILE%@$FILE@"`" "$TYPE_ERR"
+				echo `echo $MSG_FILE_WITHOUT_PERMISSIONS_ERR | sed "s@%FILE%@$FILE@"`
 				EXIT_CODE=1
 			fi
 	done
@@ -222,11 +222,11 @@ function start_demonep() {
 				bash "$DIRBIN/Demonep.sh" &
 				
 				PROCESS_ID=$(pgrep "Demonep")
-				log_message "`echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"`" "$TYPE_INF"
-				echo `echo $MSG_DEMONEP_PID | sed "s/%PID%/$PROCESS_ID/"`
+				log_message "`echo $MSG_DEMONEP_PID | sed "s@%PID%@$PROCESS_ID@"`" "$TYPE_INF"
+				echo `echo $MSG_DEMONEP_PID | sed "s@%PID%@$PROCESS_ID@"`
 				
-				log_message "`echo $MSG_DEMONEP_MANUAL_STOP | sed "s/%PID%/$PROCESS_ID/"`" "$TYPE_INF"
-				echo `echo $MSG_DEMONEP_MANUAL_STOP | sed "s/%PID%/$PROCESS_ID/"`
+				log_message "`echo $MSG_DEMONEP_MANUAL_STOP | sed "s@%PID%@$PROCESS_ID@"`" "$TYPE_INF"
+				echo `echo $MSG_DEMONEP_MANUAL_STOP | sed "s@%PID%@$PROCESS_ID@"`
 			;;
 			"n")
 				log_message "$MSG_DEMONEP_MANUAL_ACTIVATION" "$TYPE_INF"
