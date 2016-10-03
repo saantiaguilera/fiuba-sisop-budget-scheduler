@@ -208,8 +208,8 @@ sub print_sanc() {
 		my $NAME = "";
 		if ($SANC_TC) {
 			$NAME = $_->[0];
-			#ggggggggggggggggggggggggrep
-			$NAME = `ggrep -r \Q$NAME\\\;\E \Q$MAEDIR/centros.csv`;
+			#gggggggggggggggggggggggrep
+			$NAME = `grep -r \Q$NAME\\\;\E \Q$MAEDIR/centros.csv`;
 			chomp $NAME;
 			$NAME =~ s/.+;//g;
 		}
@@ -298,20 +298,20 @@ sub print_ejec() {
 	for (@ROWS) {
 		my $ROW = $_;
 
-		# gggggggggggggggggggrep
-		my $FIELD_ACT_CODE = `ggrep -r \Q$ROW->[3]\E \Q$MAEDIR/actividades.csv`;
+		# ggggggggggggggggggrep
+		my $FIELD_ACT_CODE = `grep -r \Q$ROW->[3]\E \Q$MAEDIR/actividades.csv`;
 		my $FIELD_EXPENSE_SCHEDULED = "";
 		if ($FIELD_ACT_CODE) {
 			$FIELD_ACT_CODE =~ s/\;.+//g;
 
-			my $EXISTS_IN_AXC = `ggrep -r \Q$FIELD_ACT_CODE\\\;$ROW->[2]\$\E \Q$MAEDIR/tabla-AxC.csv`;
+			my $EXISTS_IN_AXC = `grep -r \Q$FIELD_ACT_CODE\\\;$ROW->[2]\$\E \Q$MAEDIR/tabla-AxC.csv`;
 			$FIELD_EXPENSE_SCHEDULED = $EXISTS_IN_AXC ? "" : "Gasto fuera de la planificacion.";
 		} else {
 			die "actividades.csv file doesn't contain $ROW->[3].";
 		}
 
 		# Get the central name.
-		my $FIELD_CENTRAL_NAME = `ggrep -r \Q$ROW->[2]\\\;\E \Q$MAEDIR/centros.csv`;
+		my $FIELD_CENTRAL_NAME = `grep -r \Q$ROW->[2]\\\;\E \Q$MAEDIR/centros.csv`;
 		$FIELD_CENTRAL_NAME =~ s/.+\;//g;
 
 		# No f'ing idea were to get the 'provincia'. Theres no field in any of the data sources. Only actividades.csv has :nom_act with some fields with 'provincias' but still there are a lot more without, so its not.
@@ -388,7 +388,7 @@ sub contains_center {
 #     TRIMESTRE_BUDGET / CUMULATIVE_BUDGET
 #######################################
 sub append_starting_budget_year() {
-	my $LINE = `ggrep -r $LAST_LINE_CENTRAL\\\;\Q$LAST_LINE_TRIMESTRE\E \Q$CTRL[1]`;
+	my $LINE = `grep -r $LAST_LINE_CENTRAL\\\;\Q$LAST_LINE_TRIMESTRE\E \Q$CTRL[1]`;
 	my @AUX = ( split ";", $LINE );
 	$AUX[2] =~ s/,/\./g;
 	$AUX[3] =~ s/,/\./g;
@@ -396,7 +396,7 @@ sub append_starting_budget_year() {
 	$TRIMESTRE_BUDGET = ($AUX[2] + $AUX[3]);
 	$CUMULATIVE_BUDGET += $TRIMESTRE_BUDGET;
 
-	my $DATE = `ggrep -r \Q$LAST_LINE_TRIMESTRE\E \Q$MAEDIR/trimestres.csv`;
+	my $DATE = `grep -r \Q$LAST_LINE_TRIMESTRE\E \Q$MAEDIR/trimestres.csv`;
 	@AUX = ( split ";", $DATE);
 	$DATE = $AUX[2];
 	$DATE =~ s/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/$3$2$1/g;
@@ -483,12 +483,12 @@ sub print_ctrl() {
 			append_starting_budget_year;
 		}
 
-		# gggggggggggggggggggrep
-		$FIELD_ACT_CODE = `ggrep -r \Q$ROW->[3]\E \Q$MAEDIR/actividades.csv`;
+		# ggggggggggggggggggrep
+		$FIELD_ACT_CODE = `grep -r \Q$ROW->[3]\E \Q$MAEDIR/actividades.csv`;
 		if ($FIELD_ACT_CODE) {
 			$FIELD_ACT_CODE =~ s/\;.+//g;
 
-			$EXISTS_IN_AXC = `ggrep -r \Q$FIELD_ACT_CODE\\\;$ROW->[2]\$\E \Q$MAEDIR/tabla-AxC.csv`;
+			$EXISTS_IN_AXC = `grep -r \Q$FIELD_ACT_CODE\\\;$ROW->[2]\$\E \Q$MAEDIR/tabla-AxC.csv`;
 			$FIELD_EXPENSE_SCHEDULED = $EXISTS_IN_AXC ? "" : "Gasto fuera de la planificacion.";
 		} else {
 			die "actividades.csv file doesn't contain $ROW->[3].";
