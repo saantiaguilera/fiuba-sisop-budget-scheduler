@@ -223,7 +223,7 @@ function start_demonep() {
 				
 				bash "$DIRBIN/Demonep.sh" &
 				
-				PROCESS_ID=$(pgrep "Demonep")
+				PROCESS_ID=$(pgrep "$DIRBIN/Demonep.sh")
 				log_message "`echo $MSG_DEMONEP_PID | sed "s@%PID%@$PROCESS_ID@"`" "$TYPE_INF"
 				echo `echo $MSG_DEMONEP_PID | sed "s@%PID%@$PROCESS_ID@"`
 				
@@ -264,15 +264,14 @@ function destroy_environment() {
 
 
 function main() {
+	
 	# 1. Verify if environment has been initialized
-	echo "1"
 	check_previous_init
 	if [ $? -eq 1 ]; then
 		return 1
 	fi
-	
+
 	# 2. Initialize environment variables
-	echo "2"
 	init_environment
 	if [ $? -eq 1 ]; then
 		destroy_environment
@@ -280,30 +279,25 @@ function main() {
 	fi
 	
 	# 3. Check permissions
-	echo "3.1"
 	check_script_permissions
 	if [ $? -eq 1 ]; then
 		destroy_environment
 		return 3
 	fi
 
-	echo "3.2"
 	check_file_permissions
 	if [ $? -eq 1 ]; then
 		destroy_environment
 		return 4
 	fi
 
-	echo "4"
 	log_message "$MSG_SYSTEM_INITIALIZED" "$TYPE_INF"
 	echo "$MSG_SYSTEM_INITIALIZED"
 	
 	# 4-6. Ask to release the DEMONIO
-	echo "5"
 	start_demonep
 	
 	# 7. Close Log
-	echo "7"
 	log_message "$MSG_INITEP_FINISHED" "$TYPE_INF"
 	echo "$MSG_INITEP_FINISHED"
 }
