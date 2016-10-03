@@ -20,7 +20,7 @@ MSG_ASK_DEMONEP_ACTIVATION="¿Desea efectuar la activación de Demonep? (S/n)"
 MSG_DEMONEP_ACTIVATED="El proceso Demonep ha sido activado."
 MSG_DEMONEP_PID="Demonep corriendo bajo el no.: %PID%."
 MSG_DEMONEP_MANUAL_STOP="Para detener manualmente al proceso Demonep utilice el comando \"kill %PID%\"."
-MSG_DEMONEP_MANUAL_ACTIVATION="Para activar al demonio manualmente puede ingresar \"bash Demonep.sh &\"."
+MSG_DEMONEP_MANUAL_ACTIVATION="Para activar al demonio manualmente puede ingresar \"bash %SCRIPT% &\"."
 MSG_ANSWER_FAILURE="Responda por Sí (S) o por No (N)"
 MSG_INITEP_FINISHED="Proceso Initep finalizado exitosamente."
 
@@ -231,8 +231,8 @@ function start_demonep() {
 				echo `echo $MSG_DEMONEP_MANUAL_STOP | sed "s@%PID%@$PROCESS_ID@"`
 			;;
 			"n")
-				log_message "$MSG_DEMONEP_MANUAL_ACTIVATION" "$TYPE_INF"
-				echo "$MSG_DEMONEP_MANUAL_ACTIVATION"
+				log_message "`echo $MSG_DEMONEP_MANUAL_ACTIVATION | sed "s@%SCRIPT%@$DIRBIN/Demonep.sh@"`" "$TYPE_INF"
+				echo `echo $MSG_DEMONEP_MANUAL_ACTIVATION | sed "s@%SCRIPT%@$DIRBIN/Demonep.sh@"`
 			;;
 			*) echo "$MSG_ANSWER_FAILURE";;
 		esac
