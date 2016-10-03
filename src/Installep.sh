@@ -355,8 +355,8 @@ if instalation_confirm; then
   installation
   create_conf_archive
 fi
-bash $LOGEP -c instalep -m "Fin"
-rm "Installep.sh"
 }
 
 main
+bash $LOGEP -c instalep -m "Fin"
+rm "Installep.sh"
