@@ -13,13 +13,11 @@ function log_message() {
 }
 
 function check_previous_init(){
-  EXIT_CODE=0
   if [ ${ENV-0} -ne 1 ]; then
-      echo "$MSG_ENV_NOT_INITIALIZED"
-      EXIT_CODE=1
+    echo "$MSG_ENV_NOT_INITIALIZED"
+    return 1
   fi
-  
-return $EXIT_CODE
+return 0
 }
 
 function count_files() {
@@ -36,6 +34,7 @@ function count_files() {
 #   None
 #######################################
 function check_for_duplicates() {
+  local file
   for f in "$DIROK"/*".csv"; do
     file="`echo "$f" | rev | cut -d "/" -f 1 | rev`" #TODO: arreglar esta negrada
     if [ -e  "$1"/"$file" ]; then
@@ -56,6 +55,7 @@ function check_for_duplicates() {
 #######################################
 #TODO: not sure about last field, ask.
 function verify_file_format() {
+  local file fields_in_file
   for f in "$DIROK"/*"csv"; do
     file="`echo "$f" | rev | cut -d "/" -f 1 | rev`"
     fields_in_file=$(head "$file" -n 1 | grep -o ";" | wc -l)
@@ -79,7 +79,7 @@ function main() {
   count_files $DIROK
   log_message "$CANT_TO_PROC $?" "$TYPE_INF"
 
-  # 3. Create DIRPROC/proc if not created, make this prettier
+  # 3. Create DIRPROC/proc if not created. fix me.
   if [ ! -e "$DIRPROC/proc" ]; then
     mkdir "$DIRPROC/proc"
   fi
