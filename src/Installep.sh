@@ -272,6 +272,7 @@ function installation {
 
   bash $LOGEP -c instalep -m "Instalando Programas y Funciones"
   shopt -s nullglob
+  bash Movep.sh -c "Instalep" -o "*.pl" -d "$PWD/$DIRBIN"
   #bash Movep.sh -c "Instalep" -o "*.sh" -d "$PWD/$DIRBIN"
   for file in *.sh; do
     if [[ "$file" != "Installep.sh" ]]; then
@@ -281,7 +282,6 @@ function installation {
       LOGEP="${DIRS["DIRBIN"]}/$file"
     fi
   done
-  bash Movep.sh -c "Instalep" -o "*.pl" -d "$PWD/$DIRBIN"
   bash $LOGEP -c instalep -m "Instalando Archivos Maestros y Tablas"
   #bash Movep.sh -c "Instalep" -o "*(^[0-9]).csv" -d "$PWD/$DIRMAE"
   #bash Movep.sh -c "Instalep" -o "*.csv" -d "$PWD/$DIRNOV"
