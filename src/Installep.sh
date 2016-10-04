@@ -187,7 +187,7 @@ if [[ $size -gt $SYSTEM_SIZE ]]; then
   echo "Intentelo nuevamente."
   set_news_size
 else
-  bash $LOGEP -c instalep -m "El espacio ingresado ($size) es suficiente" 
+  bash $LOGEP -c instalep -m "El espacio ingresado ($size) es suficiente"
   echo "Suficiente espacio en disco."
   echo "Espacio disponible: $SYSTEM_SIZE Mb."
   echo "Espacio requerido $size Mb."
@@ -336,21 +336,22 @@ function end_process {
 #   None
 #######################################
 function main {
-#Call to log, begin process
 
 if system_already_installed; then
   echo "Fin"
   return 0
 fi
 
-input_directories
-set_news_size
-#Go back to the beginning if the user don't confirms the values
-#maybe it would be better to change "show_values" name.
+local ready=1 #False
 
-if ! show_values; then
-  main
-fi
+while [ ! $ready ]
+do
+  input_directories
+  set_news_size
+  if show_values; then
+    $ready=0 #True
+  fi
+done
 
 if instalation_confirm; then
   installation
@@ -358,6 +359,7 @@ if instalation_confirm; then
 fi
 }
 
+#Call to log, begin process
 main
 bash $LOGEP -c instalep -m "Fin"
 rm "Installep.sh"
