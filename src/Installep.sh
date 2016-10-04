@@ -269,12 +269,9 @@ function installation {
     mkdir $i
   done
   bash $LOGEP -c instalep -m "Creando Estructuras de directorio ..."
-
   bash $LOGEP -c instalep -m "Instalando Programas y Funciones"
   shopt -s nullglob
-  bash Movep.sh -c "Instalep" -o "*.pl" -d "$PWD/$DIRBIN"
-  #bash Movep.sh -c "Instalep" -o "*.sh" -d "$PWD/$DIRBIN"
-  for file in *.sh; do
+  for file in *.sh *.pl; do
     if [[ "$file" != "Installep.sh" ]]; then
       mv $file "${DIRS["DIRBIN"]}/$file"
     fi
