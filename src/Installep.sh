@@ -73,7 +73,8 @@ if directory_already_exists $directory; then
   input_directory $1 #Ask the user again for another directory name
 fi
 
-if [ "$directory" == "dirconf" ] || [[ ! -z $directory &&  -z "${directory// }" ]]; then
+local letters='^[A-Za-z_]+$'
+if [ "$directory" == "dirconf" ] || [[ ! -z $directory && ! $directory =~ $letters ]]; then
   echo "El directorio "$GRUPO/dirconf", un nombre de directorio que contiene
   solo espacios o es vacio son directorios
   invalidos. Ingrese otro nombre: "
@@ -146,7 +147,7 @@ return 0
 #   0 if True, 1 if False
 #######################################
 function system_already_installed {
-  if [[ -d /$GRUPO/ ]] && [[ -r /$GRUPO/instalep.conf ]]; then
+  if [[ -d "/$GRUPO/" ]] && [[ -e "/$GRUPO/instalep.conf" ]]; then
     return 0 #True
   else
     return 1 #False
@@ -359,4 +360,4 @@ fi
 #Call to log, begin process
 main
 bash $LOGEP -c instalep -m "Fin"
-rm "Installep.sh"
+#rm "Installep.sh"
