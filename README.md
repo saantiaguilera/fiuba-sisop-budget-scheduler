@@ -50,10 +50,14 @@ Se ejecuta con `bash Logep.sh -c comando -m 'Mensaje' -t tipo de mensaje`
 
 #### Demonep
 Se ejecuta con `bash Demonep.sh &`  
-Se detiene con `kill PID`
+Se detiene con `kill PID`. Para obtener el `PID` de Demonep.sh ejecute `pgrep Demonep`
 
 #### Movep
 Se ejecuta con `bash Movep.sh -c comando -o origen -d destino`
+
+### Procep
+Se ejecuta con `bash Procep.sh`
+Demonep.sh es el encargado de ejecutarlo.
 
 #### Listep
 Se ejecuta con `perl Listep.pl --[ejec|sanc|ctrl] -[ct|tc] -[act|act_all] -[trim|trim-all] -[cent|cent-all]`
