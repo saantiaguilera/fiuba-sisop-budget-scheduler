@@ -227,8 +227,10 @@ echo "Desea continuar con la instalacion? (Si - No/Otra cosa)"
 read answer
 answer="${answer,,[SI]}"
 if [ "$answer" == "si" ]; then
+  echo "show_values si"
   return 0
 else
+  echo "show_values no"
   return 1
 fi
 }
@@ -339,14 +341,12 @@ if system_already_installed; then
   return 0
 fi
 
-local ready=1 #False
-
-while [ ! $ready ]
-do
+while true; do
   input_directories
   set_news_size
   if show_values; then
-    $ready=0 #True
+    echo "terminar"
+    break
   fi
 done
 
