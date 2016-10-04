@@ -223,7 +223,7 @@ function start_demonep() {
 				
 				bash "$DIRBIN/Demonep.sh" &
 				
-				PROCESS_ID=$(pgrep "$DIRBIN/Demonep.sh")
+				PROCESS_ID=$(pgrep -f "$DIRBIN/Demonep.sh")
 				log_message "`echo $MSG_DEMONEP_PID | sed "s@%PID%@$PROCESS_ID@"`" "$TYPE_INF"
 				echo `echo $MSG_DEMONEP_PID | sed "s@%PID%@$PROCESS_ID@"`
 				

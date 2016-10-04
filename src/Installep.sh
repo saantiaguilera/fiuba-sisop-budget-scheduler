@@ -281,6 +281,7 @@ function installation {
       LOGEP="${DIRS["DIRBIN"]}/$file"
     fi
   done
+  bash Movep.sh -c "Instalep" -o "*.pl" -d "$PWD/$DIRBIN"
   bash $LOGEP -c instalep -m "Instalando Archivos Maestros y Tablas"
   #bash Movep.sh -c "Instalep" -o "*(^[0-9]).csv" -d "$PWD/$DIRMAE"
   #bash Movep.sh -c "Instalep" -o "*.csv" -d "$PWD/$DIRNOV"
