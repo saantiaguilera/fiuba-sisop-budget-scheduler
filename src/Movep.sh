@@ -121,8 +121,8 @@ fi
 LOG_MSG=""
 if [ -f "$TARGET/`echo "$SOURCE" | sed "s/.*\///"`" ]
 then
-    mkdir -p "$DIRBIN/$DIRDPL" >/dev/null  # Create a dir inside bindir for storing duplicates
-    mv_with_backup "$SOURCE" "$DIRBIN/$DIRDPL"
+    mkdir -p "$DIRREP/$DIRDPL" >/dev/null  # Create a dir inside bindir for storing duplicates
+    mv_with_backup "$SOURCE" "$DIRREP/$DIRDPL"
 
     LOG_MSG="`echo "$MSG_INF_DUPLICATE_FILE" | sed "s+%SRC%+$SOURCE+" | sed "s+%DEST%+$PWD+" | sed "s+%TARGET%+$TARGET+"`"
 else
