@@ -266,6 +266,7 @@ function installation {
   bash $LOGEP -c instalep -m "Instalando Programas y Funciones"
   shopt -s nullglob
   bash Movep.sh -c "Instalep" -o "*.sh" -d "$PWD/$DIRBIN"
+  bash Movep.sh -c "Instalep" -o "*.pl" -d "$PWD/$DIRBIN"
   #for file in *.sh; do
   #  if [[ "$file" != "Installep.sh" ]]; then
   #    mv $file "${DIRS["DIRBIN"]}/$file"
