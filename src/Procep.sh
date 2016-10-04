@@ -24,11 +24,20 @@ function count_files() {
   return $(ls -1 $1 | wc -l)
 }
 
+#######################################
+#Checks for duplicate files in DIROK, if found, moves them to DIRNOK.
+# Globals:
+#   GRUPO, DIRBIN, DIROK, DIRNOK
+# Arguments:
+#   DIRPROC/proc
+# Returns:
+#   None
+#######################################
 function check_for_duplicates() {
-  for f in "$1"/*".csv"; do
+  for f in "$DIROK"/*".csv"; do
     file="`echo "$f" | rev | cut -d "/" -f 1 | rev`" #TODO: arreglar esta negrada
-    if [ -e  "$2"/"$file" ]; then
-      log_message "$DUPL_FILE_MSG $f" "TYPE_ERR"
+    if [ -e  "$1"/"$file" ]; then
+      log_message "$DUPL_FILE_MSG $file" "TYPE_ERR"
       bash "$DIRBIN/Movep.sh" -c "Procep" -o "$DIROK/$file" -d "$DIRNOK"
     fi
   done
@@ -52,7 +61,7 @@ function main() {
   fi
 
   # 4. Check for duplicate files
-  check_for_duplicates "$DIROK" "$DIRPROC/proc"
+  check_for_duplicates "$DIRPROC/proc"
 
   # 5. Verify file format
   #verify_file_format "$DIROK"
