@@ -8,10 +8,10 @@
 # - Must be runned in an environment which has previously run Initep (To ensure we can reach the environment variables set by it in their exports).
 
 #### Dirs ####
-DIR_REJECTED=$DIRNOK
-DIR_ACCEPTED=$DIROK
-DIR_NEWS=$DIRREC
-DIR_ASSETS=$DIRMAE
+DIR_REJECTED="$DIRNOK"
+DIR_ACCEPTED="$DIROK"
+DIR_NEWS="$DIRREC"
+DIR_ASSETS="$DIRMAE"
 
 #### Shell scripts ####
 sh_mov="$DIRBIN/Movep.sh"
@@ -287,7 +287,7 @@ while true; do
 
 	parse_state_codes
        parse_budget_dates
-	FILES=$(ls $DIR_NEWS)
+	FILES=$(ls "$DIR_NEWS")
 	for FILE in $FILES ;do
 		# Exit code can be: 0-OK / 1-Error_found_but_dunno_which / 2-Error_sought_n_destroyed
 		let "EXIT_CODE = 0"
@@ -320,7 +320,7 @@ while true; do
 		fi
 	done
 
-	get_files_count $DIR_ACCEPTED
+	get_files_count "$DIR_ACCEPTED"
 	if [ $FILES_SIZE -gt 0 ]
 		then
 			if [[ $(ps aux | grep "Procep") == "" ]]

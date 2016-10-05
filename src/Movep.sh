@@ -126,7 +126,7 @@ then
 
     LOG_MSG="`echo "$MSG_INF_DUPLICATE_FILE" | sed "s+%SRC%+$SOURCE+" | sed "s+%DEST%+$PWD+" | sed "s+%TARGET%+$TARGET+"`"
 else
-    mv $SOURCE $TARGET
+    mv "$SOURCE" "$TARGET"
 
     LOG_MSG="`echo "$MSG_INF_FILE" | sed "s+%SRC%+"$SOURCE"+" | sed "s+%DEST%+"$TARGET"+"`"
 fi
