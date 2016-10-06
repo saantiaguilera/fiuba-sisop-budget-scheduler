@@ -24,7 +24,6 @@ Listep.pl is a high level perl script to report logs about the scheduling year, 
 --ejec [EXEC_FILE]: Lists in executed budgets mode.
 
 --ctrl [EXEC_FILE] [SANC_FILE]: Lists in control mode.
- sanciones.
 
 Note: Only one of the three may be present at a time.
 
