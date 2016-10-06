@@ -274,7 +274,7 @@ function installation {
   bash $LOGEP -c instalep -m "Creando Estructuras de directorio ..."
   bash $LOGEP -c instalep -m "Instalando Programas y Funciones"
   shopt -s nullglob
-  for file in *.sh *.pl; do
+  for file in *.sh *.pl *.man; do
     if [[ "$file" != "Installep.sh" ]]; then
       mv $file "${DIRS["DIRBIN"]}/$file"
     fi

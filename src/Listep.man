@@ -1,5 +1,6 @@
-." Man for Listep.pl
+." Man for Listep.pl. Using .man extension for faster portability (instead of Listep.7)
 
+." Header. Miscelaneous category.
 .TH "Listep.pl" 7 "October 6 2016" "version 1.0"
 .SH NAME
 Listep.pl - Reports and log creator for budget scheduling.
