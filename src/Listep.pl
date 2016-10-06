@@ -56,59 +56,7 @@ sub is_initialized {
 # Show the help menu.
 #######################################
 sub show_help {
-	say "Uso: $0 -[sanc|ejec|ctrl] -[ct|tc] -[act|all] -[trim|trim-all|cent|cent-all]
-	
-Arguments:
-
---sanc: Lista en modo de sanciones. Debe estar seguido de un archivo de sanciones a ser procesado.
-
---ejec: Lista en modo de ejecutados. Debe estar seguido de un archivo de presupuestos a ser procesado.
-
---ctrl: Lista en modo de control. Debe estar seguido de un archivo de presupuestos y otro de sanciones.
-
-	Nota: Solo uno de los tres puede estar presente a la vez.
-
-	Ejemplo: ./Listep.pl -sanc path/a/mi/archivo.csv
-	
-Arguments para presupuesto sancionado:
-
--ct : Ordenados por codigo de central y sino por trimestres
-	
--tc : Ordenados por trimestres y sino por codigo de central
-	
-	Nota: Solo se puede ingresar uno de los dos.
-	
-	Ejemplo: ./Listep.pl -sanc -ct 
-
-Arguments para presupuesto ejecutado:
-
--all : Filtra todas las actividades
-	
--act : Filtra una o mas actividades (Se pasan dentro de comillas, separados con espacios)
-	
-	Nota: Si se pasan tanto filtros de act como de all, se invalidan los de act y se usan solo all. (Uno pisa al otro)
-
-	Ejemplo: ./Listep.pl -ejec -act \"Actividad uno\" \"Actividad dos\"
-
-Arguments para control de un presupuesto ejecutado:
-	
--trim-all : Todos los trimestres
-	
--trim : Uno o mas trimestres (Se pasan dentro de comillas, separados cone spacios)
-	
--cent-all : Todos los centros
-	
--cent : Uno o mas centros (Se pasan dentro de comillas, separados con espacios)
-
-	Nota: Si se pasan filtros especificos y el -all en algun caso, se tomaran todos y no se hara uso de los especificos
-    
-	Ejemplo: ./Listep.pl -ctrl -trim \"Trimestre uno\" \"Trimestre dos\" -cent-all
-
--help | -h : Help
-
--output | -o : Output file. Si no se especifica un nombre en particular, TIMESTAMP-listep-file.csv va a ser el nombre del archivo.
-	
-	Nota: Es recomendable que la extension sea .csv, pero no se hacen validaciones asi que se puede usar cualquiera.";
+    say "Help can be found in the man. Run \"man ./Listep.man\" for more information :)";
 }
 
 # VERIFICATION

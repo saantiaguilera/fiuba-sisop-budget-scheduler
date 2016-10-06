@@ -1,0 +1,76 @@
+." Man for Listep.pl
+
+.TH "Listep.pl" 7 "October 6 2016" "version 1.0"
+.SH NAME
+Listep.pl - Reports and log creator for budget scheduling.
+
+.SH SYNOPSIS
+
+perl Listep.pl --sanc [sanc_file] - Create a log report about a cancelled file (sancionado_nnnn.csv)
+
+perl Listep.pl --ejec [ejec_file] - Create a log report about a budget file (ejecutado_xxxx_nn_yyyymmdd.csv)
+
+perl Listep.pl --ctrl [ejec_file] [sanc_file] - Create a log report about a whole budget in a year.
+
+.SH DESCRIPTION
+
+Listep.pl is a high level perl script to report logs about the scheduling year, including balance accounting, filtering, sorting and csv exporting.
+
+.SH OPTIONS
+
+--sanc [SANC_FILE]: Lists in sanctions mode.
+
+--ejec [EXEC_FILE]: Lists in executed budgets mode.
+
+--ctrl [EXEC_FILE] [SANC_FILE]: Lists in control mode.
+ sanciones.
+
+Note: Only one of the three may be present at a time.
+
+Example: ./Listep.pl -sanc path/a/mi/archivo.csv
+
+.SH SANCTION OPTIONS
+
+-ct : Sorts first by central code and inside by trimesters.
+
+-tc : Sorts first by trimester and inside by central codes.
+
+Note: Only one of the filters can be used at a time.
+
+Example: ./Listep.pl -sanc -ct
+
+.SH EXECUTED OPTIONS
+
+-all : Filters by all activities
+
+-act : Filters by one or more activitites (Each one goes inside quotes, separated by spaces)
+
+Note: If both filters passed, all activities will be filtered.
+
+Example: ./Listep.pl -ejec -act "Activity one" "Activity two"
+
+.SH CONTROL OPTIONS
+
+-trim-all : Filters by all trimesters
+
+-trim : Filters by one or more trimesters (Each one goes inside quotes, separated by spaces)
+
+-cent-all : Filters by all centers
+
+-cent : Filters by one or more centers (Each one goes inside quotes, separated by spaces)
+
+Note: If specific filters and -all are passed for the same category, all fields for the cateogry will be applied instead of the specifics.
+
+Example: ./Listep.pl -ctrl -trim "Trimestre uno" "Trimestre dos" -cent-all
+
+.SH MISCELANEOUS OPTIONS
+
+-help | -h : Help
+
+-output | -o : Output file. If no name specified a unique-default name will be used.
+
+Note: The recommended extension to use for output files is .csv but you are free to use whichever fits your needs.
+
+.SH AUTHOR
+
+FIUBA - Sistemas Operativos - 6th Team
