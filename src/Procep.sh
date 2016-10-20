@@ -10,7 +10,7 @@ CANT_REG_ERR="Cantidad de registros con errores: "
 TYPE_ERR="ERR"
 TYPE_INF="INF"
 TYPE_WAR="WAR"
-NUMBER_OF_FIELDS=6
+NUMBER_OF_FIELDS=5
 
 
 declare -A ERRORS=(["0"]="centro inexistente" 
@@ -47,11 +47,11 @@ function count_files() {
 #######################################
 function check_for_duplicates() {
   local file
-  for f in "$DIROK"/*".csv"; do
+  for f in "$DIROK/"* ; do
     file="`echo "$f" | rev | cut -d "/" -f 1 | rev`" #TODO: arreglar esta negrada
     if [ -e  "$1"/"$file" ]; then
       log_message "$DUPL_FILE_MSG $file" "$TYPE_ERR"
-      bash "$DIRBIN/Movep.sh" -c "Procep" -o "$DIROK/$file" -d "$DIRNOK"
+      bash "$DIRBIN/Movep.sh" -c "Procep" -o "$f" -d "$DIRNOK"
     fi
   done
 }
@@ -67,13 +67,13 @@ function check_for_duplicates() {
 #######################################
 function verify_file_format() {
   local file fields_in_file
-  for f in "$DIROK"/*".csv"; do
+  for f in "$DIROK/"* ; do
     file="`echo "$f" | rev | cut -d "/" -f 1 | rev`"
-    fields_in_file=$(head "$file" -n 1 | grep -o ";" | wc -l)
-    fields_in_file+=1
-    if [ fields_in_file -ne NUMBER_OF_FIELDS ]; then
+    fields_in_file=$(head "$f" -n 1)
+    local res="${fields_in_file//[^;]}"
+    if [ "${#res}" -ne "$NUMBER_OF_FIELDS" ]; then
       log_message "$BAD_FRMT_FILE $file." "$TYPE_ERR"
-      bash "$DIRBIN/Movep.sh" -c "Procep" -o "$DIROK/$file" -d "$DIRNOK"
+      bash "$DIRBIN/Movep.sh" -c "Procep" -o "$f" -d "$DIRNOK"
     fi
   done
 }
@@ -183,22 +183,20 @@ function validate_date_with_trimester() {
 
   if [ "$date" -le "$file_date" ]; then
     trimester=$(echo "$1" | cut -d ";" -f 5)
-    result=$(grep -Fq "$trimester" "$DIRMAE/trimestres.csv")
+    result=$(grep -F "$trimester" "$DIRMAE/trimestres.csv")
 
     start=$(echo "$result" | cut -d ";" -f 3)
-    day =$(echo "$start" | cut -d "/" -f 1)
-    month =$(echo "$start" | cut -d "/" -f 2)
-    year =$(echo "$start" | cut -d "/" -f 3)
-    start="$year""$month""$day" #ready for comparison
+    day=$(echo "$start" | cut -d "/" -f 1)
+    month=$(echo "$start" | cut -d "/" -f 2)
+    year=$(echo "$start" | cut -d "/" -f 3)
+    start="$year$month$day" #ready for comparison
 
     finish=$(echo "$result" | cut -d ";" -f 4)
-    start=$(echo "$finish" | cut -d ";" -f 3)
-    day =$(echo "$finish" | cut -d "/" -f 1)
-    month =$(echo "$finish" | cut -d "/" -f 2)
-    year =$(echo "$finish" | cut -d "/" -f 3)
+    day=$(echo "$finish" | cut -d "/" -f 1)
+    month=$(echo "$finish" | cut -d "/" -f 2)
+    year=$(echo "$finish" | cut -d "/" -f 3)
     finish="$year""$month""$day" #ready for comparison
-
-    if [ "$date" -ge "start" -a "$date" -le "$finish"]; then
+    if [ "$date" -ge "$start" -a "$date" -le "$finish" ]; then
       return 0 #True
     fi
   fi
@@ -216,8 +214,9 @@ function validate_date_with_trimester() {
 #######################################
 function validate_expenses() {
   local expenses=$(echo "$1" | cut -d ";" -f 6)
-  local result=$(bc -l <<< "$expenses >= 0")
-  if [ "$result" -eq 1 ]; then
+  #local result="`echo "$expenses" > 0 | bc -l)`"
+  #echo "$result"
+  if [[ "$expenses" -ge 0 ]]; then
     return 0 #True
   else
     return 1 #False
@@ -236,16 +235,19 @@ function validate_expenses() {
 function look_for_errors() {
   local let index=0
   local error_found=0
-  for i in "${$1[@]}"; do
+  for i in "${arr[@]}"; do
     if [ "$i" -eq 1 ]; then
       reg_errors+="${ERRORS[$index]}. "
-      let reg_val_err+=1
       error_found=1
     fi
     let reg_val_ok+=1
     let index+=1
   done
-  return error_found
+  if [ "$error_found" -eq 0 ]; then
+    return 0 #True
+  else
+    return 1 #False
+  fi
 }
 
 #######################################
@@ -261,16 +263,21 @@ function look_for_errors() {
 #######################################
 function validate_fields() {
   local file reg_val_ok lines year
-  for f in "$DIROK"/*".csv"; do
+  for f in "$DIROK/"* ; do
     reg_val_ok=0
     reg_val_err=0
     reg_val_tot=0
     file="`echo "$f" | rev | cut -d "/" -f 1 | rev`"
     log_message "$FL_TO_PROC $file." "$TYPE_INF"
     lines=$(wc -l < $file)
+    local i=0
     while read -r reg; do
+      let i+=1
+      if [ "$i" -eq 1 ]; then
+        continue
+      fi
       reg_errors=""
-      local arr=()
+      arr=()
       let reg_val_tot+=6
       validate_center "$reg"
       arr+=("$?")
@@ -278,23 +285,24 @@ function validate_fields() {
       arr+=("$?")
       validate_trimester "$reg"
       arr+=("$?")
-      Validate_date "$reg" "$file"
+      validate_date "$reg" "$f"
       arr+=("$?")
-      validate_date_with_trimester "$reg" "$file"
+      validate_date_with_trimester "$reg" "$f"
       arr+=("$?")
       validate_expenses "$reg"
       arr+=("$?")
       #Done validating, now lets check if we have any errors
-      look_for_errors "$arr"
+      look_for_errors
       local year=$(echo "$file" | cut -d "_" -f 2)
       if [ "$?" -eq 1 ]; then #There was an error
+        let reg_val_err+=1
         write_to_rejected "$reg" "$reg_errors" "$DIRPROC/rechazado-$year"
       else  #Reg was ok
         write_to_accepted "$reg" "$DIRPROC/ejecutado-$year"
       fi
-    done < tail -n lines "$file"
+    done < "$f" #tail -n "$lines" "$file"
     #After proccesing, file is moved
-    bash "$DIRBIN/Movep.sh" -c "Procep" -o "$DIROK/$file" -d "$DIRPROC/proc"
+    bash "$DIRBIN/Movep.sh" -c "Procep" -o "$f" -d "$DIRPROC/proc"
 
     log_message "$CANT_REG_TOT $reg_val_tot" "$TYPE_INF"
     log_message "$CANT_REG_OK $reg_val_ok" "$TYPE_INF"
