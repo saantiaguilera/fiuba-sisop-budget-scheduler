@@ -73,7 +73,7 @@ if directory_already_exists $directory; then
   input_directory $1 #Ask the user again for another directory name
 fi
 
-local letters='^[A-Za-z_]+$'
+local letters='^[A-Za-z_/]+$'
 if [ "$directory" == "dirconf" ] || [[ ! -z $directory && ! $directory =~ $letters ]]; then
   echo "El directorio "$GRUPO/dirconf", es invalido. Ingrese otro nombre: "
   input_directory $1 #Ask the user again for another directory name
