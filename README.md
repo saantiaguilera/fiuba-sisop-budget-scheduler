@@ -25,13 +25,13 @@ El paquete EPLAM-6.tar.gz se puede descargar desde el repositorio `https://githu
 Esta instalación nos deja:
 * Directorio de Configuración: Donde se econtrarán los archivos con las configuraciones predefinidas por el usuario.
 * Directorio de Ejecutables: Donde se encontrarán los scripts a usar por el sistema y archivos duplicados en caso de ser generados.
-* Directorio de Maestros y Tablas: Donde se encontrarán los assets a ser utilizados por el sistema
+* Directorio de Maestros y Tablas: Donde se encontrarán los assets a ser utilizados por el sistema.
 * Directorio de Recepción de Novedades:  Donde se encontrarán las novedades a ser verificadas por el daemon.
 * Directorio de Archivos Aceptados: Donde se encontrarán las novedades verificadas correctamente por el daemon.
-* Directorio de Archivos Procesados: Donde se encontrarán las novedades procesadas por el Procep
-* Directorio de Archivos de Reportes: **a completar**
-* Directorio de Archivos de Log: Donde se encontrarán los logs producidos por cada script del sistema
-* Directorio de Archivos Rechazados: Donde se encontrarán las novedades verificadas incorrectamente por el daemon
+* Directorio de Archivos Procesados: Donde se encontrarán las novedades procesadas por el Procep.
+* Directorio de Archivos de Reportes: No hay.
+* Directorio de Archivos de Log: Donde se encontrarán los logs producidos por cada script del sistema.
+* Directorio de Archivos Rechazados: Donde se encontrarán las novedades verificadas incorrectamente por el daemon.
 
 ### Ejecución del sistema
 Luego de la instalación, se debe ejecutar el comando Initep. El mismo creará las variables de entorno del sistema según la configuración indicada por el usuario durante la ejecución de Installep, verificará permisos y brindará indicaciones para la ejecución del comando Demonep.  
@@ -43,7 +43,7 @@ Si desea limpiar las variables de entorno generadas por el sistema, simplemente 
 Se ejecuta con `bash Installep.sh`
 
 #### Initep
-Se ejecuta con `bash Initep.sh`
+Se ejecuta con `. Initep.sh`
 
 #### Logep
 Se ejecuta con `bash Logep.sh -c comando -m 'Mensaje' -t tipo de mensaje`
@@ -64,4 +64,3 @@ Se ejecuta con `perl Listep.pl --[ejec|sanc|ctrl] -[ct|tc] -[act|act_all] -[trim
 
 ### Aclaraciones
 * El comando Initep se debe correr una única vez por sesión.
-**COMPLETAR**
