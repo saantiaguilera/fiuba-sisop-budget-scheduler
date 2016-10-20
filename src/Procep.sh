@@ -2,11 +2,23 @@ MSG_ENV_NOT_INITIALIZED="Ambiente no inicializado, ejecute Initep.sh."
 CANT_TO_PROC="Cantidad de archivos a procesar:"
 DUPL_FILE_MSG="Archivo Duplicado. Se rechaza el archivo"
 BAD_FRMT_FILE="Estructura inesperada. Se rechaza el archivo"
+FL_TO_PROC="Archivo a procesar"
+CANT_REG_TOT="Cantidad de registros leidos: "
+CANT_REG_OK="Cantidad de registros ok: "
+CANT_REG_ERR="Cantidad de registros con errores: "
 
 TYPE_ERR="ERR"
 TYPE_INF="INF"
 TYPE_WAR="WAR"
 NUMBER_OF_FIELDS=6
+
+
+declare -A ERRORS=(["0"]="centro inexistente" 
+  ["1"]="Actividad inexistente"
+  ["2"]="Trimestre invalido"
+  ["3"]="Fecha invalida"
+  ["4"]="La fecha no se corresponde con el trimestre indicado"
+  ["5"]="Importe invalido")
 
 function log_message() {
   bash "$DIRBIN/Logep.sh" -c "Procep" -m "$1" -t "$2"
@@ -38,7 +50,7 @@ function check_for_duplicates() {
   for f in "$DIROK"/*".csv"; do
     file="`echo "$f" | rev | cut -d "/" -f 1 | rev`" #TODO: arreglar esta negrada
     if [ -e  "$1"/"$file" ]; then
-      log_message "$DUPL_FILE_MSG $file" "TYPE_ERR"
+      log_message "$DUPL_FILE_MSG $file" "$TYPE_ERR"
       bash "$DIRBIN/Movep.sh" -c "Procep" -o "$DIROK/$file" -d "$DIRNOK"
     fi
   done
@@ -53,18 +65,241 @@ function check_for_duplicates() {
 # Returns:
 #   None
 #######################################
-#TODO: not sure about last field, ask.
 function verify_file_format() {
   local file fields_in_file
-  for f in "$DIROK"/*"csv"; do
+  for f in "$DIROK"/*".csv"; do
     file="`echo "$f" | rev | cut -d "/" -f 1 | rev`"
     fields_in_file=$(head "$file" -n 1 | grep -o ";" | wc -l)
     fields_in_file+=1
     if [ fields_in_file -ne NUMBER_OF_FIELDS ]; then
-      log_message "$BAD_FRMT_FILE $file" "TYPE_ERR"
+      log_message "$BAD_FRMT_FILE $file." "$TYPE_ERR"
       bash "$DIRBIN/Movep.sh" -c "Procep" -o "$DIROK/$file" -d "$DIRNOK"
     fi
   done
+}
+
+function write_to_rejected() {
+  echo "$1;$2" >> "$3".csv
+}
+
+function write_to_accepted() {
+  echo "$1" >> "$2".csv
+}
+
+#######################################
+#Validates that the center exists
+# Globals:
+#   DIRMAE
+# Arguments:
+#   File register
+# Returns:
+#   True or False
+#######################################
+function validate_center() {
+  local center=$(echo "$1" | cut -d ";" -f 3)
+  local result=$(grep -Fq "$center" "$DIRMAE/centros.csv")
+  
+  if [ "$result" ] ; then
+    return 0 #True
+  else
+    return 1 #False
+  fi
+}
+#######################################
+#Validates that the activity exists
+# Globals:
+#   DIRMAE
+# Arguments:
+#   File register
+# Returns:
+#   True or False
+#######################################
+function validate_activity() {
+  local activity=$(echo "$1" | cut -d ";" -f 4)
+  local result=$(grep -Fq "$activity" "$DIRMAE/actividades.csv")
+  
+  if [ "$result" ]; then
+    return 0 #True
+  else
+    return 1 #False
+  fi
+}
+
+#######################################
+#Validates the trimester
+# Globals:
+#   DIRMAE
+# Arguments:
+#   File register
+# Returns:
+#   True or False
+#######################################
+function validate_trimester() {
+  local trimester=$(echo "$1" | cut -d ";" -f 5)
+  local result=$(grep -Fq "$trimester" "$DIRMAE/trimestres.csv")
+  
+  if [ "$result" ]; then
+    local year1=$(echo "$result" | cut -d ";" -f 1)
+    local year2=$(echo "$trimester" | tail -c 4)
+    if [ "$year1" -eq "$year2"  ]; then
+      return 0 #True
+    fi
+  fi
+  return 1 #False
+}
+
+#######################################
+#Validates the date
+# Globals:
+#   DIRMAE
+# Arguments:
+#   File register
+# Returns:
+#   True or False
+#######################################
+function validate_date() {
+  local date=$(echo "$1" | cut -d ";" -f 2)
+  local file_date=$(echo "$2" | cut -d "_" -f 4 | cut -d "." -f 1)
+
+  if [ "$date" -le "$file_date" ]; then
+    return 0 #True
+  fi
+  return 1 #False
+}
+
+#######################################
+#Validates that the date exists in the trimester
+# Globals:
+#   DIRMAE
+# Arguments:
+#   File register
+# Returns:
+#   True or False
+#######################################
+function validate_date_with_trimester() {
+  local trimester result start finish day month year
+  local date=$(echo "$1" | cut -d ";" -f 2)
+  local file_date=$(echo "$2" | cut -d "_" -f 4 | cut -d "." -f 1)
+
+  if [ "$date" -le "$file_date" ]; then
+    trimester=$(echo "$1" | cut -d ";" -f 5)
+    result=$(grep -Fq "$trimester" "$DIRMAE/trimestres.csv")
+
+    start=$(echo "$result" | cut -d ";" -f 3)
+    day =$(echo "$start" | cut -d "/" -f 1)
+    month =$(echo "$start" | cut -d "/" -f 2)
+    year =$(echo "$start" | cut -d "/" -f 3)
+    start="$year""$month""$day" #ready for comparison
+
+    finish=$(echo "$result" | cut -d ";" -f 4)
+    start=$(echo "$finish" | cut -d ";" -f 3)
+    day =$(echo "$finish" | cut -d "/" -f 1)
+    month =$(echo "$finish" | cut -d "/" -f 2)
+    year =$(echo "$finish" | cut -d "/" -f 3)
+    finish="$year""$month""$day" #ready for comparison
+
+    if [ "$date" -ge "start" -a "$date" -le "$finish"]; then
+      return 0 #True
+    fi
+  fi
+  return 1 #False
+}
+
+#######################################
+#Validates that the expenses >= 0
+# Globals:
+#   DIRMAE
+# Arguments:
+#   File register
+# Returns:
+#   True or False
+#######################################
+function validate_expenses() {
+  local expenses=$(echo "$1" | cut -d ";" -f 6)
+  local result=$(bc -l <<< "$expenses >= 0")
+  if [ "$result" -eq 1 ]; then
+    return 0 #True
+  else
+    return 1 #False
+  fi
+}
+
+#######################################
+#Checks if there are any errors in the register
+# Globals:
+#   DIRMAE ERRORS
+# Arguments:
+#   array of possible errors
+# Returns:
+#   True or False
+#######################################
+function look_for_errors() {
+  local let index=0
+  local error_found=0
+  for i in "${$1[@]}"; do
+    if [ "$i" -eq 1 ]; then
+      reg_errors+="${ERRORS[$index]}. "
+      let reg_val_err+=1
+      error_found=1
+    fi
+    let reg_val_ok+=1
+    let index+=1
+  done
+  return error_found
+}
+
+#######################################
+#Iterates over all the files on DIROK and checks each register
+# for errors, if found writes to rechazado-$year else ejecutado-year.
+# Moves files to DIRPROC/proc.
+# Globals:
+#   DIRMAE DIROK DIRBIN DIRPROC
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+function validate_fields() {
+  local file reg_val_ok lines year
+  for f in "$DIROK"/*".csv"; do
+    reg_val_ok=0
+    reg_val_err=0
+    reg_val_tot=0
+    file="`echo "$f" | rev | cut -d "/" -f 1 | rev`"
+    log_message "$FL_TO_PROC $file." "$TYPE_INF"
+    lines=$(wc -l < $file)
+    while read -r reg; do
+      reg_errors=""
+      local arr=()
+      let reg_val_tot+=6
+      validate_center "$reg"
+      arr+=("$?")
+      validate_activity "$reg"
+      arr+=("$?")
+      validate_trimester "$reg"
+      arr+=("$?")
+      Validate_date "$reg" "$file"
+      arr+=("$?")
+      validate_date_with_trimester "$reg" "$file"
+      arr+=("$?")
+      validate_expenses "$reg"
+      arr+=("$?")
+      #Done validating, now lets check if we have any errors
+      look_for_errors "$arr"
+      local year=$(echo "$file" | cut -d "_" -f 2)
+      if [ "$?" -eq 1 ]; then #There was an error
+        write_to_rejected "$reg" "$reg_errors" "$DIRPROC/rechazado-$year"
+      else  #Reg was ok
+        write_to_accepted "$reg" "$DIRPROC/ejecutado-$year"
+      fi
+    done < tail -n lines "$file"
+    #After proccesing, file is moved
+    bash "$DIRBIN/Movep.sh" -c "Procep" -o "$DIROK/$file" -d "$DIRPROC/proc"
+
+    log_message "$CANT_REG_TOT $reg_val_tot" "$TYPE_INF"
+    log_message "$CANT_REG_OK $reg_val_ok" "$TYPE_INF"
+    log_message "$CANT_REG_ERR $reg_val_err" "$TYPE_INF"
+  done 
 }
 
 function main() {
@@ -90,6 +325,8 @@ function main() {
   # 5. Verify file format
   verify_file_format
 
+  # 6. Validate fields
+  validate_fields 
 }
 
 main
