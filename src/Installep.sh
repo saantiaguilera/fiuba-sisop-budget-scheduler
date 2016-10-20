@@ -267,7 +267,7 @@ function installation {
   for i in "${DIRS[@]}"; do
     bash $LOGEP -c instalep -m "Creando directorio $i"
     echo $i
-    mkdir $i
+    mkdir -p $i
   done
   bash $LOGEP -c instalep -m "Creando Estructuras de directorio ..."
   bash $LOGEP -c instalep -m "Instalando Programas y Funciones"
