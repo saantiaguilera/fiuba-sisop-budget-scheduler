@@ -35,8 +35,8 @@ Esta instalación nos deja:
 
 ### Ejecución del sistema
 Luego de la instalación, se debe ejecutar el comando Initep. El mismo creará las variables de entorno del sistema según la configuración indicada por el usuario durante la ejecución de Installep, verificará permisos y brindará indicaciones para la ejecución del comando Demonep.  
-Para ejecutar Initep se debe utilizar el comando: `. Grupo6/bin/Initep.sh` (En caso de haber hecho la instalación por default, de otro modo, el directorio será el elegido en la instalación).  
-Si desea limpiar las variables de entorno generadas por el sistema, simplemente cierre la terminal donde se está ejecutando actualmente.
+Para ejecutar Initep se debe utilizar el comando (En caso de haber hecho la instalación por default, de otro modo, el directorio será el elegido en la instalación): `. Grupo6/bin/Initep.sh` .  
+Si desea limpiar las variables de entorno generadas por el sistema, simplemente cierre la terminal donde está trabajando actualmente.
 
 ### Ejecución y detención de comandos
 #### Installep
