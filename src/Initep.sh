@@ -69,7 +69,7 @@ function check_previous_init() {
 #   None
 #######################################
 function extract_dir() {
-	eval $1=$(echo $2 | cut -d '=' -f 2)
+	eval $1=$(echo '$2' | cut -d '=' -f 2)
 }
 
 #######################################
@@ -96,14 +96,14 @@ function init_environment() {
 
 	while read -r LINE; do
 		case $LINE in
-			DIRBIN*) extract_dir DIRBIN $LINE;;
-			DIRMAE*) extract_dir DIRMAE $LINE;;
-			DIRREC*) extract_dir DIRREC $LINE;;
-			DIROK*) extract_dir DIROK $LINE;;
-			DIRPROC*) extract_dir DIRPROC $LINE;;
-			DIRINFO*) extract_dir DIRINFO $LINE;;
-			DIRLOG*) extract_dir DIRLOG $LINE;;
-			DIRNOK*) extract_dir DIRNOK $LINE;;
+			DIRBIN*) DIRBIN=$(echo "$LINE" | cut -d "=" -f 2);;
+			DIRMAE*) DIRMAE=$(echo "$LINE" | cut -d "=" -f 2);;
+			DIRREC*) DIRREC=$(echo "$LINE" | cut -d "=" -f 2);;
+			DIROK*) DIROK=$(echo "$LINE" | cut -d "=" -f 2);;
+			DIRPROC*) DIRPROC=$(echo "$LINE" | cut -d "=" -f 2);;
+			DIRINFO*) DIRINFO=$(echo "$LINE" | cut -d "=" -f 2);;
+			DIRLOG*) DIRLOG=$(echo "$LINE" | cut -d "=" -f 2);;
+			DIRNOK*) DIRNOK=$(echo "$LINE" | cut -d "=" -f 2);;
 			dirconf*) ;;
 			*)
 				log_message "$MSG_UNKNOWN_ENV_VAR" "$TYPE_ERR"
@@ -113,6 +113,8 @@ function init_environment() {
 			;;
 		esac
 	done < $CONF_FILE
+
+	echo $DIROK
 
 	if [[ -z $GRUPO || -z $DIRBIN || -z $DIRMAE || -z $DIRREC || -z $DIROK || \
 	-z $DIRPROC || -z $DIRINFO || -z $DIRLOG || -z $DIRNOK ]]; then
