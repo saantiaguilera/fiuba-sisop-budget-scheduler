@@ -114,8 +114,6 @@ function init_environment() {
 		esac
 	done < $CONF_FILE
 
-	echo $DIROK
-
 	if [[ -z $GRUPO || -z $DIRBIN || -z $DIRMAE || -z $DIRREC || -z $DIROK || \
 	-z $DIRPROC || -z $DIRINFO || -z $DIRLOG || -z $DIRNOK ]]; then
 		log_message "$MSG_MISSING_ENV_VAR" "$TYPE_ERR"
@@ -152,12 +150,12 @@ function check_script_permissions() {
 	EXIT_CODE=0
 	
 	shopt -s nullglob
-	for SCRIPT in $DIRBIN/*
+	for SCRIPT in "$DIRBIN"/*
 		do
 			if [ ! -x "$SCRIPT" ]; then
 				log_message "`echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s@%SCRIPT%@$SCRIPT@"`" "$TYPE_WAR"
 				echo `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s@%SCRIPT%@$SCRIPT@"`
-				chmod +x $SCRIPT
+				chmod +x "$SCRIPT"
 			fi
 			
 			if [ ! -x "$SCRIPT" ]; then
@@ -183,12 +181,12 @@ function check_file_permissions() {
 	EXIT_CODE=0
 
 	shopt -s nullglob	
-	for FILE in $DIRMAE/*
+	for FILE in "$DIRMAE"/*
 		do
 			if [ ! -r "$FILE" ]; then
 				log_message "`echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s@%FILE%@$FILE@"`" "$TYPE_WAR"
 				echo `echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s@%FILE%@$FILE@"`
-				chmod +r $FILE
+				chmod +r "$FILE"
 			fi
 			
 			if [ ! -r "$FILE" ]; then

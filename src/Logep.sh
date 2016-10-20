@@ -77,14 +77,14 @@ function write_log_file() {
   local file="$DIRLOG/$1.log"
   #local file="log/$1.log"
   #local file="$1.log"
-  if [ ! -f $file ]; then
-    touch $file
+  if [ ! -f "$file" ]; then
+    touch "$file"
   fi
   max_log_size_reached $file
   if [ $? -gt 0 ]; then
     reduce_log_file $file
   fi
-  echo "`date -u`-`whoami`-$1-$2-$3" >> $file 
+  echo "`date -u`-`whoami`-$1-$2-$3" >> "$file" 
 }
 
 while getopts "h?c:m:t:" opt; do
