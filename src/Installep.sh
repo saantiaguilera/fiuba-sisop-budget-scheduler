@@ -75,9 +75,7 @@ fi
 
 local letters='^[A-Za-z_]+$'
 if [ "$directory" == "dirconf" ] || [[ ! -z $directory && ! $directory =~ $letters ]]; then
-  echo "El directorio "$GRUPO/dirconf", un nombre de directorio que contiene
-  solo espacios o es vacio son directorios
-  invalidos. Ingrese otro nombre: "
+  echo "El directorio "$GRUPO/dirconf", es invalido. Ingrese otro nombre: "
   input_directory $1 #Ask the user again for another directory name
 elif [[ ! -z $directory ]]; then
   local dir=$1
