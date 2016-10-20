@@ -266,8 +266,8 @@ function instalation_confirm {
 function installation {
   for i in "${DIRS[@]}"; do
     bash $LOGEP -c instalep -m "Creando directorio $i"
-    echo $i
-    mkdir -p $i
+    echo "$i"
+    mkdir -p "$i"
   done
   bash $LOGEP -c instalep -m "Creando Estructuras de directorio ..."
   bash $LOGEP -c instalep -m "Instalando Programas y Funciones"
@@ -283,7 +283,7 @@ function installation {
   bash $LOGEP -c instalep -m "Instalando Archivos Maestros y Tablas"
   #bash Movep.sh -c "Instalep" -o "*(^[0-9]).csv" -d "$PWD/$DIRMAE"
   #bash Movep.sh -c "Instalep" -o "*.csv" -d "$PWD/$DIRNOV"
-  for file in actividades.csv sancionado-2016.csv centros.csv provincias.csv tabla-AxC.csv trimestres.csv; do
+  for file in actividades.csv sancionado-2016.csv centros.csv provincias.csv tabla-AxC.csv trimestres.csv sancionados-2015; do
     mv $file "${DIRS["DIRMAE"]}/$file"
   done
 }
