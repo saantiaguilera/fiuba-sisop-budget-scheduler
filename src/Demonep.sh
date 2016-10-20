@@ -325,7 +325,7 @@ while true; do
 		then
 			if [[ $(ps aux | grep "Procep") == "" ]]
 				then
-					$sh_process
+					$sh_process &
 					PID_PROCESS=$(pgrep "Procep")
 					$sh_log -c "Demonep" -m "`echo "$MSG_INFO_PROCESS_RUNNING" | sed "s/%PID%/$PID_PROCESS/"`" -t "$TYPE_INFO"
 				else
