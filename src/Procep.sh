@@ -2,6 +2,7 @@ MSG_ENV_NOT_INITIALIZED="Ambiente no inicializado, ejecute Initep.sh."
 CANT_TO_PROC="Cantidad de archivos a procesar:"
 DUPL_FILE_MSG="Archivo Duplicado. Se rechaza el archivo"
 BAD_FRMT_FILE="Estructura inesperada. Se rechaza el archivo"
+BAD_FRMT_REG="Estructura inesperada. Se rechaza el registro"
 FL_TO_PROC="Archivo a procesar"
 CANT_REG_TOT="Cantidad de registros leidos: "
 CANT_REG_OK="Cantidad de registros ok: "
@@ -97,11 +98,12 @@ function write_to_accepted() {
 #######################################
 function validate_center() {
   local center=$(echo "$1" | cut -d ";" -f 3)
-  local result=$(grep -Fq "$center" "$DIRMAE/centros.csv")
+  local result=$(grep -F "$center" "$DIRMAE/centros.csv")
   
   if [ "$result" ] ; then
     return 0 #True
   else
+    reg_errors+="${ERRORS[0]}. "
     return 1 #False
   fi
 }
@@ -116,11 +118,12 @@ function validate_center() {
 #######################################
 function validate_activity() {
   local activity=$(echo "$1" | cut -d ";" -f 4)
-  local result=$(grep -Fq "$activity" "$DIRMAE/actividades.csv")
+  local result=$(grep -F "$activity" "$DIRMAE/actividades.csv")
   
   if [ "$result" ]; then
     return 0 #True
   else
+    reg_errors+="${ERRORS[1]}. "
     return 1 #False
   fi
 }
@@ -136,15 +139,16 @@ function validate_activity() {
 #######################################
 function validate_trimester() {
   local trimester=$(echo "$1" | cut -d ";" -f 5)
-  local result=$(grep -Fq "$trimester" "$DIRMAE/trimestres.csv")
+  local result=$(fgrep "$trimester" "$DIRMAE/trimestres.csv")
   
   if [ "$result" ]; then
     local year1=$(echo "$result" | cut -d ";" -f 1)
-    local year2=$(echo "$trimester" | tail -c 4)
+    local year2=$(echo "$trimester" | tail -c 5)
     if [ "$year1" -eq "$year2"  ]; then
       return 0 #True
     fi
   fi
+  reg_errors+="${ERRORS[2]}. "
   return 1 #False
 }
 
@@ -164,6 +168,7 @@ function validate_date() {
   if [ "$date" -le "$file_date" ]; then
     return 0 #True
   fi
+  reg_errors+="${ERRORS[3]}. "
   return 1 #False
 }
 
@@ -183,7 +188,7 @@ function validate_date_with_trimester() {
 
   if [ "$date" -le "$file_date" ]; then
     trimester=$(echo "$1" | cut -d ";" -f 5)
-    result=$(grep -F "$trimester" "$DIRMAE/trimestres.csv")
+    result=$(fgrep "$trimester" "$DIRMAE/trimestres.csv")
 
     start=$(echo "$result" | cut -d ";" -f 3)
     day=$(echo "$start" | cut -d "/" -f 1)
@@ -196,10 +201,17 @@ function validate_date_with_trimester() {
     month=$(echo "$finish" | cut -d "/" -f 2)
     year=$(echo "$finish" | cut -d "/" -f 3)
     finish="$year""$month""$day" #ready for comparison
+    
+    if [ -z "$finish" -o -z "$start" ]; then  #Both strings need to be non empty in order to continue
+      reg_errors+="${ERRORS[4]}. "
+      return 1 #False
+    fi
+
     if [ "$date" -ge "$start" -a "$date" -le "$finish" ]; then
       return 0 #True
     fi
   fi
+  reg_errors+="${ERRORS[4]}. "
   return 1 #False
 }
 
@@ -214,38 +226,11 @@ function validate_date_with_trimester() {
 #######################################
 function validate_expenses() {
   local expenses=$(echo "$1" | cut -d ";" -f 6)
-  #local result="`echo "$expenses" > 0 | bc -l)`"
-  #echo "$result"
+  #echo "$expenses"
   if [[ "$expenses" -ge 0 ]]; then
     return 0 #True
   else
-    return 1 #False
-  fi
-}
-
-#######################################
-#Checks if there are any errors in the register
-# Globals:
-#   DIRMAE ERRORS
-# Arguments:
-#   array of possible errors
-# Returns:
-#   True or False
-#######################################
-function look_for_errors() {
-  local let index=0
-  local error_found=0
-  for i in "${arr[@]}"; do
-    if [ "$i" -eq 1 ]; then
-      reg_errors+="${ERRORS[$index]}. "
-      error_found=1
-    fi
-    let reg_val_ok+=1
-    let index+=1
-  done
-  if [ "$error_found" -eq 0 ]; then
-    return 0 #True
-  else
+    reg_errors+="${ERRORS[5]}. "
     return 1 #False
   fi
 }
@@ -261,46 +246,46 @@ function look_for_errors() {
 # Returns:
 #   None
 #######################################
-function validate_fields() {
+function process_files() {
   local file reg_val_ok lines year
   for f in "$DIROK/"* ; do
     reg_val_ok=0
     reg_val_err=0
     reg_val_tot=0
     file="`echo "$f" | rev | cut -d "/" -f 1 | rev`"
+    local year=$(echo "$file" | cut -d "_" -f 2)
     log_message "$FL_TO_PROC $file." "$TYPE_INF"
-    lines=$(wc -l < $file)
-    local i=0
+    local cont=0
     while read -r reg; do
-      let i+=1
-      if [ "$i" -eq 1 ]; then
+      let cont+=1
+      let reg_val_tot+=1
+      if [[ "$cont" -eq 1 ]]; then
         continue
       fi
-      reg_errors=""
-      arr=()
-      let reg_val_tot+=6
-      validate_center "$reg"
-      arr+=("$?")
-      validate_activity "$reg"
-      arr+=("$?")
-      validate_trimester "$reg"
-      arr+=("$?")
-      validate_date "$reg" "$f"
-      arr+=("$?")
-      validate_date_with_trimester "$reg" "$f"
-      arr+=("$?")
-      validate_expenses "$reg"
-      arr+=("$?")
-      #Done validating, now lets check if we have any errors
-      look_for_errors
-      local year=$(echo "$file" | cut -d "_" -f 2)
-      if [ "$?" -eq 1 ]; then #There was an error
+      
+      local fields_in_reg="${reg//[^;]}"
+      if [ "${#fields_in_reg}" -eq "$NUMBER_OF_FIELDS" ]; then  #If there are 6 fields, validate them
+        reg_errors=""
+        validate_center "$reg"
+        validate_activity "$reg"
+        validate_trimester "$reg"
+        validate_date "$reg" "$f"
+        validate_date_with_trimester "$reg" "$f"
+        validate_expenses "$reg"
+
+        #Done validating, now lets check if we have any errors
+        if [ ! -z "$reg_errors" ]; then   #If reg_errors isn't empty there are errors
+          let reg_val_err+=1
+          write_to_rejected "$reg" "$reg_errors" "$DIRPROC/rechazado-$year"
+        else  #Reg was ok
+          let reg_val_ok+=1
+          write_to_accepted "$reg" "$DIRPROC/ejecutado-$year"
+        fi
+      else  #There are less than 6 fields, reject the register without checking each field
         let reg_val_err+=1
-        write_to_rejected "$reg" "$reg_errors" "$DIRPROC/rechazado-$year"
-      else  #Reg was ok
-        write_to_accepted "$reg" "$DIRPROC/ejecutado-$year"
+        write_to_rejected "$reg" "$BAD_FRMT_REG" "$DIRPROC/rechazado-$year"
       fi
-    done < "$f" #tail -n "$lines" "$file"
+    done < "$f"
     #After proccesing, file is moved
     bash "$DIRBIN/Movep.sh" -c "Procep" -o "$f" -d "$DIRPROC/proc"
 
@@ -334,7 +319,8 @@ function main() {
   verify_file_format
 
   # 6. Validate fields
-  validate_fields 
+  process_files 
 }
 
 main
+
