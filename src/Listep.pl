@@ -257,7 +257,6 @@ sub print_ejec() {
 	# axc.csv:  :act_code :central_code
     # id?? / date / central_code / acr_name / trim / expense ?
 
-
 	open(DATA, "<", "$EJEC") or die "Couldn't open file $EJEC, reason: $!";
 
 	# Parse csv splitting by ;. Avoid the header.
