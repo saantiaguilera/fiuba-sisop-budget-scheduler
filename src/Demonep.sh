@@ -328,8 +328,8 @@ while true; do
       if [[ $CHCK_PRCP -lt 2 ]]
 				then
           echo "NO encontre procep"
-					$sh_process &
-					PID_PROCESS=$(pgrep "Procep")
+					bash $sh_process &
+					PID_PROCESS=$(pgrep -f "Procep")
 					$sh_log -c "Demonep" -m "`echo "$MSG_INFO_PROCESS_RUNNING" | sed "s/%PID%/$PID_PROCESS/"`" -t "$TYPE_INFO"
 				else
           echo "Encontre procep"
