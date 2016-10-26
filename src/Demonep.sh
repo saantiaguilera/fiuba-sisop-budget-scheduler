@@ -19,7 +19,7 @@ sh_log="$DIRBIN/Logep.sh"
 sh_process="$DIRBIN/Procep.sh"
 
 #### Sleep time ####
-TIME_SLEEP=15
+TIME_SLEEP=3
 
 #### Messages ####
 TYPE_ERROR="ERR"
@@ -323,12 +323,16 @@ while true; do
 	get_files_count "$DIR_ACCEPTED"
 	if [ $FILES_SIZE -gt 0 ]
 		then
-			if [[ $(ps aux | grep "Procep") == "" ]]
+      CHCK_PRCP=$(ps aux | grep -c "Procep")
+      echo "PS AUX -> $CHCK_PRCP"
+      if [[ $CHCK_PRCP -lt 2 ]]
 				then
+          echo "NO encontre procep"
 					$sh_process &
 					PID_PROCESS=$(pgrep "Procep")
 					$sh_log -c "Demonep" -m "`echo "$MSG_INFO_PROCESS_RUNNING" | sed "s/%PID%/$PID_PROCESS/"`" -t "$TYPE_INFO"
 				else
+          echo "Encontre procep"
 					$sh_log -c "Demonep" -m "$MSG_INFO_PROCESS_POSTPONED" -t "$TYPE_INFO"
 			fi
 	fi
