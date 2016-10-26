@@ -40,15 +40,18 @@ DATASIZE=100
 #   0 if True, 1 if False
 #######################################
 function directory_already_exists {
+  bash $LOGEP -c instalep -m "Verificando validez de directorio propuesto $1."
   for dir in "${DIRS[@]}"; do
     if [ "$dir" == "$GRUPO/$1" ]; then
       echo "dir exists in DIRS"
+      bash $LOGEP -c instalep -m "El directorio $1 ya existe dentro de los directorios propuestos" -t ERR
       return 0
     fi
   done
 
   if [[ -d $PWD/$GRUPO/ ]] && [[ ! -z $1 && -r $PWD/$GRUPO/$1 ]]; then
     echo "dir exists in $GRUPO"
+    bash $LOGEP -c instalep -m "El directorio $1 existe dentro $GRUPO" -t ERR
     return 0 #True
   else
     return 1 #False
@@ -76,19 +79,14 @@ fi
 local letters='^[A-Za-z_/]+$'
 if [ "$directory" == "dirconf" ] || [[ ! -z $directory && ! $directory =~ $letters ]]; then
   echo "El directorio "$GRUPO/dirconf", es invalido. Ingrese otro nombre: "
+  bash $LOGEP -c instalep -m "El directorio $directory posee un nombre invalido." -t ERR
   input_directory $1 #Ask the user again for another directory name
 elif [[ ! -z $directory ]]; then
+  bash $LOGEP -c instalep -m "El directorio $directory es valido, $GRUPO/$dir sera $GRUPO/$directory ."
   local dir=$1
   #set -- "$GRUPO/$directory" "$1"
   DIRS["$dir"]="$GRUPO/$directory"
 fi
-
-#if [[ ! -z "${directory// }" ]] && [ "$directory" != "dirconf" ]; then
-#  local dir=$1
-#  set -- "$GRUPO/$directory" "$1"
-#  DIRS["$dir"]=$1
-#  echo "NUEVO DIR: ${!DIRS[$dir]} -  ${DIRS[$dir]}"
-#fi
 }
 
 #######################################
@@ -103,35 +101,12 @@ fi
 #   0
 #######################################
 function input_directories {
-
+bash $LOGEP -c instalep -m "Definiendo nombres de directorios."
 for desc in "${!DESCS[@]}"; do
+  bash $LOGEP -c instalep -m "Definiendo nombre de directorio de ${DESCS[$desc]} (${DIRS[$desc]})."
   echo "Defina el directorio de ${DESCS[$desc]} (${DIRS[$desc]}):"
   input_directory $desc
 done
-#echo "Defina el directorio de ejecutables ($GRUPO/bin): "
-#input_directory DIRBIN
-#
-#echo "Defina el directorio de Maestros y Tablas ($GRUPO/mae): "
-#input_directory DIRMAE
-#
-#echo "Defina el directorio de recepcion de novedades ($GRUPO/nov): "
-#input_directory DIRREC
-#
-#echo "Defina el directorio de Archivos Aceptados ($GRUPO/ok): "
-#input_directory DIROK
-#
-#echo "Defina el directorio de Archivos Procesados ($GRUPO/imp): "
-#input_directory DIRPROC
-#
-#echo "Defina el directorio de Reportes($GRUPO/rep): "
-#input_directory DIRINFO
-#
-#echo "Defina el directorio de log ($GRUPO/log): "
-#input_directory DIRLOG
-#
-##echo "Defina el directorio de rechazador ($GRUPO/nok): "
-##input_directory DIRNOK
-
 return 0
 }
 
@@ -145,9 +120,12 @@ return 0
 #   0 if True, 1 if False
 #######################################
 function system_already_installed {
+  bash $LOGEP -c instalep -m "Verificando si el sistema ya esta instalado."
   if [[ -d "/$GRUPO/" ]] && [[ -e "/$GRUPO/instalep.conf" ]]; then
+    bash $LOGEP -c instalep -m "El sistema ya se ecuentra instalado." -t WAR
     return 0 #True
   else
+    bash $LOGEP -c instalep -m "El sistema no se ecuentra instalado."
     return 1 #False
   fi
 }
@@ -167,6 +145,7 @@ SYSTEM_SIZE_M=$(df -BM . | tail -1 | awk '{print $4}')
 SYSTEM_SIZE="`echo $SYSTEM_SIZE_M | sed "s/M$//"`"
 
 echo "Defina espacio minimo libre para la recepcion de archivos en Mbytes (100): "
+bash $LOGEP -c instalep -m "Definiendo espacio en disco para la recepcion de archivos."
 read size
 bash $LOGEP -c instalep -m "Espacio que intenta reservar el usuario: $size"
 
@@ -179,14 +158,14 @@ if ! [[ $size =~ $digits ]]; then
 fi
 
 if [[ $size -gt $SYSTEM_SIZE ]]; then
-  bash $LOGEP -c instalep -m "El espacio ingresado ($size) es insuficiente" -t ERR
+  bash $LOGEP -c instalep -m "El espacio ingresado ($size) es insuficiente." -t ERR
   echo "Insuficiente espacio en disco."
   echo "Espacio disponible: $SYSTEM_SIZE Mb."
   echo "Espacio requerido $size Mb."
   echo "Intentelo nuevamente."
   set_news_size
 else
-  bash $LOGEP -c instalep -m "El espacio ingresado ($size) es suficiente"
+  bash $LOGEP -c instalep -m "El espacio ingresado ($size) es suficiente."
   echo "Suficiente espacio en disco."
   echo "Espacio disponible: $SYSTEM_SIZE Mb."
   echo "Espacio requerido $size Mb."
@@ -208,27 +187,24 @@ return 0
 #   0 if the values are OK, 1 if not.
 #######################################
 function show_values {
+bash $LOGEP -c instalep -m "Mostrando parametros de instalacion seleccionados."
 for desc in "${!DESCS[@]}"; do
   echo "Directorio de ${DESCS[$desc]} ${DIRS[$desc]}"
 done
-#echo "Directorio de Configuracion: $GRUPO/dirconf"
-#echo "Directorio de Ejecutables: $DIRBIN"
-#echo "Directorio de Maestros y Tablas: $DIRMAE"
-#echo "Directorio de Recepcion de Novedades: $DIRREC"
-#echo "Directorio de Archivos Aceptados: $DIROK"
-#echo "Directorio de Archivos Procesados: $DIRPROC"
-#echo "Directorio de Archivos de Reportes: $DIRINFO"
-#echo "Directorio de Archivos de Log: $DIRLOG"
-#echo "Directorio de Archivos Rechazados: $DIRNOK"
+
+bash $LOGEP -c instalep -m "Estado de instalacion: LISTA"
 echo "Estado de la instalacion: LISTA."
+bash $LOGEP -c instalep -m "Preguntando al usuario si desea continuar con la instalacion, en base a los parametros de instalacion mostrados."
 echo "Desea continuar con la instalacion? (Si - No/Otra cosa)"
 
 read answer
 answer="${answer,,[SI]}"
 if [ "$answer" == "si" ]; then
+  bash $LOGEP -c instalep -m "El usuario decidio continuar con la instalacion."
   echo "show_values si"
   return 0
 else
+  bash $LOGEP -c instalep -m "El usuario decidio no continuar con la instalacion."
   echo "show_values no"
   return 1
 fi
@@ -244,12 +220,15 @@ fi
 #   0 if the user confirms, 1 if not.
 #######################################
 function instalation_confirm {
+  bash $LOGEP -c instalep -m "Preguntando al usuario si desea continuar con la instalacion."
   echo "Iniciando Instalacion. Esta Ud. seguro? (Si - No/Otra cosa)"
   read answer
   answer="${answer,,[SI]}"
   if [ "$answer" == "si" ]; then
+    bash $LOGEP -c instalep -m "El usuario decidio continuar con la instalacion."
     return 0 #True
   else
+    bash $LOGEP -c instalep -m "El usuario decidio no continuar con la instalacion."
     return 1 #False
   fi
 }
@@ -264,26 +243,27 @@ function instalation_confirm {
 #   None
 #######################################
 function installation {
+  bash $LOGEP -c instalep -m "Creando Estructuras de directorios."
   for i in "${DIRS[@]}"; do
-    bash $LOGEP -c instalep -m "Creando directorio $i"
+    bash $LOGEP -c instalep -m "Creando directorio $i ."
     echo "$i"
     mkdir -p "$i"
   done
-  bash $LOGEP -c instalep -m "Creando Estructuras de directorio ..."
-  bash $LOGEP -c instalep -m "Instalando Programas y Funciones"
+  bash $LOGEP -c instalep -m "Instalando Programas y Funciones."
   shopt -s nullglob
   for file in *.sh *.pl *.man; do
     if [[ "$file" != "Installep.sh" ]]; then
+      bash $LOGEP -c instalep -m "Moviendo $file a ${DIRS["DIRBIN"]}/."
       mv $file "${DIRS["DIRBIN"]}/$file"
     fi
     if [[ "$file" == "Logep.sh" ]]; then
+      bash $LOGEP -c instalep -m "Moviendo $file a ${DIRS["DIRBIN"]}/."
       LOGEP="${DIRS["DIRBIN"]}/$file"
     fi
   done
-  bash $LOGEP -c instalep -m "Instalando Archivos Maestros y Tablas"
-  #bash Movep.sh -c "Instalep" -o "*(^[0-9]).csv" -d "$PWD/$DIRMAE"
-  #bash Movep.sh -c "Instalep" -o "*.csv" -d "$PWD/$DIRNOV"
+  bash $LOGEP -c instalep -m "Instalando Archivos Maestros y Tablas."
   for file in actividades.csv sancionado-2016.csv centros.csv provincias.csv tabla-AxC.csv trimestres.csv sancionado-2015.csv; do
+    bash $LOGEP -c instalep -m "Moviendo $file a ${DIRS["DIRMAE"]}/."
     mv $file "${DIRS["DIRMAE"]}/$file"
   done
 }
@@ -298,7 +278,7 @@ function installation {
 #   None
 #######################################
 function create_conf_archive {
-  bash $LOGEP -c instalep -m "Actualizando la configuracion del sistema"
+  bash $LOGEP -c instalep -m "Actualizando la configuracion del sistema."
   local conf_file="$GRUPO/dirconf/instalep.conf"
   touch $conf_file
   for i in "${!DIRS[@]}"; do
