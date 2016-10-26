@@ -69,7 +69,7 @@ function check_previous_init() {
 #   None
 #######################################
 function extract_dir() {
-	eval $1=$(echo $2 | cut -d '=' -f 2)
+	eval $1=$(echo '$2' | cut -d '=' -f 2)
 }
 
 #######################################
@@ -96,14 +96,14 @@ function init_environment() {
 
 	while read -r LINE; do
 		case $LINE in
-			DIRBIN*) extract_dir DIRBIN $LINE;;
-			DIRMAE*) extract_dir DIRMAE $LINE;;
-			DIRREC*) extract_dir DIRREC $LINE;;
-			DIROK*) extract_dir DIROK $LINE;;
-			DIRPROC*) extract_dir DIRPROC $LINE;;
-			DIRINFO*) extract_dir DIRINFO $LINE;;
-			DIRLOG*) extract_dir DIRLOG $LINE;;
-			DIRNOK*) extract_dir DIRNOK $LINE;;
+			DIRBIN*) DIRBIN=$(echo "$LINE" | cut -d "=" -f 2);;
+			DIRMAE*) DIRMAE=$(echo "$LINE" | cut -d "=" -f 2);;
+			DIRREC*) DIRREC=$(echo "$LINE" | cut -d "=" -f 2);;
+			DIROK*) DIROK=$(echo "$LINE" | cut -d "=" -f 2);;
+			DIRPROC*) DIRPROC=$(echo "$LINE" | cut -d "=" -f 2);;
+			DIRINFO*) DIRINFO=$(echo "$LINE" | cut -d "=" -f 2);;
+			DIRLOG*) DIRLOG=$(echo "$LINE" | cut -d "=" -f 2);;
+			DIRNOK*) DIRNOK=$(echo "$LINE" | cut -d "=" -f 2);;
 			dirconf*) ;;
 			*)
 				log_message "$MSG_UNKNOWN_ENV_VAR" "$TYPE_ERR"
@@ -150,12 +150,12 @@ function check_script_permissions() {
 	EXIT_CODE=0
 	
 	shopt -s nullglob
-	for SCRIPT in $DIRBIN/*
+	for SCRIPT in "$DIRBIN"/*
 		do
 			if [ ! -x "$SCRIPT" ]; then
 				log_message "`echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s@%SCRIPT%@$SCRIPT@"`" "$TYPE_WAR"
 				echo `echo $MSG_SCRIPT_WITHOUT_PERMISSIONS_WAR | sed "s@%SCRIPT%@$SCRIPT@"`
-				chmod +x $SCRIPT
+				chmod +x "$SCRIPT"
 			fi
 			
 			if [ ! -x "$SCRIPT" ]; then
@@ -181,12 +181,12 @@ function check_file_permissions() {
 	EXIT_CODE=0
 
 	shopt -s nullglob	
-	for FILE in $DIRMAE/*
+	for FILE in "$DIRMAE"/*
 		do
 			if [ ! -r "$FILE" ]; then
 				log_message "`echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s@%FILE%@$FILE@"`" "$TYPE_WAR"
 				echo `echo $MSG_FILE_WITHOUT_PERMISSIONS_WAR | sed "s@%FILE%@$FILE@"`
-				chmod +r $FILE
+				chmod +r "$FILE"
 			fi
 			
 			if [ ! -r "$FILE" ]; then
