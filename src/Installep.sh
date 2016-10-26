@@ -257,7 +257,6 @@ function installation {
       mv $file "${DIRS["DIRBIN"]}/$file"
     fi
     if [[ "$file" == "Logep.sh" ]]; then
-      bash $LOGEP -c instalep -m "Moviendo $file a ${DIRS["DIRBIN"]}/."
       LOGEP="${DIRS["DIRBIN"]}/$file"
     fi
   done
