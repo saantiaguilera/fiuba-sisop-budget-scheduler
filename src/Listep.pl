@@ -143,13 +143,15 @@ sub print_sanc() {
 	close DATA or warn $! ? "Error closing sort pipe: $!"
                    : "Exit status $? from sort";
 
-	$OUTPUT_STRING = "Anio presupuestario;Total sancionado\n";
+	$OUTPUT_STRING = "Codigo Centro; Trimestre; Anio presupuestario;Total sancionado\n";
 	print "$OUTPUT_STRING";
 	if (defined $OUTPUT) {
 		printf $OUTPUT_FILE "$OUTPUT_STRING";
 	}
 
 	my $TOTAL_SUM = 0;
+    my $SUBTOTAL_SUM = 0;
+    my $LAST_INDEX = "";
 	for (@ROWS) {
 		my $COST_SUM = $_->[2] + $_->[3];
 		
@@ -160,6 +162,22 @@ sub print_sanc() {
 			$NAME = `grep -r \Q$NAME\\\;\E \Q$MAEDIR/centros.csv`;
 			chomp $NAME;
 			$NAME =~ s/.+;//g;
+
+            # If I sort by trimester first, subtotal is managed by trimester
+            if ($LAST_INDEX eq "") {
+                $LAST_INDEX = $_->[1];
+            } else {
+                unless ($LAST_INDEX eq $_->[1]) {
+                    # The trimester changed, print
+                    $LAST_INDEX = $_->[1];
+	            	$OUTPUT_STRING = "Subtotal;$SUBTOTAL_SUM\n";
+		            print "$OUTPUT_STRING";
+	            	if (defined $OUTPUT) {
+			            printf $OUTPUT_FILE "$OUTPUT_STRING";
+	            	}
+                    $SUBTOTAL_SUM = 0;
+                }
+            }
 		}
 		if ($SANC_CT) {
 			$NAME = $_->[1];
@@ -167,18 +185,35 @@ sub print_sanc() {
 			$NAME =~ s/2do/Segundo/g;
 			$NAME =~ s/3er/Tercer/g;
 			$NAME =~ s/4to/Cuarto/g;
-		}
+	
+            # If I sort by trimester first, subtotal is managed by trimester
+            if ($LAST_INDEX eq "") {
+                $LAST_INDEX = $_->[0];
+            } else {
+                unless ($LAST_INDEX eq $_->[0]) {
+                    # The trimester changed, print
+                    $LAST_INDEX = $_->[0];
+	            	$OUTPUT_STRING = "Subtotal;$SUBTOTAL_SUM\n";
+		            print "$OUTPUT_STRING";
+	            	if (defined $OUTPUT) {
+			            printf $OUTPUT_FILE "$OUTPUT_STRING";
+	            	}
+                    $SUBTOTAL_SUM = 0;
+                }
+            }
+	}
 
-		$OUTPUT_STRING = "$NAME;$COST_SUM\n";
+		$OUTPUT_STRING = "$_->[0];$NAME;$COST_SUM\n";
 		print "$OUTPUT_STRING";
 		if (defined $OUTPUT) {
 			printf $OUTPUT_FILE "$OUTPUT_STRING";
 		}
 
 		$TOTAL_SUM += $COST_SUM;
+        $SUBTOTAL_SUM += $COST_SUM;
 	}
 
-	$OUTPUT_STRING = "Total Anual;$TOTAL_SUM\n";
+	$OUTPUT_STRING = "Subtotal;$SUBTOTAL_SUM\nTotal Anual;$TOTAL_SUM\n";
 	print "$OUTPUT_STRING";
 	if (defined $OUTPUT) {
 		printf $OUTPUT_FILE "$OUTPUT_STRING";
@@ -220,6 +255,7 @@ sub print_ejec() {
 	# act.csv:  :act_code :act_category :act_pgm :act_name
 	# cent.csv: :central_code :central_name
 	# axc.csv:  :act_code :central_code
+    # id?? / date / central_code / acr_name / trim / expense ?
 
 	open(DATA, "<", "$EJEC") or die "Couldn't open file $EJEC, reason: $!";
 
@@ -251,6 +287,7 @@ sub print_ejec() {
 		my $FIELD_EXPENSE_SCHEDULED = "";
 		if ($FIELD_ACT_CODE) {
 			$FIELD_ACT_CODE =~ s/\;.+//g;
+            $FIELD_ACT_CODE =~ s/.+\://g;
 
 			my $EXISTS_IN_AXC = `grep -r \Q$FIELD_ACT_CODE\\\;$ROW->[2]\$\E \Q$MAEDIR/tabla-AxC.csv`;
 			$FIELD_EXPENSE_SCHEDULED = $EXISTS_IN_AXC ? "" : "Gasto fuera de la planificacion.";
@@ -261,6 +298,7 @@ sub print_ejec() {
 		# Get the central name.
 		my $FIELD_CENTRAL_NAME = `grep -r \Q$ROW->[2]\\\;\E \Q$MAEDIR/centros.csv`;
 		$FIELD_CENTRAL_NAME =~ s/.+\;//g;
+        $FIELD_CENTRAL_NAME =~ s/\n//g;
 
 		# No f'ing idea were to get the 'provincia'. Theres no field in any of the data sources. Only actividades.csv has :nom_act with some fields with 'provincias' but still there are a lot more without, so its not.
 
