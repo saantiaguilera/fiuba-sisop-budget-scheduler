@@ -153,6 +153,8 @@ sub print_sanc() {
 	}
 
 	my $TOTAL_SUM = 0;
+    my $SUBTOTAL_SUM = 0;
+    my $LAST_INDEX = "";
 	for (@ROWS) {
 		my $COST_SUM = $_->[2] + $_->[3];
 		
@@ -163,6 +165,22 @@ sub print_sanc() {
 			$NAME = `grep -r \Q$NAME\\\;\E \Q$MAEDIR/centros.csv`;
 			chomp $NAME;
 			$NAME =~ s/.+;//g;
+
+            # If I sort by trimester first, subtotal is managed by trimester
+            if ($LAST_INDEX eq "") {
+                $LAST_INDEX = $_->[1];
+            } else {
+                unless ($LAST_INDEX eq $_->[1]) {
+                    # The trimester changed, print
+                    $LAST_INDEX = $_->[1];
+	            	$OUTPUT_STRING = "Subtotal;$SUBTOTAL_SUM\n";
+		            print "$OUTPUT_STRING";
+	            	if (defined $OUTPUT) {
+			            printf $OUTPUT_FILE "$OUTPUT_STRING";
+	            	}
+                    $SUBTOTAL_SUM = 0;
+                }
+            }
 		}
 		if ($SANC_CT) {
 			$NAME = $_->[1];
@@ -170,7 +188,23 @@ sub print_sanc() {
 			$NAME =~ s/2do/Segundo/g;
 			$NAME =~ s/3er/Tercer/g;
 			$NAME =~ s/4to/Cuarto/g;
-		}
+	
+            # If I sort by trimester first, subtotal is managed by trimester
+            if ($LAST_INDEX eq "") {
+                $LAST_INDEX = $_->[0];
+            } else {
+                unless ($LAST_INDEX eq $_->[0]) {
+                    # The trimester changed, print
+                    $LAST_INDEX = $_->[0];
+	            	$OUTPUT_STRING = "Subtotal;$SUBTOTAL_SUM\n";
+		            print "$OUTPUT_STRING";
+	            	if (defined $OUTPUT) {
+			            printf $OUTPUT_FILE "$OUTPUT_STRING";
+	            	}
+                    $SUBTOTAL_SUM = 0;
+                }
+            }
+	}
 
 		$OUTPUT_STRING = "$_->[0];$NAME;$COST_SUM\n";
 		print "$OUTPUT_STRING";
@@ -179,9 +213,10 @@ sub print_sanc() {
 		}
 
 		$TOTAL_SUM += $COST_SUM;
+        $SUBTOTAL_SUM += $COST_SUM;
 	}
 
-	$OUTPUT_STRING = "Total Anual;$TOTAL_SUM\n";
+	$OUTPUT_STRING = "Subtotal;$SUBTOTAL_SUM\nTotal Anual;$TOTAL_SUM\n";
 	print "$OUTPUT_STRING";
 	if (defined $OUTPUT) {
 		printf $OUTPUT_FILE "$OUTPUT_STRING";
