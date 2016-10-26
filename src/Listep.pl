@@ -61,9 +61,6 @@ sub show_help {
 
 # VERIFICATION
 
-# ejecutado-2016.csv format:
-# id?? / date / centro tipo 0.0.0.1.2.3. ; Fiscalizacion Jujuy / Trimestre anio / Precio ?
-
 #######################################
 # Verify sanction can be invoked safely.
 # Globals:
@@ -258,6 +255,8 @@ sub print_ejec() {
 	# act.csv:  :act_code :act_category :act_pgm :act_name
 	# cent.csv: :central_code :central_name
 	# axc.csv:  :act_code :central_code
+    # id?? / date / central_code / acr_name / trim / expense ?
+
 
 	open(DATA, "<", "$EJEC") or die "Couldn't open file $EJEC, reason: $!";
 
@@ -289,6 +288,7 @@ sub print_ejec() {
 		my $FIELD_EXPENSE_SCHEDULED = "";
 		if ($FIELD_ACT_CODE) {
 			$FIELD_ACT_CODE =~ s/\;.+//g;
+            $FIELD_ACT_CODE =~ s/.+\://g;
 
 			my $EXISTS_IN_AXC = `grep -r \Q$FIELD_ACT_CODE\\\;$ROW->[2]\$\E \Q$MAEDIR/tabla-AxC.csv`;
 			$FIELD_EXPENSE_SCHEDULED = $EXISTS_IN_AXC ? "" : "Gasto fuera de la planificacion.";
@@ -299,6 +299,7 @@ sub print_ejec() {
 		# Get the central name.
 		my $FIELD_CENTRAL_NAME = `grep -r \Q$ROW->[2]\\\;\E \Q$MAEDIR/centros.csv`;
 		$FIELD_CENTRAL_NAME =~ s/.+\;//g;
+        $FIELD_CENTRAL_NAME =~ s/\n//g;
 
 		# No f'ing idea were to get the 'provincia'. Theres no field in any of the data sources. Only actividades.csv has :nom_act with some fields with 'provincias' but still there are a lot more without, so its not.
 
