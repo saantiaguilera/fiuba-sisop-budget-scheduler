@@ -296,8 +296,7 @@ function process_files() {
 }
 
 function main() {
-  
-  # 1. Verify if environment has been initialized
+    # 1. Verify if environment has been initialized
   check_previous_init
   if [ $? -ne 0 ]; then
     return 1

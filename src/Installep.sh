@@ -43,14 +43,12 @@ function directory_already_exists {
   bash $LOGEP -c instalep -m "Verificando validez de directorio propuesto $1."
   for dir in "${DIRS[@]}"; do
     if [ "$dir" == "$GRUPO/$1" ]; then
-      echo "dir exists in DIRS"
       bash $LOGEP -c instalep -m "El directorio $1 ya existe dentro de los directorios propuestos" -t ERR
       return 0
     fi
   done
 
   if [[ -d $PWD/$GRUPO/ ]] && [[ ! -z $1 && -r $PWD/$GRUPO/$1 ]]; then
-    echo "dir exists in $GRUPO"
     bash $LOGEP -c instalep -m "El directorio $1 existe dentro $GRUPO" -t ERR
     return 0 #True
   else
@@ -201,11 +199,9 @@ read answer
 answer="${answer,,[SI]}"
 if [ "$answer" == "si" ]; then
   bash $LOGEP -c instalep -m "El usuario decidio continuar con la instalacion."
-  echo "show_values si"
   return 0
 else
   bash $LOGEP -c instalep -m "El usuario decidio no continuar con la instalacion."
-  echo "show_values no"
   return 1
 fi
 }
@@ -323,7 +319,6 @@ while true; do
   input_directories
   set_news_size
   if show_values; then
-    echo "terminar"
     break
   fi
 done
