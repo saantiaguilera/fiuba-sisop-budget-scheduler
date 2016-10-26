@@ -61,6 +61,9 @@ sub show_help {
 
 # VERIFICATION
 
+# ejecutado-2016.csv format:
+# id?? / date / centro tipo 0.0.0.1.2.3. ; Fiscalizacion Jujuy / Trimestre anio / Precio ?
+
 #######################################
 # Verify sanction can be invoked safely.
 # Globals:
@@ -143,7 +146,7 @@ sub print_sanc() {
 	close DATA or warn $! ? "Error closing sort pipe: $!"
                    : "Exit status $? from sort";
 
-	$OUTPUT_STRING = "Anio presupuestario;Total sancionado\n";
+	$OUTPUT_STRING = "Codigo Centro; Trimestre; Anio presupuestario;Total sancionado\n";
 	print "$OUTPUT_STRING";
 	if (defined $OUTPUT) {
 		printf $OUTPUT_FILE "$OUTPUT_STRING";
@@ -169,7 +172,7 @@ sub print_sanc() {
 			$NAME =~ s/4to/Cuarto/g;
 		}
 
-		$OUTPUT_STRING = "$NAME;$COST_SUM\n";
+		$OUTPUT_STRING = "$_->[0];$NAME;$COST_SUM\n";
 		print "$OUTPUT_STRING";
 		if (defined $OUTPUT) {
 			printf $OUTPUT_FILE "$OUTPUT_STRING";
