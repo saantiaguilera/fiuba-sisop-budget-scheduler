@@ -13,13 +13,21 @@ TYPE_INF="INF"
 TYPE_WAR="WAR"
 NUMBER_OF_FIELDS=5
 
+HEADER_ACC="id;Fecha;Centro de Presupuest;Actividad;Trimestre;Gasto;Archivo Origen;COD_ACT;NOM_PROV;NOM_CEN"
+HEADER_REC="Fuente;Motivo;ID_EJE;FECHA_EJE;COD_CEN_EJE;NOM_ACT_EJE;NOM_TRI_EJE;GASTO_EJE;usuario;fecha"
+
+declare -A activities
+declare -A provinces
+declare -A centers
+
 
 declare -A ERRORS=(["0"]="centro inexistente" 
   ["1"]="Actividad inexistente"
   ["2"]="Trimestre invalido"
   ["3"]="Fecha invalida"
   ["4"]="La fecha no se corresponde con el trimestre indicado"
-  ["5"]="Importe invalido")
+  ["5"]="Importe invalido"
+  ["6"]="Codigo de provincia invalido")
 
 function log_message() {
   bash "$DIRBIN/Logep.sh" -c "Procep" -m "$1" -t "$2"
@@ -80,12 +88,60 @@ function verify_file_format() {
 }
 
 function write_to_rejected() {
-  echo "$1;$2" >> "$3".csv
+  if [ ! -e "$3.csv" ]; then
+    echo "$HEADER_REC" >> "$3".csv
+  fi  
+  local user=$(echo "$USER")
+  local dte=$(date "+%F %H:%M:%S" -d today)
+  echo "$file;$2;$1;$user;$dte" >> "$3".csv
 }
 
 function write_to_accepted() {
-  echo "$1" >> "$2".csv
+  if [ ! -e "$2.csv" ]; then
+    echo "$HEADER_ACC" >> "$2".csv
+  fi
+  echo "$1;$file;$cod_activity;$province_name;$name_center" >> "$2".csv
 }
+
+function load_masters() {
+
+  local act_code act_name prov_name prov_code
+  local cen_code cen_name
+  local i=0
+
+  while read -r reg || [ -n "$reg" ]; do
+    let i+=1
+    if [[ "$i" -eq 1 ]]; then
+        continue
+    fi
+    act_code=$(echo "$reg" | cut -d ";" -f 1)
+    act_name=$(echo "$reg" | cut -d ";" -f 4)
+    activities["$act_name"]="$act_code"
+  done < "$DIRMAE/actividades.csv"
+
+  let i=0
+  while read -r reg || [ -n "$reg" ]; do
+    let i+=1
+    if [[ "$i" -eq 1 ]]; then
+        continue
+    fi
+    prov_code=$(echo "$reg" | cut -d ";" -f 1)
+    prov_name=$(echo "$reg" | cut -d ";" -f 2)
+    provinces["$prov_code"]="$prov_name"
+  done < "$DIRMAE/provincias.csv"
+
+  let i=0
+  while read -r reg || [ -n "$reg" ]; do
+    let i+=1
+    if [[ "$i" -eq 1 ]]; then
+        continue
+    fi
+    cen_code=$(echo "$reg" | cut -d ";" -f 1)
+    cen_name=$(echo "$reg" | cut -d ";" -f 2)
+    centers["$cen_code"]="$cen_name"
+  done < "$DIRMAE/centros.csv"
+}
+
 
 #######################################
 #Validates that the center exists
@@ -98,15 +154,32 @@ function write_to_accepted() {
 #######################################
 function validate_center() {
   local center=$(echo "$1" | cut -d ";" -f 3)
-  local result=$(grep -F "$center" "$DIRMAE/centros.csv")
-  
-  if [ "$result" ] ; then
-    return 0 #True
-  else
+  name_center="${centers["$center"]}"
+  if [ -z "$name_center" ]; then
     reg_errors+="${ERRORS[0]}. "
     return 1 #False
   fi
+  return 0 #True
 }
+
+#######################################
+#Validates that the province exists
+# Globals:
+#   DIRMAE
+# Arguments:
+#   File register
+# Returns:
+#   True or False
+#######################################
+function get_province_name() {
+  province_name="${provinces["$1"]}"
+  if [ -z "$province_name" ]; then
+    reg_errors+="${ERRORS[6]}. "
+    return 1 #False
+  fi
+  return 0 #True
+}
+
 #######################################
 #Validates that the activity exists
 # Globals:
@@ -118,14 +191,13 @@ function validate_center() {
 #######################################
 function validate_activity() {
   local activity=$(echo "$1" | cut -d ";" -f 4)
-  local result=$(grep -F "$activity" "$DIRMAE/actividades.csv")
-  
-  if [ "$result" ]; then
-    return 0 #True
-  else
+  cod_activity="${activities["$activity"]}"
+
+  if [ -z "$cod_activity" ]; then
     reg_errors+="${ERRORS[1]}. "
     return 1 #False
   fi
+  return 0 #True
 }
 
 #######################################
@@ -252,20 +324,26 @@ function process_files() {
     reg_val_ok=0
     reg_val_err=0
     reg_val_tot=0
+    province_name=""
     file="`echo "$f" | rev | cut -d "/" -f 1 | rev`"
     local year=$(echo "$file" | cut -d "_" -f 2)
+    local province_code=$(echo "$file" | cut -d "_" -f 3)
+    get_province_name "$province_code"
     log_message "$FL_TO_PROC $file." "$TYPE_INF"
     local cont=0
-    while read -r reg; do
-      let cont+=1
-      let reg_val_tot+=1
+    while read -r reg || [ -n "$reg" ]; do
+      let cont+=1 #skips header
       if [[ "$cont" -eq 1 ]]; then
         continue
       fi
-      
+
+      let reg_val_tot+=1
       local fields_in_reg="${reg//[^;]}"
       if [ "${#fields_in_reg}" -eq "$NUMBER_OF_FIELDS" ]; then  #If there are 6 fields, validate them
         reg_errors=""
+        name_center=""
+        cod_activity=""
+
         validate_center "$reg"
         validate_activity "$reg"
         validate_trimester "$reg"
@@ -274,16 +352,21 @@ function process_files() {
         validate_expenses "$reg"
 
         #Done validating, now lets check if we have any errors
+        #echo "$reg_errors"
         if [ ! -z "$reg_errors" ]; then   #If reg_errors isn't empty there are errors
           let reg_val_err+=1
+          #uses file
           write_to_rejected "$reg" "$reg_errors" "$DIRPROC/rechazado-$year"
         else  #Reg was ok
+          #uses file cod_activity province_name name_center
           let reg_val_ok+=1
           write_to_accepted "$reg" "$DIRPROC/ejecutado-$year"
         fi
       else  #There are less than 6 fields, reject the register without checking each field
         let reg_val_err+=1
-        write_to_rejected "$reg" "$BAD_FRMT_REG" "$DIRPROC/rechazado-$year"
+        local missing_fields=$(($NUMBER_OF_FIELDS - ${#fields_in_reg}))
+        local semicolons=$(printf %"$missing_fields"s | tr " " ";")
+        write_to_rejected "$reg$semicolons" "$BAD_FRMT_REG" "$DIRPROC/rechazado-$year"
       fi
     done < "$f"
     #After proccesing, file is moved
@@ -306,7 +389,7 @@ function main() {
   count_files $DIROK
   log_message "$CANT_TO_PROC $?" "$TYPE_INF"
 
-  # 3. Create DIRPROC/proc if not created. fix me.
+  # 3. Create DIRPROC/proc if not created.
   if [ ! -e "$DIRPROC/proc" ]; then
     mkdir "$DIRPROC/proc"
   fi
@@ -317,7 +400,10 @@ function main() {
   # 5. Verify file format
   verify_file_format
 
-  # 6. Validate fields
+  # 6. Load master in a hash
+  load_masters
+
+  # 7. Validate fields
   process_files 
 }
 
