@@ -39,11 +39,6 @@ Para ejecutar Initep se debe utilizar el comando (En caso de haber hecho la inst
 Si desea limpiar las variables de entorno generadas por el sistema, simplemente cierre la terminal donde está trabajando actualmente.
 
 ### Ejecución y detención de comandos
-#### Installep
-Se ejecuta con `bash Installep.sh`
-
-#### Initep
-Se ejecuta con `. Initep.sh`
 
 #### Logep
 Se ejecuta con `bash Logep.sh -c comando -m 'Mensaje' -t tipo de mensaje`
@@ -55,12 +50,9 @@ Se detiene con `kill PID`. Para obtener el `PID` de Demonep.sh ejecute `pgrep De
 #### Movep
 Se ejecuta con `bash Movep.sh -c comando -o origen -d destino`
 
-### Procep
+#### Procep
 Se ejecuta con `bash Procep.sh`
 Demonep.sh es el encargado de ejecutarlo.
 
 #### Listep
 Se ejecuta con `perl Listep.pl --[ejec|sanc|ctrl] -[ct|tc] -[act|act_all] -[trim|trim-all] -[cent|cent-all]`
-
-### Aclaraciones
-* El comando Initep se debe correr una única vez por sesión.
