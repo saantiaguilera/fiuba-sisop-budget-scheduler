@@ -7,9 +7,9 @@ Listep.pl - Reports and log creator for budget scheduling.
 
 .SH SYNOPSIS
 
-perl Listep.pl --sanc [sanc_file] - Create a log report about a cancelled file (sancionado_nnnn.csv)
+perl Listep.pl --sanc [sanc_file] - Create a log report about a cancelled file (sancionado-yyyy.csv)
 
-perl Listep.pl --ejec [ejec_file] - Create a log report about a budget file (ejecutado_xxxx_nn_yyyymmdd.csv)
+perl Listep.pl --ejec [ejec_file] - Create a log report about a budget file (ejecutado-yyyy.csv)
 
 perl Listep.pl --ctrl [ejec_file] [sanc_file] - Create a log report about a whole budget in a year.
 
@@ -37,7 +37,7 @@ Example: ./Listep.pl -sanc path/a/mi/archivo.csv
 
 Note: Only one of the filters can be used at a time.
 
-Example: ./Listep.pl -sanc sancionados_2015.csv -ct
+Example: ./Listep.pl -sanc sancionados-2015.csv -ct
 
 .SH EXECUTED OPTIONS
 
@@ -47,7 +47,7 @@ Example: ./Listep.pl -sanc sancionados_2015.csv -ct
 
 Note: If both filters passed, all activities will be filtered.
 
-Example: ./Listep.pl -ejec ejecutado_2016_2_20160203.csv -act "Activity one" "Activity two"
+Example: ./Listep.pl -ejec ejecutado-2016.csv -act "Activity one" "Activity two"
 
 .SH CONTROL OPTIONS
 
@@ -61,7 +61,7 @@ Example: ./Listep.pl -ejec ejecutado_2016_2_20160203.csv -act "Activity one" "Ac
 
 Note: If specific filters and -all are passed for the same category, all fields for the cateogry will be applied instead of the specifics.
 
-Example: ./Listep.pl -ctrl ejecutado_2016_5_20160101.csv sancionado_2016.csv -trim "Trimestre uno" "Trimestre dos" -cent-all
+Example: ./Listep.pl -ctrl ejecutado-2016.csv sancionado-2016.csv -trim "Trimestre uno" "Trimestre dos" -cent-all
 
 .SH MISCELANEOUS OPTIONS
 
